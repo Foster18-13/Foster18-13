@@ -49,7 +49,10 @@ function todayISO() {
 function defaultData() {
   return {
     products: REQUIRED_PRODUCTS.map((name) => ({ id: generateId("product"), name })),
-    daily: {}
+    daily: {},
+    _meta: {
+      updatedAt: Date.now()
+    }
   };
 }
 
@@ -96,6 +99,8 @@ function loadData() {
     const parsed = JSON.parse(raw);
     parsed.products = Array.isArray(parsed.products) ? parsed.products : [];
     parsed.daily = parsed.daily && typeof parsed.daily === "object" ? parsed.daily : {};
+    parsed._meta = parsed._meta && typeof parsed._meta === "object" ? parsed._meta : {};
+    parsed._meta.updatedAt = asNumber(parsed._meta.updatedAt) || 0;
     const changed = ensureRequiredProducts(parsed);
     if (changed) saveData(parsed);
     return parsed;
@@ -107,7 +112,17 @@ function loadData() {
 }
 
 function saveData(data) {
+  data._meta = data._meta && typeof data._meta === "object" ? data._meta : {};
+  data._meta.updatedAt = Date.now();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+
+  if (typeof globalThis.dispatchEvent === "function") {
+    globalThis.dispatchEvent(
+      new CustomEvent("warehouse:data-saved", {
+        detail: { data }
+      })
+    );
+  }
 }
 
 function ensureDayStore(data, date) {
@@ -135,6 +150,29 @@ function getSelectedDate() {
 
 function setSelectedDate(date) {
   localStorage.setItem("twellium_selected_date", date);
+}
+
+function getPreviousDateISO(date) {
+  const targetDate = new Date(`${date}T00:00:00`);
+  if (Number.isNaN(targetDate.getTime())) return "";
+  targetDate.setDate(targetDate.getDate() - 1);
+  return targetDate.toISOString().slice(0, 10);
+}
+
+function getPreviousClosingStock(data, date, productId) {
+  const previousDate = getPreviousDateISO(date);
+  if (!previousDate) return "";
+
+  const previousDay = data.daily[previousDate];
+  if (!previousDay?.balance) return "";
+
+  const previousBalance = previousDay.balance[productId] || {};
+  const closingStock = previousBalance.closing;
+  if (closingStock === null || closingStock === undefined || closingStock === "") {
+    return "";
+  }
+
+  return closingStock;
 }
 
 function getProductById(data, productId) {

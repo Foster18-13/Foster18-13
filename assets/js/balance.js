@@ -12,10 +12,14 @@ function renderBalanceTable() {
   tbody.innerHTML = data.products
     .map((product) => {
       const existing = dayStore.balance[product.id] || {};
+      const openingValue =
+        existing.opening === null || existing.opening === undefined || existing.opening === ""
+          ? getPreviousClosingStock(data, date, product.id)
+          : existing.opening;
       const loading = getLoadingForProduct(dayStore, product.id);
       const goodsReceived = getGoodsReceivedForProduct(dayStore, product.id);
       const balanceValue = computeBalanceValue({
-        opening: existing.opening,
+        opening: openingValue,
         returns: existing.returns,
         goodsReceived,
         loading,
@@ -26,7 +30,7 @@ function renderBalanceTable() {
       return `
         <tr data-product-id="${product.id}">
           <td>${product.name}</td>
-          <td><input class="input" type="number" min="0" step="any" data-field="opening" value="${existing.opening ?? ""}" /></td>
+          <td><input class="input" type="number" min="0" step="any" data-field="opening" value="${openingValue ?? ""}" /></td>
           <td><input class="input" type="number" min="0" step="any" data-field="returns" value="${existing.returns ?? ""}" /></td>
           <td><input class="input" type="number" readonly value="${goodsReceived}" /></td>
           <td><input class="input" type="number" min="0" step="any" data-field="damages" value="${existing.damages ?? ""}" /></td>
@@ -75,9 +79,30 @@ function saveBalanceSheet() {
   const data = loadData();
   const date = getSelectedDate();
   const dayStore = ensureDayStore(data, date);
+  const warnings = [];
 
   document.querySelectorAll("#balanceTable tbody tr").forEach((row) => {
     const productId = row.dataset.productId;
+    const opening = asNumber(row.querySelector('[data-field="opening"]').value);
+    const returns = asNumber(row.querySelector('[data-field="returns"]').value);
+    const damages = asNumber(row.querySelector('[data-field="damages"]').value);
+    const closing = asNumber(row.querySelector('[data-field="closing"]').value);
+    const balance = asNumber(row.querySelector('[data-field="balance"]').value);
+    const productName = row.querySelector("td:first-child").textContent.trim();
+
+    if (returns > opening + asNumber(row.querySelector("td:nth-child(4) input").value)) {
+      warnings.push(`${productName}: Returns looks high compared to available stock.`);
+    }
+    if (damages > opening + returns) {
+      warnings.push(`${productName}: Damages looks high for the day.`);
+    }
+    if (closing < 0) {
+      warnings.push(`${productName}: Closing stock cannot be negative.`);
+    }
+    if (Math.abs(closing - balance) > 0 && Math.abs(closing - balance) > 1000000) {
+      warnings.push(`${productName}: Very large difference between closing and balance.`);
+    }
+
     dayStore.balance[productId] = {
       opening: row.querySelector('[data-field="opening"]').value,
       returns: row.querySelector('[data-field="returns"]').value,
@@ -88,7 +113,11 @@ function saveBalanceSheet() {
   });
 
   saveData(data);
-  setStatus("Balance sheet saved.", "ok");
+  if (warnings.length) {
+    setStatus(`Saved with ${warnings.length} warning(s).`, "error");
+  } else {
+    setStatus("Balance sheet saved.", "ok");
+  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {

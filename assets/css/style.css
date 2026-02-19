@@ -252,6 +252,13 @@ td textarea {
   min-width: 220px;
 }
 
+.cloud-auth-area {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 @media (max-width: 720px) {
   .header-inner {
     flex-direction: column;

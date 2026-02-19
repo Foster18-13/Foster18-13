@@ -35,8 +35,8 @@
   <main class="page">
     <section class="card">
       <h2 class="card-title">Daily Balance Sheet</h2>
-      <p class="card-subtitle">Formula: Balance = Opening Stock + Returns + Goods Received - Loading - Damages. Closing
-        stock is entered manually.</p>
+      <p class="card-subtitle">Formula: Balance = Opening Stock + Returns + Goods Received - Loading - Damages. Opening
+        stock auto-carries from previous day closing when empty, and closing stock is entered manually.</p>
       <div class="toolbar">
         <button class="button button-primary" id="saveBalance" type="button">Save Balance Sheet</button>
         <button class="button" id="exportBalance" type="button">Export CSV</button>
@@ -66,8 +66,13 @@
 
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="assets/js/firebase-config.js"></script>
   <script src="assets/js/storage.js"></script>
   <script src="assets/js/common.js"></script>
+  <script src="assets/js/cloud-sync.js"></script>
   <script src="assets/js/balance.js"></script>
 </body>
 
