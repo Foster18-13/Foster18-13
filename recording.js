@@ -27,6 +27,7 @@ const recordingProducts = [
 
 let untitledColumns = 6;
 const LOADING_STORAGE_KEY = "recordingLoadingTotals";
+const DAILY_RECORDS_STORAGE_KEY = "dailyRecordingSheetData";
 
 function createInputCell() {
   const td = document.createElement("td");
@@ -44,6 +45,7 @@ function createInputCell() {
   extraInput.type = "text";
   extraInput.className = "extra-cell";
   extraInput.placeholder = "Extra";
+  extraInput.addEventListener("input", () => saveLoadingTotals());
   td.appendChild(extraInput);
 
   return td;
@@ -68,6 +70,112 @@ function saveLoadingTotals() {
   localStorage.setItem(LOADING_STORAGE_KEY, JSON.stringify(totalsByProduct));
 }
 
+function todayIsoDate() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function getSelectedDate() {
+  const dateInput = document.getElementById("record-date");
+  return dateInput?.value || todayIsoDate();
+}
+
+function showSaveStatus(text) {
+  const status = document.getElementById("record-save-status");
+  if (status) {
+    status.textContent = text;
+  }
+}
+
+function buildRowId(row) {
+  return `${row.dataset.product}__${row.dataset.rowIndex}`;
+}
+
+function readAllDailyRecords() {
+  try {
+    const raw = localStorage.getItem(DAILY_RECORDS_STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function writeAllDailyRecords(records) {
+  localStorage.setItem(DAILY_RECORDS_STORAGE_KEY, JSON.stringify(records));
+}
+
+function collectCurrentSheetData() {
+  const rows = [...document.querySelectorAll("#recording-body tr")].map((row) => {
+    const numericValues = [...row.querySelectorAll("input.record-cell")].map((input) => input.value || "0");
+    const extraValues = [...row.querySelectorAll("input.extra-cell")].map((input) => input.value || "");
+    return {
+      rowId: buildRowId(row),
+      numericValues,
+      extraValues
+    };
+  });
+
+  return {
+    untitledColumns,
+    rows
+  };
+}
+
+function saveDailyRecord() {
+  const dateKey = getSelectedDate();
+  const allRecords = readAllDailyRecords();
+  allRecords[dateKey] = collectCurrentSheetData();
+  writeAllDailyRecords(allRecords);
+  showSaveStatus(`Saved for ${dateKey}`);
+}
+
+function applySavedSheetData(savedData) {
+  if (!savedData) return;
+
+  while (untitledColumns < (savedData.untitledColumns || 6)) {
+    addUntitledColumn();
+  }
+
+  const savedRowMap = new Map((savedData.rows || []).map((row) => [row.rowId, row]));
+
+  [...document.querySelectorAll("#recording-body tr")].forEach((row) => {
+    const savedRow = savedRowMap.get(buildRowId(row));
+    if (!savedRow) return;
+
+    const numericInputs = [...row.querySelectorAll("input.record-cell")];
+    const extraInputs = [...row.querySelectorAll("input.extra-cell")];
+
+    numericInputs.forEach((input, index) => {
+      input.value = savedRow.numericValues?.[index] ?? "0";
+    });
+
+    extraInputs.forEach((input, index) => {
+      input.value = savedRow.extraValues?.[index] ?? "";
+    });
+
+    updateRowTotal(row);
+  });
+
+  saveLoadingTotals();
+}
+
+function loadDailyRecord() {
+  const dateKey = getSelectedDate();
+  const allRecords = readAllDailyRecords();
+  const savedData = allRecords[dateKey];
+
+  if (!savedData) {
+    showSaveStatus(`No saved data for ${dateKey}`);
+    return;
+  }
+
+  buildRecordingRows();
+  applySavedSheetData(savedData);
+  highlightRequestedItem();
+  showSaveStatus(`Loaded data for ${dateKey}`);
+}
+
 function buildRecordingRows() {
   const body = document.getElementById("recording-body");
   body.innerHTML = "";
@@ -75,6 +183,8 @@ function buildRecordingRows() {
   recordingProducts.forEach((product) => {
     for (let rowIndex = 0; rowIndex < 2; rowIndex += 1) {
       const tr = document.createElement("tr");
+      tr.dataset.product = product;
+      tr.dataset.rowIndex = String(rowIndex + 1);
 
       const productCell = document.createElement("td");
       productCell.textContent = product;
@@ -142,7 +252,15 @@ function highlightRequestedItem() {
 
 window.addEventListener("DOMContentLoaded", () => {
   renderNav(location.pathname);
+  const dateInput = document.getElementById("record-date");
+  if (dateInput) {
+    dateInput.value = todayIsoDate();
+    dateInput.addEventListener("change", loadDailyRecord);
+  }
   buildRecordingRows();
+  loadDailyRecord();
   highlightRequestedItem();
+  document.getElementById("save-record-btn").addEventListener("click", saveDailyRecord);
+  document.getElementById("load-record-btn").addEventListener("click", loadDailyRecord);
   document.getElementById("add-column-btn").addEventListener("click", addUntitledColumn);
 });

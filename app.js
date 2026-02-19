@@ -3,6 +3,7 @@ const links = [
   ["recording-sheet.html", "Recording Sheet"],
   ["balance-sheet.html", "Balance Sheet"],
   ["summary-sheet.html", "Summary Sheet"],
+  ["saved-sheets.html", "Saved Sheets"],
   ["page6.html", "Note"]
 ];
 

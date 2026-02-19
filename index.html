@@ -4,22 +4,45 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Warehouse App - Home</title>
+  <title>Warehouse Portal - Home</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 
 <body>
   <header>
     <div class="container nav-wrap">
-      <div class="brand">Warehouse App</div>
+      <div class="brand">Warehouse Portal</div>
       <nav></nav>
     </div>
   </header>
 
   <main class="container grid">
     <section class="card">
-      <h1>Welcome</h1>
-      <p>Welcome to your warehouse app. Use the navigation above to open each page.</p>
+      <h1>Portal Home</h1>
+      <p>Welcome to your warehouse portal. Use quick modules below or the top navigation.</p>
+    </section>
+
+    <section class="portal-grid">
+      <a class="portal-card" href="recording-sheet.html">
+        <h2>Recording Sheet</h2>
+        <p>Capture loading entries and totals for each product.</p>
+      </a>
+      <a class="portal-card" href="balance-sheet.html">
+        <h2>Balance Sheet</h2>
+        <p>Manage opening stock, movement, and auto-calculated balances.</p>
+      </a>
+      <a class="portal-card" href="summary-sheet.html">
+        <h2>Summary Sheet</h2>
+        <p>View available stock summary per product instantly.</p>
+      </a>
+      <a class="portal-card" href="saved-sheets.html">
+        <h2>Saved Sheets</h2>
+        <p>Review all saved records for recording, balance, summary, and notes.</p>
+      </a>
+      <a class="portal-card" href="page6.html">
+        <h2>Notes</h2>
+        <p>Write and keep operational notes in one place.</p>
+      </a>
     </section>
 
     <section class="grid grid-2">
@@ -47,7 +70,7 @@
     </section>
   </main>
 
-  <footer>Warehouse App · 5 Pages</footer>
+  <footer>Warehouse Portal · 5 Modules</footer>
   <script src="app.js"></script>
   <script>renderNav(location.pathname);</script>
 </body>

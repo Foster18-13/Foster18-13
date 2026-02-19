@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Saved Sheets</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <header>
+    <div class="container nav-wrap">
+      <div class="brand">Warehouse Portal</div>
+      <nav></nav>
+    </div>
+  </header>
+
+  <main class="container grid">
+    <section class="card">
+      <h1>Saved Sheets</h1>
+      <p>All saved data from your sheets appears here.</p>
+      <div class="tools">
+        <button id="refresh-saved-btn" type="button">Refresh Saved Data</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Recording Sheet (Daily Saves)</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Saved Rows</th>
+              <th>Untitled Columns</th>
+            </tr>
+          </thead>
+          <tbody id="saved-recording-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Balance / Summary Saved Data</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Goods Loaded</th>
+              <th>Closing Stock</th>
+            </tr>
+          </thead>
+          <tbody id="saved-balance-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Notes Saved Data</h2>
+      <p id="saved-note-preview"></p>
+    </section>
+  </main>
+
+  <footer>Saved Sheets</footer>
+  <script src="app.js"></script>
+  <script src="saved-sheets.js"></script>
+</body>
+
+</html>

@@ -171,6 +171,40 @@ main {
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 
+.portal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.9rem;
+}
+
+.portal-card {
+  display: block;
+  text-decoration: none;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.95rem;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 6px 18px rgba(31, 41, 55, 0.06);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.portal-card:hover {
+  transform: translateY(-2px);
+  border-color: #96b5ff;
+  box-shadow: 0 10px 20px rgba(31, 41, 55, 0.12);
+}
+
+.portal-card h2 {
+  margin: 0 0 0.45rem;
+  font-size: 1.02rem;
+}
+
+.portal-card p {
+  margin: 0;
+  font-size: 0.88rem;
+}
+
 h1 {
   margin: 0 0 0.75rem;
   font-size: 1.4rem;
@@ -290,6 +324,12 @@ tr.searched-row td {
 .tools button {
   width: auto;
   padding: 0.5rem 0.8rem;
+}
+
+#record-save-status {
+  align-self: center;
+  color: var(--muted);
+  font-size: 0.86rem;
 }
 
 .center-note {

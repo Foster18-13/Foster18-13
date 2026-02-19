@@ -11,7 +11,7 @@
 <body>
   <header>
     <div class="container nav-wrap">
-      <div class="brand">Public Website</div>
+      <div class="brand">Warehouse Portal</div>
       <nav></nav>
     </div>
   </header>
@@ -22,7 +22,12 @@
       <p>Each product has two rows. The first column is Product Name, second is Total, and all remaining columns are
         untitled.</p>
       <div class="tools">
+        <label for="record-date">Date</label>
+        <input id="record-date" type="date" />
+        <button id="save-record-btn" type="button">Save Day</button>
+        <button id="load-record-btn" type="button">Load Day</button>
         <button id="add-column-btn" type="button">Add Untitled Column</button>
+        <span id="record-save-status"></span>
       </div>
       <div class="table-wrap">
         <table>
