@@ -191,31 +191,29 @@ function buildRecordingRows() {
   body.innerHTML = "";
 
   getActiveRecordingProducts().forEach((product) => {
-    for (let rowIndex = 0; rowIndex < 2; rowIndex += 1) {
-      const tr = document.createElement("tr");
-      tr.dataset.product = product;
-      tr.dataset.rowIndex = String(rowIndex + 1);
+    const tr = document.createElement("tr");
+    tr.dataset.product = product;
+    tr.dataset.rowIndex = "1";
 
-      const productCell = document.createElement("td");
-      productCell.textContent = product;
-      tr.appendChild(productCell);
+    const productCell = document.createElement("td");
+    productCell.textContent = product;
+    tr.appendChild(productCell);
 
-      const totalCell = document.createElement("td");
-      const totalInput = document.createElement("input");
-      totalInput.type = "number";
-      totalInput.className = "total-cell";
-      totalInput.readOnly = true;
-      totalInput.value = "0";
-      totalCell.className = "readonly";
-      totalCell.appendChild(totalInput);
-      tr.appendChild(totalCell);
+    const totalCell = document.createElement("td");
+    const totalInput = document.createElement("input");
+    totalInput.type = "number";
+    totalInput.className = "total-cell";
+    totalInput.readOnly = true;
+    totalInput.value = "0";
+    totalCell.className = "readonly";
+    totalCell.appendChild(totalInput);
+    tr.appendChild(totalCell);
 
-      for (let i = 0; i < untitledColumns; i += 1) {
-        tr.appendChild(createInputCell());
-      }
-
-      body.appendChild(tr);
+    for (let i = 0; i < untitledColumns; i += 1) {
+      tr.appendChild(createInputCell());
     }
+
+    body.appendChild(tr);
   });
 
   saveLoadingTotals();
