@@ -5,6 +5,20 @@ const LOADING_STORAGE_KEY = "recordingLoadingTotals";
 const NOTE_STORAGE_KEY = "portalNoteContent";
 const DAILY_NOTE_STORAGE_KEY = "dailyPortalNoteContent";
 
+function showSavedBalanceStatus(message) {
+  const status = document.getElementById("saved-balance-status");
+  if (status) {
+    status.textContent = message;
+  }
+}
+
+function showSavedNoteStatus(message) {
+  const status = document.getElementById("saved-note-status");
+  if (status) {
+    status.textContent = message;
+  }
+}
+
 function showProductStatus(message) {
   const status = document.getElementById("product-manage-status");
   if (status) {
@@ -101,6 +115,30 @@ function safeReadArray(key) {
   }
 }
 
+function populateSavedProductFilter() {
+  const filter = document.getElementById("saved-product-filter");
+  if (!filter) return;
+
+  const previous = filter.value;
+  filter.innerHTML = "";
+
+  const allOption = document.createElement("option");
+  allOption.value = "";
+  allOption.textContent = "All Products";
+  filter.appendChild(allOption);
+
+  getManagedProductList().forEach((product) => {
+    const option = document.createElement("option");
+    option.value = product;
+    option.textContent = product;
+    filter.appendChild(option);
+  });
+
+  if ([...filter.options].some((option) => option.value === previous)) {
+    filter.value = previous;
+  }
+}
+
 function renderRecordingDailySaves() {
   const body = document.getElementById("saved-recording-body");
   body.innerHTML = "";
@@ -142,6 +180,7 @@ function renderBalanceAndSummaryData() {
   const body = document.getElementById("saved-balance-body");
   body.innerHTML = "";
 
+  const activeFilter = document.getElementById("saved-product-filter")?.value || "";
   const dailyBalance = safeReadObject(DAILY_BALANCE_STORAGE_KEY);
   const dates = Object.keys(dailyBalance).sort((a, b) => b.localeCompare(a));
   const loadedMap = safeReadObject(LOADING_STORAGE_KEY);
@@ -149,16 +188,54 @@ function renderBalanceAndSummaryData() {
   if (!dates.length) {
     const tr = document.createElement("tr");
     const td = document.createElement("td");
-    td.colSpan = 5;
+    td.colSpan = 6;
     td.textContent = "No saved balance/summary data yet.";
     tr.appendChild(td);
     body.appendChild(tr);
     return;
   }
 
+  const productOptions = getManagedProductList();
+
+  function saveEditedBalanceRow(dateKey, rowIndex, payload) {
+    const allDaily = safeReadObject(DAILY_BALANCE_STORAGE_KEY);
+    const dateRows = Array.isArray(allDaily[dateKey]) ? allDaily[dateKey] : [];
+    if (!dateRows[rowIndex]) return;
+
+    dateRows[rowIndex] = {
+      ...dateRows[rowIndex],
+      product: payload.product,
+      loaded: payload.loaded,
+      closing: payload.closing,
+      remark: payload.remark
+    };
+
+    allDaily[dateKey] = dateRows;
+    localStorage.setItem(DAILY_BALANCE_STORAGE_KEY, JSON.stringify(allDaily));
+
+    const nextLoadedMap = safeReadObject(LOADING_STORAGE_KEY);
+    nextLoadedMap[payload.product] = payload.loaded;
+    localStorage.setItem(LOADING_STORAGE_KEY, JSON.stringify(nextLoadedMap));
+
+    localStorage.setItem(BALANCE_STORAGE_KEY, JSON.stringify(dateRows));
+
+    if (typeof globalThis.cloudSyncSaveKey === "function") {
+      globalThis.cloudSyncSaveKey(DAILY_BALANCE_STORAGE_KEY, allDaily);
+      globalThis.cloudSyncSaveKey(LOADING_STORAGE_KEY, nextLoadedMap);
+      globalThis.cloudSyncSaveKey(BALANCE_STORAGE_KEY, dateRows);
+    }
+
+    showSavedBalanceStatus(`Saved ${payload.product} for ${dateKey}`);
+    renderBalanceAndSummaryData();
+  }
+
   dates.forEach((dateKey) => {
     const rows = Array.isArray(dailyBalance[dateKey]) ? dailyBalance[dateKey] : [];
-    rows.forEach((row) => {
+    rows.forEach((row, rowIndex) => {
+      if (activeFilter && row.product !== activeFilter) {
+        return;
+      }
+
       const tr = document.createElement("tr");
 
       const dateCell = document.createElement("td");
@@ -166,20 +243,55 @@ function renderBalanceAndSummaryData() {
       tr.appendChild(dateCell);
 
       const productCell = document.createElement("td");
-      productCell.textContent = row.product || "";
+      const productSelect = document.createElement("select");
+      productOptions.forEach((product) => {
+        const option = document.createElement("option");
+        option.value = product;
+        option.textContent = product;
+        if (product === row.product) {
+          option.selected = true;
+        }
+        productSelect.appendChild(option);
+      });
+      productCell.appendChild(productSelect);
       tr.appendChild(productCell);
 
       const loadedCell = document.createElement("td");
-      loadedCell.textContent = String(Number(loadedMap[row.product] ?? row.loaded ?? 0));
+      const loadedInput = document.createElement("input");
+      loadedInput.type = "number";
+      loadedInput.min = "0";
+      loadedInput.value = String(Number(loadedMap[row.product] ?? row.loaded ?? 0));
+      loadedCell.appendChild(loadedInput);
       tr.appendChild(loadedCell);
 
       const closingCell = document.createElement("td");
-      closingCell.textContent = String(Number(row.closing ?? 0));
+      const closingInput = document.createElement("input");
+      closingInput.type = "number";
+      closingInput.value = String(Number(row.closing ?? 0));
+      closingCell.appendChild(closingInput);
       tr.appendChild(closingCell);
 
       const remarkCell = document.createElement("td");
-      remarkCell.textContent = String(Number(row.remark ?? 0));
+      const remarkInput = document.createElement("input");
+      remarkInput.type = "number";
+      remarkInput.value = String(Number(row.remark ?? 0));
+      remarkCell.appendChild(remarkInput);
       tr.appendChild(remarkCell);
+
+      const actionCell = document.createElement("td");
+      const saveBtn = document.createElement("button");
+      saveBtn.type = "button";
+      saveBtn.textContent = "Save";
+      saveBtn.addEventListener("click", () => {
+        saveEditedBalanceRow(dateKey, rowIndex, {
+          product: productSelect.value,
+          loaded: Number(loadedInput.value) || 0,
+          closing: Number(closingInput.value) || 0,
+          remark: Number(remarkInput.value) || 0
+        });
+      });
+      actionCell.appendChild(saveBtn);
+      tr.appendChild(actionCell);
 
       body.appendChild(tr);
     });
@@ -203,6 +315,21 @@ function renderNotesData() {
     return;
   }
 
+  function saveEditedNote(dateKey, text) {
+    const dailyNotes = safeReadObject(DAILY_NOTE_STORAGE_KEY);
+    dailyNotes[dateKey] = text;
+    localStorage.setItem(DAILY_NOTE_STORAGE_KEY, JSON.stringify(dailyNotes));
+    localStorage.setItem(NOTE_STORAGE_KEY, text);
+
+    if (typeof globalThis.cloudSyncSaveKey === "function") {
+      globalThis.cloudSyncSaveKey(DAILY_NOTE_STORAGE_KEY, dailyNotes);
+      globalThis.cloudSyncSaveKey(NOTE_STORAGE_KEY, text);
+    }
+
+    showSavedNoteStatus(`Saved note for ${dateKey}`);
+    renderNotesData();
+  }
+
   dates.forEach((dateKey) => {
     const tr = document.createElement("tr");
 
@@ -211,14 +338,28 @@ function renderNotesData() {
     tr.appendChild(dateCell);
 
     const noteCell = document.createElement("td");
-    noteCell.textContent = String(dailyNotes[dateKey] || "");
+    const noteInput = document.createElement("textarea");
+    noteInput.rows = 3;
+    noteInput.value = String(dailyNotes[dateKey] || "");
+    noteCell.appendChild(noteInput);
     tr.appendChild(noteCell);
+
+    const actionCell = document.createElement("td");
+    const saveBtn = document.createElement("button");
+    saveBtn.type = "button";
+    saveBtn.textContent = "Save";
+    saveBtn.addEventListener("click", () => {
+      saveEditedNote(dateKey, noteInput.value || "");
+    });
+    actionCell.appendChild(saveBtn);
+    tr.appendChild(actionCell);
 
     body.appendChild(tr);
   });
 }
 
 function renderSavedSheets() {
+  populateSavedProductFilter();
   renderRecordingDailySaves();
   renderBalanceAndSummaryData();
   renderNotesData();
@@ -236,6 +377,12 @@ globalThis.addEventListener("DOMContentLoaded", async () => {
   renderNav(location.pathname);
   setupProductManagerActions();
   renderSavedSheets();
+
+  const productFilter = document.getElementById("saved-product-filter");
+  if (productFilter) {
+    productFilter.addEventListener("change", renderBalanceAndSummaryData);
+  }
+
   const refreshBtn = document.getElementById("refresh-saved-btn");
   if (refreshBtn) {
     refreshBtn.addEventListener("click", async () => {
