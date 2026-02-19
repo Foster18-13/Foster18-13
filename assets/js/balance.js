@@ -21,6 +21,7 @@ function renderBalanceTable() {
         loading,
         damages: existing.damages
       });
+      const remarkValue = asNumber(existing.closing) - asNumber(balanceValue);
 
       return `
         <tr data-product-id="${product.id}">
@@ -32,7 +33,7 @@ function renderBalanceTable() {
           <td><input class="input" type="number" readonly value="${loading}" /></td>
           <td><input class="input" type="number" readonly data-field="balance" value="${balanceValue}" /></td>
           <td><input class="input" type="number" min="0" step="any" data-field="closing" value="${existing.closing ?? ""}" /></td>
-          <td><textarea class="textarea" rows="1" data-field="remark">${existing.remark ?? ""}</textarea></td>
+          <td><input class="input" type="number" readonly data-field="remark" value="${remarkValue}" /></td>
         </tr>
       `;
     })
@@ -47,21 +48,24 @@ function attachBalanceCalculations() {
     const returnsInput = row.querySelector('[data-field="returns"]');
     const damagesInput = row.querySelector('[data-field="damages"]');
     const balanceInput = row.querySelector('[data-field="balance"]');
+    const closingInput = row.querySelector('[data-field="closing"]');
+    const remarkInput = row.querySelector('[data-field="remark"]');
     const goodsInput = row.querySelector("td:nth-child(4) input");
     const loadingInput = row.querySelector("td:nth-child(6) input");
 
     const recalc = () => {
-      const value = computeBalanceValue({
+      const balanceValue = computeBalanceValue({
         opening: openingInput.value,
         returns: returnsInput.value,
         goodsReceived: goodsInput.value,
         loading: loadingInput.value,
         damages: damagesInput.value
       });
-      balanceInput.value = value;
+      balanceInput.value = balanceValue;
+      remarkInput.value = asNumber(closingInput.value) - asNumber(balanceValue);
     };
 
-    [openingInput, returnsInput, damagesInput].forEach((input) => {
+    [openingInput, returnsInput, damagesInput, closingInput].forEach((input) => {
       input.addEventListener("input", recalc);
     });
   });
@@ -79,7 +83,7 @@ function saveBalanceSheet() {
       returns: row.querySelector('[data-field="returns"]').value,
       damages: row.querySelector('[data-field="damages"]').value,
       closing: row.querySelector('[data-field="closing"]').value,
-      remark: row.querySelector('[data-field="remark"]').value.trim()
+      remark: row.querySelector('[data-field="remark"]').value
     };
   });
 
