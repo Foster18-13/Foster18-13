@@ -78,5 +78,11 @@ function removeProduct(productId) {
 document.addEventListener("DOMContentLoaded", () => {
   renderProducts();
   const form = document.getElementById("productForm");
+  const exportPdfButton = document.getElementById("exportProductsPdf");
   form.addEventListener("submit", handleAddProduct);
+  if (exportPdfButton) {
+    exportPdfButton.addEventListener("click", () => {
+      exportTableAsPdf("productTable", "Product List", "products");
+    });
+  }
 });

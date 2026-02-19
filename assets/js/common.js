@@ -56,6 +56,23 @@ function csvEscape(value) {
   return `"${escaped}"`;
 }
 
+function htmlEscape(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function getCellValue(cell) {
+  const fields = cell.querySelectorAll("input, textarea, select");
+  if (!fields.length) return cell.textContent.trim();
+  return Array.from(fields)
+    .map((field) => field.value)
+    .join(" | ");
+}
+
 function makeCsvFromTable(tableId) {
   const table = document.getElementById(tableId);
   if (!table) return "";
@@ -68,12 +85,7 @@ function makeCsvFromTable(tableId) {
     if (!cells.length) return;
 
     const values = Array.from(cells).map((cell) => {
-      const fields = cell.querySelectorAll("input, textarea, select");
-      const value = fields.length
-        ? Array.from(fields)
-            .map((field) => field.value)
-            .join(" | ")
-        : cell.textContent.trim();
+      const value = getCellValue(cell);
       return csvEscape(value);
     });
 
@@ -106,6 +118,79 @@ function exportTableAsCsv(tableId, filePrefix) {
 
   downloadCsv(csv, `${filePrefix}_${date}.csv`);
   setStatus("CSV exported successfully.", "ok");
+}
+
+function buildPrintableTableHtml(tableId) {
+  const table = document.getElementById(tableId);
+  if (!table) return "";
+
+  const headerCells = Array.from(table.querySelectorAll("thead th"));
+  const headers = headerCells.map((cell) => `<th>${htmlEscape(cell.textContent.trim())}</th>`).join("");
+
+  const bodyRows = Array.from(table.querySelectorAll("tbody tr"))
+    .filter((row) => row.style.display !== "none")
+    .map((row) => {
+      const cells = Array.from(row.querySelectorAll("td"));
+      const dataCells = cells.map((cell) => `<td>${htmlEscape(getCellValue(cell))}</td>`).join("");
+      return `<tr>${dataCells}</tr>`;
+    })
+    .join("");
+
+  return `
+    <table>
+      <thead><tr>${headers}</tr></thead>
+      <tbody>${bodyRows}</tbody>
+    </table>
+  `;
+}
+
+function exportTableAsPdf(tableId, title, filePrefix) {
+  const printableTable = buildPrintableTableHtml(tableId);
+  if (!printableTable) {
+    setStatus("Nothing to export.", "error");
+    return;
+  }
+
+  const date = getSelectedDate();
+  const popup = window.open("", "_blank");
+  if (!popup) {
+    setStatus("Please allow popups to export PDF.", "error");
+    return;
+  }
+
+  const doc = popup.document;
+  doc.title = `${filePrefix}_${date}`;
+
+  const style = doc.createElement("style");
+  style.textContent = `
+    body { font-family: Arial, sans-serif; padding: 16px; color: #1f2a37; }
+    h1 { margin: 0 0 6px; font-size: 20px; }
+    p { margin: 0 0 14px; color: #4b5d73; font-size: 12px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #c7d2e2; padding: 6px 8px; font-size: 12px; text-align: left; }
+    th { background: #eef3fb; }
+    @page { size: A4 landscape; margin: 12mm; }
+  `;
+
+  const heading = doc.createElement("h1");
+  heading.textContent = title;
+
+  const dateLine = doc.createElement("p");
+  dateLine.textContent = `Date: ${date}`;
+
+  doc.head.innerHTML = "";
+  doc.head.appendChild(style);
+  doc.body.innerHTML = "";
+  doc.body.appendChild(heading);
+  doc.body.appendChild(dateLine);
+  doc.body.insertAdjacentHTML("beforeend", printableTable);
+
+  popup.focus();
+  popup.setTimeout(() => {
+    popup.print();
+  }, 100);
+
+  setStatus("Print dialog opened. Choose 'Save as PDF'.", "ok");
 }
 
 function runGlobalSearch() {

@@ -111,12 +111,18 @@ document.addEventListener("DOMContentLoaded", () => {
   const saveButton = document.getElementById("saveRecording");
   const addColumnButton = document.getElementById("addColumn");
   const exportButton = document.getElementById("exportRecording");
+  const exportPdfButton = document.getElementById("exportRecordingPdf");
 
   if (saveButton) saveButton.addEventListener("click", saveRecordingSheet);
   if (addColumnButton) addColumnButton.addEventListener("click", addRecordingColumn);
   if (exportButton) {
     exportButton.addEventListener("click", () => {
       exportTableAsCsv("recordingTable", "recording_sheet");
+    });
+  }
+  if (exportPdfButton) {
+    exportPdfButton.addEventListener("click", () => {
+      exportTableAsPdf("recordingTable", "Recording Sheet", "recording_sheet");
     });
   }
 });

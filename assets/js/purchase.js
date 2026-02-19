@@ -88,10 +88,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const form = document.getElementById("purchaseForm");
   const exportButton = document.getElementById("exportPurchase");
+  const exportPdfButton = document.getElementById("exportPurchasePdf");
   form.addEventListener("submit", addPurchaseEntry);
   if (exportButton) {
     exportButton.addEventListener("click", () => {
       exportTableAsCsv("purchaseTable", "purchase_sheet");
+    });
+  }
+  if (exportPdfButton) {
+    exportPdfButton.addEventListener("click", () => {
+      exportTableAsPdf("purchaseTable", "Purchase Sheet", "purchase_sheet");
     });
   }
 });

@@ -23,10 +23,16 @@ document.addEventListener("DOMContentLoaded", () => {
   renderSummary();
   const refreshButton = document.getElementById("refreshSummary");
   const exportButton = document.getElementById("exportSummary");
+  const exportPdfButton = document.getElementById("exportSummaryPdf");
   if (refreshButton) refreshButton.addEventListener("click", renderSummary);
   if (exportButton) {
     exportButton.addEventListener("click", () => {
       exportTableAsCsv("summaryTable", "summary_sheet");
+    });
+  }
+  if (exportPdfButton) {
+    exportPdfButton.addEventListener("click", () => {
+      exportTableAsPdf("summaryTable", "Summary Sheet", "summary_sheet");
     });
   }
 });

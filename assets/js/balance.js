@@ -95,10 +95,16 @@ document.addEventListener("DOMContentLoaded", () => {
   renderBalanceTable();
   const saveButton = document.getElementById("saveBalance");
   const exportButton = document.getElementById("exportBalance");
+  const exportPdfButton = document.getElementById("exportBalancePdf");
   if (saveButton) saveButton.addEventListener("click", saveBalanceSheet);
   if (exportButton) {
     exportButton.addEventListener("click", () => {
       exportTableAsCsv("balanceTable", "balance_sheet");
+    });
+  }
+  if (exportPdfButton) {
+    exportPdfButton.addEventListener("click", () => {
+      exportTableAsPdf("balanceTable", "Daily Balance Sheet", "balance_sheet");
     });
   }
 });
