@@ -44,20 +44,21 @@ function createInputCell() {
   const td = document.createElement("td");
   td.className = "double-input-cell";
 
+  const extraInput = document.createElement("input");
+  extraInput.type = "text";
+  extraInput.className = "extra-cell";
+  extraInput.placeholder = "Waybill";
+  extraInput.addEventListener("input", () => saveLoadingTotals());
+  td.appendChild(extraInput);
+
   const mainInput = document.createElement("input");
   mainInput.type = "number";
   mainInput.min = "0";
   mainInput.value = "0";
   mainInput.className = "record-cell";
+  mainInput.placeholder = "Qty";
   mainInput.addEventListener("input", () => updateRowTotal(td.parentElement));
   td.appendChild(mainInput);
-
-  const extraInput = document.createElement("input");
-  extraInput.type = "text";
-  extraInput.className = "extra-cell";
-  extraInput.placeholder = "Extra";
-  extraInput.addEventListener("input", () => saveLoadingTotals());
-  td.appendChild(extraInput);
 
   return td;
 }
