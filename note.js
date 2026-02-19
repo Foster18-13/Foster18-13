@@ -1,4 +1,14 @@
 const NOTE_STORAGE_KEY = "portalNoteContent";
+const DAILY_NOTE_STORAGE_KEY = "dailyPortalNoteContent";
+
+function todayIsoDate() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function getSelectedNoteDate() {
+  const dateInput = document.getElementById("note-date");
+  return dateInput?.value || todayIsoDate();
+}
 
 function showNoteSaveStatus(message) {
   const status = document.getElementById("note-save-status");
@@ -7,32 +17,78 @@ function showNoteSaveStatus(message) {
   }
 }
 
+function readDailyNotes() {
+  try {
+    const raw = localStorage.getItem(DAILY_NOTE_STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function writeDailyNotes(records) {
+  localStorage.setItem(DAILY_NOTE_STORAGE_KEY, JSON.stringify(records));
+}
+
 function loadNote() {
+  const dateKey = getSelectedNoteDate();
   const noteArea = document.getElementById("note-area");
   if (!noteArea) return;
-  noteArea.value = localStorage.getItem(NOTE_STORAGE_KEY) || "";
+  const dailyNotes = readDailyNotes();
+  const noteValue = dailyNotes[dateKey] ?? localStorage.getItem(NOTE_STORAGE_KEY) ?? "";
+  noteArea.value = noteValue;
 }
 
 function saveNote() {
+  const dateKey = getSelectedNoteDate();
   const noteArea = document.getElementById("note-area");
   if (!noteArea) return;
   const noteValue = noteArea.value || "";
+  const dailyNotes = readDailyNotes();
+  dailyNotes[dateKey] = noteValue;
+
   localStorage.setItem(NOTE_STORAGE_KEY, noteValue);
+  writeDailyNotes(dailyNotes);
+
   if (typeof globalThis.cloudSyncSaveKey === "function") {
     globalThis.cloudSyncSaveKey(NOTE_STORAGE_KEY, noteValue);
+    globalThis.cloudSyncSaveKey(DAILY_NOTE_STORAGE_KEY, dailyNotes);
   }
-  showNoteSaveStatus(`Saved at ${new Date().toLocaleTimeString()}`);
+  showNoteSaveStatus(`Saved note for ${dateKey}`);
+}
+
+async function loadNoteRecord() {
+  if (typeof globalThis.cloudSyncHydrate === "function") {
+    await globalThis.cloudSyncHydrate([DAILY_NOTE_STORAGE_KEY]);
+  }
+  loadNote();
+  showNoteSaveStatus(`Loaded note for ${getSelectedNoteDate()}`);
 }
 
 async function initNotePage() {
   if (typeof globalThis.cloudSyncHydrate === "function") {
-    await globalThis.cloudSyncHydrate([NOTE_STORAGE_KEY, "portalProductList"]);
+    await globalThis.cloudSyncHydrate([NOTE_STORAGE_KEY, DAILY_NOTE_STORAGE_KEY, "portalProductList"]);
   }
+
   renderNav(location.pathname);
+  const dateInput = document.getElementById("note-date");
+  if (dateInput) {
+    dateInput.value = todayIsoDate();
+    dateInput.addEventListener("change", loadNoteRecord);
+  }
+
   loadNote();
+
   const saveBtn = document.getElementById("save-note-btn");
   if (saveBtn) {
     saveBtn.addEventListener("click", saveNote);
+  }
+
+  const loadBtn = document.getElementById("load-note-btn");
+  if (loadBtn) {
+    loadBtn.addEventListener("click", loadNoteRecord);
   }
 }
 

@@ -1,6 +1,8 @@
 const SYNC_KEYS = [
   "portalProductList",
   "dailyRecordingSheetData",
+  "dailyBalanceSheetData",
+  "dailyPortalNoteContent",
   "recordingLoadingTotals",
   "availableStockData",
   "portalNoteContent"

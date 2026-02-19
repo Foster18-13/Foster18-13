@@ -35,13 +35,38 @@ function getActiveBalanceProducts() {
 }
 
 const BALANCE_STORAGE_KEY = "availableStockData";
+const DAILY_BALANCE_STORAGE_KEY = "dailyBalanceSheetData";
 const LOADING_STORAGE_KEY = "recordingLoadingTotals";
+
+function todayIsoDate() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function getSelectedBalanceDate() {
+  const dateInput = document.getElementById("balance-date");
+  return dateInput?.value || todayIsoDate();
+}
 
 function showBalanceSaveStatus(message) {
   const status = document.getElementById("balance-save-status");
   if (status) {
     status.textContent = message;
   }
+}
+
+function readDailyBalanceRecords() {
+  try {
+    const raw = localStorage.getItem(DAILY_BALANCE_STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function writeDailyBalanceRecords(records) {
+  localStorage.setItem(DAILY_BALANCE_STORAGE_KEY, JSON.stringify(records));
 }
 
 function balanceInput(name) {
@@ -87,11 +112,17 @@ function saveAllRows() {
 }
 
 function saveBalanceRecord() {
+  const dateKey = getSelectedBalanceDate();
   const rows = saveAllRows();
+  const dailyRecords = readDailyBalanceRecords();
+  dailyRecords[dateKey] = rows;
+  writeDailyBalanceRecords(dailyRecords);
+
   if (typeof globalThis.cloudSyncSaveKey === "function") {
     globalThis.cloudSyncSaveKey(BALANCE_STORAGE_KEY, rows);
+    globalThis.cloudSyncSaveKey(DAILY_BALANCE_STORAGE_KEY, dailyRecords);
   }
-  showBalanceSaveStatus(`Saved at ${new Date().toLocaleTimeString()}`);
+  showBalanceSaveStatus(`Saved for ${dateKey}`);
 }
 
 function loadSavedData() {
@@ -103,6 +134,12 @@ function loadSavedData() {
   } catch {
     return [];
   }
+}
+
+function loadSavedDataForDate(dateKey) {
+  const dailyRecords = readDailyBalanceRecords();
+  const rows = dailyRecords[dateKey];
+  return Array.isArray(rows) ? rows : [];
 }
 
 function applySavedValues(row, savedRow) {
@@ -133,10 +170,9 @@ function attachRecalc(row) {
   });
 }
 
-function buildBalanceRows() {
+function buildBalanceRows(savedRows = loadSavedData()) {
   const body = document.getElementById("balance-body");
   body.innerHTML = "";
-  const savedRows = loadSavedData();
   const savedByProduct = new Map(savedRows.map((item) => [item.product, item]));
   const loadingTotals = loadLoadingTotals();
 
@@ -215,6 +251,25 @@ function buildBalanceRows() {
   saveAllRows();
 }
 
+async function loadBalanceRecord() {
+  if (typeof globalThis.cloudSyncHydrate === "function") {
+    await globalThis.cloudSyncHydrate([DAILY_BALANCE_STORAGE_KEY, LOADING_STORAGE_KEY]);
+  }
+
+  const dateKey = getSelectedBalanceDate();
+  const rows = loadSavedDataForDate(dateKey);
+  if (!rows.length) {
+    showBalanceSaveStatus(`No saved balance for ${dateKey}`);
+    buildBalanceRows();
+    highlightRequestedItem();
+    return;
+  }
+
+  buildBalanceRows(rows);
+  highlightRequestedItem();
+  showBalanceSaveStatus(`Loaded balance for ${dateKey}`);
+}
+
 function highlightRequestedItem() {
   const requested = new URLSearchParams(location.search).get("item");
   if (!requested) return;
@@ -241,14 +296,27 @@ function highlightRequestedItem() {
 globalThis.addEventListener("DOMContentLoaded", () => {
   const init = async () => {
     if (typeof globalThis.cloudSyncHydrate === "function") {
-      await globalThis.cloudSyncHydrate([BALANCE_STORAGE_KEY, LOADING_STORAGE_KEY, "portalProductList"]);
+      await globalThis.cloudSyncHydrate([BALANCE_STORAGE_KEY, DAILY_BALANCE_STORAGE_KEY, LOADING_STORAGE_KEY, "portalProductList"]);
     }
+
+    const dateInput = document.getElementById("balance-date");
+    if (dateInput) {
+      dateInput.value = todayIsoDate();
+      dateInput.addEventListener("change", loadBalanceRecord);
+    }
+
     renderNav(location.pathname);
-    buildBalanceRows();
+    await loadBalanceRecord();
     highlightRequestedItem();
+
     const saveBtn = document.getElementById("save-balance-btn");
     if (saveBtn) {
       saveBtn.addEventListener("click", saveBalanceRecord);
+    }
+
+    const loadBtn = document.getElementById("load-balance-btn");
+    if (loadBtn) {
+      loadBtn.addEventListener("click", loadBalanceRecord);
     }
   };
   init();

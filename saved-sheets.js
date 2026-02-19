@@ -1,7 +1,9 @@
 const DAILY_RECORDS_STORAGE_KEY = "dailyRecordingSheetData";
 const BALANCE_STORAGE_KEY = "availableStockData";
+const DAILY_BALANCE_STORAGE_KEY = "dailyBalanceSheetData";
 const LOADING_STORAGE_KEY = "recordingLoadingTotals";
 const NOTE_STORAGE_KEY = "portalNoteContent";
+const DAILY_NOTE_STORAGE_KEY = "dailyPortalNoteContent";
 
 function showProductStatus(message) {
   const status = document.getElementById("product-manage-status");
@@ -140,52 +142,80 @@ function renderBalanceAndSummaryData() {
   const body = document.getElementById("saved-balance-body");
   body.innerHTML = "";
 
-  const balanceRows = safeReadArray(BALANCE_STORAGE_KEY);
+  const dailyBalance = safeReadObject(DAILY_BALANCE_STORAGE_KEY);
+  const dates = Object.keys(dailyBalance).sort((a, b) => b.localeCompare(a));
   const loadedMap = safeReadObject(LOADING_STORAGE_KEY);
 
-  if (!balanceRows.length) {
+  if (!dates.length) {
     const tr = document.createElement("tr");
     const td = document.createElement("td");
-    td.colSpan = 4;
+    td.colSpan = 5;
     td.textContent = "No saved balance/summary data yet.";
     tr.appendChild(td);
     body.appendChild(tr);
     return;
   }
 
-  balanceRows.forEach((row) => {
-    const tr = document.createElement("tr");
+  dates.forEach((dateKey) => {
+    const rows = Array.isArray(dailyBalance[dateKey]) ? dailyBalance[dateKey] : [];
+    rows.forEach((row) => {
+      const tr = document.createElement("tr");
 
-    const productCell = document.createElement("td");
-    productCell.textContent = row.product || "";
-    tr.appendChild(productCell);
+      const dateCell = document.createElement("td");
+      dateCell.textContent = dateKey;
+      tr.appendChild(dateCell);
 
-    const loadedCell = document.createElement("td");
-    loadedCell.textContent = String(Number(loadedMap[row.product] ?? row.loaded ?? 0));
-    tr.appendChild(loadedCell);
+      const productCell = document.createElement("td");
+      productCell.textContent = row.product || "";
+      tr.appendChild(productCell);
 
-    const closingCell = document.createElement("td");
-    closingCell.textContent = String(Number(row.closing ?? 0));
-    tr.appendChild(closingCell);
+      const loadedCell = document.createElement("td");
+      loadedCell.textContent = String(Number(loadedMap[row.product] ?? row.loaded ?? 0));
+      tr.appendChild(loadedCell);
 
-    const remarkCell = document.createElement("td");
-    remarkCell.textContent = String(Number(row.remark ?? 0));
-    tr.appendChild(remarkCell);
+      const closingCell = document.createElement("td");
+      closingCell.textContent = String(Number(row.closing ?? 0));
+      tr.appendChild(closingCell);
 
-    body.appendChild(tr);
+      const remarkCell = document.createElement("td");
+      remarkCell.textContent = String(Number(row.remark ?? 0));
+      tr.appendChild(remarkCell);
+
+      body.appendChild(tr);
+    });
   });
 }
 
 function renderNotesData() {
-  const preview = document.getElementById("saved-note-preview");
-  const text = localStorage.getItem(NOTE_STORAGE_KEY) || "";
+  const body = document.getElementById("saved-note-body");
+  body.innerHTML = "";
 
-  if (!text.trim()) {
-    preview.textContent = "No saved notes yet.";
+  const dailyNotes = safeReadObject(DAILY_NOTE_STORAGE_KEY);
+  const dates = Object.keys(dailyNotes).sort((a, b) => b.localeCompare(a));
+
+  if (!dates.length) {
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 2;
+    td.textContent = "No saved notes yet.";
+    tr.appendChild(td);
+    body.appendChild(tr);
     return;
   }
 
-  preview.textContent = text;
+  dates.forEach((dateKey) => {
+    const tr = document.createElement("tr");
+
+    const dateCell = document.createElement("td");
+    dateCell.textContent = dateKey;
+    tr.appendChild(dateCell);
+
+    const noteCell = document.createElement("td");
+    noteCell.textContent = String(dailyNotes[dateKey] || "");
+    tr.appendChild(noteCell);
+
+    body.appendChild(tr);
+  });
 }
 
 function renderSavedSheets() {
