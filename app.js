@@ -139,8 +139,3 @@ function renderNav(activePath) {
 
   renderGlobalSearch();
 }
-
-function loginMessage(event, role) {
-  event.preventDefault();
-  alert(`${role} login submitted.`);
-}

@@ -17,10 +17,12 @@ body {
   margin: 0;
   font-family: Arial, Helvetica, sans-serif;
   color: var(--text);
-  background-image: url("assets/background.svg");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  background:
+    radial-gradient(circle at 8% 10%, rgba(255, 87, 153, 0.34), transparent 34%),
+    radial-gradient(circle at 88% 12%, rgba(86, 160, 255, 0.35), transparent 33%),
+    radial-gradient(circle at 18% 88%, rgba(129, 96, 255, 0.28), transparent 30%),
+    radial-gradient(circle at 82% 82%, rgba(36, 223, 186, 0.28), transparent 32%),
+    linear-gradient(125deg, #f6f3ff 0%, #f2f7ff 30%, #f7fbff 55%, #fff6f8 100%);
   background-attachment: fixed;
   min-height: 100vh;
 }
