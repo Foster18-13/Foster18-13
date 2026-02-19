@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Summary Sheet</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <header>
+    <div class="container nav-wrap">
+      <div class="brand">Public Website</div>
+      <nav></nav>
+    </div>
+  </header>
+
+  <main class="container grid">
+    <section class="card">
+      <h1>Summary Sheet</h1>
+      <p>This page shows available stock (closing stock) from the Balance Sheet.</p>
+      <div class="tools">
+        <button id="refresh-summary-btn" type="button">Refresh Summary</button>
+        <p id="last-updated" style="margin: 0; align-self: center;"></p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Available Stock</th>
+            </tr>
+          </thead>
+          <tbody id="summary-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer>Summary Sheet</footer>
+  <script src="app.js"></script>
+  <script src="summary.js"></script>
+</body>
+
+</html>

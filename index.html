@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Warehouse App - Home</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <header>
+    <div class="container nav-wrap">
+      <div class="brand">Warehouse App</div>
+      <nav></nav>
+    </div>
+  </header>
+
+  <main class="container grid">
+    <section class="card">
+      <h1>Welcome</h1>
+      <p>Welcome to your warehouse app. Use the navigation above to open each page.</p>
+    </section>
+
+    <section class="grid grid-2">
+      <article class="card">
+        <h2>Admin Login</h2>
+        <form onsubmit="loginMessage(event, 'Admin')">
+          <label for="admin-email">Email</label>
+          <input id="admin-email" type="email" required />
+          <label for="admin-pass">Password</label>
+          <input id="admin-pass" type="password" required />
+          <button type="submit">Login</button>
+        </form>
+      </article>
+
+      <article class="card">
+        <h2>Staff Login</h2>
+        <form onsubmit="loginMessage(event, 'Staff')">
+          <label for="staff-email">Email</label>
+          <input id="staff-email" type="email" required />
+          <label for="staff-pass">Password</label>
+          <input id="staff-pass" type="password" required />
+          <button type="submit">Login</button>
+        </form>
+      </article>
+    </section>
+  </main>
+
+  <footer>Warehouse App · 5 Pages</footer>
+  <script src="app.js"></script>
+  <script>renderNav(location.pathname);</script>
+</body>
+
+</html>

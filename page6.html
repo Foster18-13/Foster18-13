@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Note</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <header>
+    <div class="container nav-wrap">
+      <div class="brand">Public Website</div>
+      <nav></nav>
+    </div>
+  </header>
+
+  <main class="container grid">
+    <section class="card">
+      <h1>Note</h1>
+      <p>Use this page to write and keep notes.</p>
+      <label for="note-area">Note</label>
+      <textarea id="note-area" rows="14" placeholder="Type your notes here..."></textarea>
+    </section>
+  </main>
+
+  <footer>Note</footer>
+  <script src="app.js"></script>
+  <script>renderNav(location.pathname);</script>
+</body>
+
+</html>
