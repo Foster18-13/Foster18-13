@@ -139,14 +139,59 @@ function queueCloudPush() {
   }, 600);
 }
 
+function getAuthErrorMessage(error) {
+  const code = error?.code || "";
+
+  if (code === "auth/unauthorized-domain") {
+    const host = globalThis.location?.hostname || "this domain";
+    return `Sign in blocked: add ${host} to Firebase Authorized Domains.`;
+  }
+  if (code === "auth/operation-not-allowed") {
+    return "Sign in blocked: enable Google provider in Firebase Authentication.";
+  }
+  if (code === "auth/invalid-api-key") {
+    return "Sign in blocked: Firebase apiKey is invalid.";
+  }
+  if (code === "auth/app-not-authorized") {
+    return "Sign in blocked: app not authorized in Firebase project settings.";
+  }
+  if (code === "auth/popup-blocked") {
+    return "Popup blocked by browser; switching to redirect sign-in.";
+  }
+  if (code === "auth/popup-closed-by-user") {
+    return "Sign in popup was closed before completion.";
+  }
+
+  return error?.message ? `Sign in failed: ${error.message}` : "Sign in failed.";
+}
+
+async function finalizeRedirectResult() {
+  if (!cloudSyncState.auth) return;
+  try {
+    await cloudSyncState.auth.getRedirectResult();
+  } catch (error) {
+    setCloudStatus(getAuthErrorMessage(error), "error");
+  }
+}
+
 async function handleCloudSignIn() {
   if (!cloudSyncState.auth || !globalThis.firebase?.auth) return;
   const provider = new globalThis.firebase.auth.GoogleAuthProvider();
 
   try {
     await cloudSyncState.auth.signInWithPopup(provider);
-  } catch {
-    setCloudStatus("Sign in failed", "error");
+  } catch (error) {
+    const message = getAuthErrorMessage(error);
+    if (error?.code === "auth/popup-blocked") {
+      setCloudStatus(message, "error");
+      try {
+        await cloudSyncState.auth.signInWithRedirect(provider);
+      } catch (redirectError) {
+        setCloudStatus(getAuthErrorMessage(redirectError), "error");
+      }
+      return;
+    }
+    setCloudStatus(message, "error");
   }
 }
 
@@ -193,6 +238,8 @@ function initCloudSync() {
     cloudSyncState.firestore = globalThis.firebase.firestore();
     cloudSyncState.enabled = true;
     cloudSyncState.ready = true;
+
+    finalizeRedirectResult();
 
     wireCloudButtons();
     renderCloudAuthState();
