@@ -24,6 +24,16 @@ const balanceProducts = [
   "DrMalt – Classic Malt – 330ml x 24"
 ];
 
+function getActiveBalanceProducts() {
+  if (typeof globalThis.getProductList === "function") {
+    const list = globalThis.getProductList();
+    if (Array.isArray(list) && list.length) {
+      return list;
+    }
+  }
+  return balanceProducts;
+}
+
 const BALANCE_STORAGE_KEY = "availableStockData";
 const LOADING_STORAGE_KEY = "recordingLoadingTotals";
 
@@ -114,7 +124,7 @@ function buildBalanceRows() {
   const savedByProduct = new Map(savedRows.map((item) => [item.product, item]));
   const loadingTotals = loadLoadingTotals();
 
-  balanceProducts.forEach((product) => {
+  getActiveBalanceProducts().forEach((product) => {
     const tr = document.createElement("tr");
     tr.dataset.product = product;
 

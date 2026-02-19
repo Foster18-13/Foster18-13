@@ -25,6 +25,16 @@ const recordingProducts = [
   "Rasta Choco Malt – Chocolate Malt – 330ml x 16"
 ];
 
+function getActiveRecordingProducts() {
+  if (typeof globalThis.getProductList === "function") {
+    const list = globalThis.getProductList();
+    if (Array.isArray(list) && list.length) {
+      return list;
+    }
+  }
+  return recordingProducts;
+}
+
 let untitledColumns = 6;
 const LOADING_STORAGE_KEY = "recordingLoadingTotals";
 const DAILY_RECORDS_STORAGE_KEY = "dailyRecordingSheetData";
@@ -180,7 +190,7 @@ function buildRecordingRows() {
   const body = document.getElementById("recording-body");
   body.innerHTML = "";
 
-  recordingProducts.forEach((product) => {
+  getActiveRecordingProducts().forEach((product) => {
     for (let rowIndex = 0; rowIndex < 2; rowIndex += 1) {
       const tr = document.createElement("tr");
       tr.dataset.product = product;

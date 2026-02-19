@@ -389,6 +389,38 @@ tr.searched-row td {
   font-size: 0.86rem;
 }
 
+#product-manage-status {
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.product-list {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.product-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.45rem 0.6rem;
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.product-item span {
+  font-size: 0.88rem;
+}
+
+.product-item button {
+  width: auto;
+  padding: 0.35rem 0.55rem;
+  background: #ef4444;
+  border-color: #ef4444;
+}
+
 .center-note {
   text-align: center;
   padding: 2rem 1rem;

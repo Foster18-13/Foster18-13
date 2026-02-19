@@ -3,6 +3,80 @@ const BALANCE_STORAGE_KEY = "availableStockData";
 const LOADING_STORAGE_KEY = "recordingLoadingTotals";
 const NOTE_STORAGE_KEY = "portalNoteContent";
 
+function showProductStatus(message) {
+  const status = document.getElementById("product-manage-status");
+  if (status) {
+    status.textContent = message;
+  }
+}
+
+function getManagedProductList() {
+  if (typeof globalThis.getProductList === "function") {
+    return globalThis.getProductList();
+  }
+  return [];
+}
+
+function renderProductManager() {
+  const box = document.getElementById("product-list-box");
+  if (!box) return;
+
+  const products = getManagedProductList();
+  box.innerHTML = "";
+
+  if (!products.length) {
+    const empty = document.createElement("p");
+    empty.textContent = "No products available.";
+    box.appendChild(empty);
+    return;
+  }
+
+  products.forEach((product) => {
+    const item = document.createElement("div");
+    item.className = "product-item";
+
+    const name = document.createElement("span");
+    name.textContent = product;
+
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.textContent = "Remove";
+    removeBtn.addEventListener("click", () => {
+      if (typeof globalThis.removeProduct === "function" && globalThis.removeProduct(product)) {
+        showProductStatus("Product removed.");
+        renderProductManager();
+      }
+    });
+
+    item.appendChild(name);
+    item.appendChild(removeBtn);
+    box.appendChild(item);
+  });
+}
+
+function setupProductManagerActions() {
+  const addBtn = document.getElementById("add-product-btn");
+  const input = document.getElementById("new-product-input");
+  if (!addBtn || !input) return;
+
+  addBtn.addEventListener("click", () => {
+    const productName = input.value.trim();
+    if (!productName) {
+      showProductStatus("Enter a product name.");
+      return;
+    }
+
+    if (typeof globalThis.addProduct === "function" && globalThis.addProduct(productName)) {
+      input.value = "";
+      showProductStatus("Product added.");
+      renderProductManager();
+      return;
+    }
+
+    showProductStatus("Product already exists or cannot be added.");
+  });
+}
+
 function safeReadObject(key) {
   try {
     const raw = localStorage.getItem(key);
@@ -118,10 +192,12 @@ function renderSavedSheets() {
   renderRecordingDailySaves();
   renderBalanceAndSummaryData();
   renderNotesData();
+  renderProductManager();
 }
 
 window.addEventListener("DOMContentLoaded", () => {
   renderNav(location.pathname);
+  setupProductManagerActions();
   renderSavedSheets();
   const refreshBtn = document.getElementById("refresh-saved-btn");
   if (refreshBtn) {

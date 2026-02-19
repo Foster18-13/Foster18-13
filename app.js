@@ -7,7 +7,9 @@ const links = [
   ["page6.html", "Note"]
 ];
 
-const productSearchItems = [
+const PRODUCT_LIST_STORAGE_KEY = "portalProductList";
+
+const defaultProductList = [
   "Verna Natural Mineral Water – Neutral – 500ml x 24",
   "Verna Natural Mineral Water – Neutral – 500ml x 16",
   "Verna Natural Mineral Water – Neutral – 750ml x 16",
@@ -34,6 +36,54 @@ const productSearchItems = [
   "Rasta Choco Malt – Chocolate Malt – 330ml x 16"
 ];
 
+function readStoredProductList() {
+  try {
+    const raw = localStorage.getItem(PRODUCT_LIST_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter((item) => typeof item === "string" && item.trim()) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveProductList(list) {
+  localStorage.setItem(PRODUCT_LIST_STORAGE_KEY, JSON.stringify(list));
+}
+
+function getProductList() {
+  const stored = readStoredProductList();
+  return stored.length ? stored : [...defaultProductList];
+}
+
+function addProduct(productName) {
+  const name = (productName || "").trim();
+  if (!name) return false;
+
+  const current = getProductList();
+  const alreadyExists = current.some((item) => item.toLowerCase() === name.toLowerCase());
+  if (alreadyExists) return false;
+
+  saveProductList([...current, name]);
+  return true;
+}
+
+function removeProduct(productName) {
+  const name = (productName || "").trim();
+  if (!name) return false;
+
+  const current = getProductList();
+  const next = current.filter((item) => item !== name);
+  if (next.length === current.length) return false;
+
+  saveProductList(next);
+  return true;
+}
+
+globalThis.getProductList = getProductList;
+globalThis.addProduct = addProduct;
+globalThis.removeProduct = removeProduct;
+
 function getSearchItems() {
   const pageItems = links.map(([href, label]) => ({
     label,
@@ -41,7 +91,7 @@ function getSearchItems() {
     href
   }));
 
-  const productItems = productSearchItems.map((label) => ({
+  const productItems = getProductList().map((label) => ({
     label,
     type: "Item",
     href: `recording-sheet.html?item=${encodeURIComponent(label)}`
