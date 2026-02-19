@@ -5,6 +5,86 @@ const LOADING_STORAGE_KEY = "recordingLoadingTotals";
 const NOTE_STORAGE_KEY = "portalNoteContent";
 const DAILY_NOTE_STORAGE_KEY = "dailyPortalNoteContent";
 
+function showCloudSetupStatus(message) {
+  const status = document.getElementById("cloud-setup-status");
+  if (status) {
+    status.textContent = message;
+  }
+}
+
+function setupCloudStorageForm() {
+  const fieldMap = {
+    apiKey: document.getElementById("fb-api-key"),
+    authDomain: document.getElementById("fb-auth-domain"),
+    databaseURL: document.getElementById("fb-database-url"),
+    projectId: document.getElementById("fb-project-id"),
+    storageBucket: document.getElementById("fb-storage-bucket"),
+    messagingSenderId: document.getElementById("fb-messaging-sender-id"),
+    appId: document.getElementById("fb-app-id")
+  };
+  const dbPathInput = document.getElementById("fb-db-path");
+
+  if (!fieldMap.apiKey || !dbPathInput) return;
+
+  const currentConfig = typeof globalThis.getFirebaseRuntimeConfig === "function"
+    ? globalThis.getFirebaseRuntimeConfig()
+    : (typeof FIREBASE_CONFIG !== "undefined" ? FIREBASE_CONFIG : {});
+
+  Object.entries(fieldMap).forEach(([key, input]) => {
+    input.value = String(currentConfig?.[key] || "");
+  });
+
+  if (typeof globalThis.getFirebaseRuntimeDbPath === "function") {
+    dbPathInput.value = globalThis.getFirebaseRuntimeDbPath() || "twelliumWarehousePortal";
+  }
+
+  const saveBtn = document.getElementById("save-cloud-setup-btn");
+  if (saveBtn) {
+    saveBtn.addEventListener("click", () => {
+      const config = {};
+      Object.entries(fieldMap).forEach(([key, input]) => {
+        config[key] = input.value.trim();
+      });
+
+      if (!config.databaseURL) {
+        showCloudSetupStatus("Database URL is required.");
+        return;
+      }
+
+      if (typeof globalThis.saveFirebaseRuntimeConfig === "function") {
+        globalThis.saveFirebaseRuntimeConfig(config, (dbPathInput.value || "").trim() || "twelliumWarehousePortal");
+      }
+
+      showCloudSetupStatus("Cloud setup saved. Reloading...");
+      setTimeout(() => location.reload(), 500);
+    });
+  }
+
+  const clearBtn = document.getElementById("clear-cloud-setup-btn");
+  if (clearBtn) {
+    clearBtn.addEventListener("click", () => {
+      if (typeof globalThis.clearFirebaseRuntimeConfig === "function") {
+        globalThis.clearFirebaseRuntimeConfig();
+      }
+      showCloudSetupStatus("Cloud setup cleared. Reloading...");
+      setTimeout(() => location.reload(), 500);
+    });
+  }
+
+  const testBtn = document.getElementById("test-cloud-setup-btn");
+  if (testBtn) {
+    testBtn.addEventListener("click", async () => {
+      if (typeof globalThis.cloudSyncHydrateAll !== "function") {
+        showCloudSetupStatus("Sync module not available.");
+        return;
+      }
+
+      const ok = await globalThis.cloudSyncHydrateAll();
+      showCloudSetupStatus(ok ? "Cloud connection successful." : "Cloud connection failed. Check your setup.");
+    });
+  }
+}
+
 function showSavedBalanceStatus(message) {
   const status = document.getElementById("saved-balance-status");
   if (status) {
@@ -56,7 +136,7 @@ function renderProductManager() {
 
     const removeBtn = document.createElement("button");
     removeBtn.type = "button";
-    removeBtn.className = "remove-btn";
+     removeBtn.className = "remove-btn";
     removeBtn.textContent = "Remove";
     removeBtn.addEventListener("click", () => {
       if (typeof globalThis.removeProduct === "function" && globalThis.removeProduct(product)) {
@@ -396,6 +476,7 @@ async function hydrateSavedSheetsData() {
 globalThis.addEventListener("DOMContentLoaded", async () => {
   await hydrateSavedSheetsData();
   renderNav(location.pathname);
+  setupCloudStorageForm();
   setupProductManagerActions();
   renderSavedSheets();
 

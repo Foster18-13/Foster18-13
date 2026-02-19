@@ -26,6 +26,51 @@
     </section>
 
     <section class="card">
+      <h2>Cloud Storage Setup</h2>
+      <p>Set Firebase details once to enable shared online storage across devices.</p>
+      <div class="grid grid-2">
+        <div>
+          <label for="fb-api-key">API Key</label>
+          <input id="fb-api-key" type="text" />
+        </div>
+        <div>
+          <label for="fb-auth-domain">Auth Domain</label>
+          <input id="fb-auth-domain" type="text" />
+        </div>
+        <div>
+          <label for="fb-database-url">Database URL</label>
+          <input id="fb-database-url" type="text" />
+        </div>
+        <div>
+          <label for="fb-project-id">Project ID</label>
+          <input id="fb-project-id" type="text" />
+        </div>
+        <div>
+          <label for="fb-storage-bucket">Storage Bucket</label>
+          <input id="fb-storage-bucket" type="text" />
+        </div>
+        <div>
+          <label for="fb-messaging-sender-id">Messaging Sender ID</label>
+          <input id="fb-messaging-sender-id" type="text" />
+        </div>
+        <div>
+          <label for="fb-app-id">App ID</label>
+          <input id="fb-app-id" type="text" />
+        </div>
+        <div>
+          <label for="fb-db-path">Database Path</label>
+          <input id="fb-db-path" type="text" placeholder="twelliumWarehousePortal" />
+        </div>
+      </div>
+      <div class="tools">
+        <button id="save-cloud-setup-btn" type="button">Save Cloud Setup</button>
+        <button id="clear-cloud-setup-btn" type="button">Clear Cloud Setup</button>
+        <button id="test-cloud-setup-btn" type="button">Test Connection</button>
+      </div>
+      <p id="cloud-setup-status"></p>
+    </section>
+
+    <section class="card">
       <h2>Manage Product List</h2>
       <p>Add or remove products to keep the product list flexible across all sheets.</p>
       <div class="tools">
