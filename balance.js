@@ -37,6 +37,7 @@ function getActiveBalanceProducts() {
 const BALANCE_STORAGE_KEY = "availableStockData";
 const DAILY_BALANCE_STORAGE_KEY = "dailyBalanceSheetData";
 const LOADING_STORAGE_KEY = "recordingLoadingTotals";
+let balanceAutoSaveTimer = null;
 
 function todayIsoDate() {
   return new Date().toISOString().slice(0, 10);
@@ -111,7 +112,7 @@ function saveAllRows() {
   return rows;
 }
 
-function saveBalanceRecord() {
+function saveBalanceRecord(showStatus = true) {
   const dateKey = getSelectedBalanceDate();
   const rows = saveAllRows();
   const dailyRecords = readDailyBalanceRecords();
@@ -122,7 +123,19 @@ function saveBalanceRecord() {
     globalThis.cloudSyncSaveKey(BALANCE_STORAGE_KEY, rows);
     globalThis.cloudSyncSaveKey(DAILY_BALANCE_STORAGE_KEY, dailyRecords);
   }
-  showBalanceSaveStatus(`Saved for ${dateKey}`);
+  if (showStatus) {
+    showBalanceSaveStatus(`Saved for ${dateKey}`);
+  }
+}
+
+function queueAutoSaveBalance() {
+  if (balanceAutoSaveTimer) {
+    clearTimeout(balanceAutoSaveTimer);
+  }
+  balanceAutoSaveTimer = setTimeout(() => {
+    saveBalanceRecord(false);
+    showBalanceSaveStatus(`Auto-saved for ${getSelectedBalanceDate()}`);
+  }, 1200);
 }
 
 function loadSavedData() {
@@ -166,6 +179,7 @@ function attachRecalc(row) {
     row.querySelector(selector).addEventListener("input", () => {
       calculateForRow(row);
       saveAllRows();
+      queueAutoSaveBalance();
     });
   });
 }
@@ -311,13 +325,17 @@ globalThis.addEventListener("DOMContentLoaded", () => {
 
     const saveBtn = document.getElementById("save-balance-btn");
     if (saveBtn) {
-      saveBtn.addEventListener("click", saveBalanceRecord);
+      saveBtn.addEventListener("click", () => saveBalanceRecord(true));
     }
 
     const loadBtn = document.getElementById("load-balance-btn");
     if (loadBtn) {
       loadBtn.addEventListener("click", loadBalanceRecord);
     }
+
+    setInterval(() => {
+      saveBalanceRecord(false);
+    }, 120000);
   };
   init();
 });

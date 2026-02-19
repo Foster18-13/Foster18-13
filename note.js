@@ -1,5 +1,6 @@
 const NOTE_STORAGE_KEY = "portalNoteContent";
 const DAILY_NOTE_STORAGE_KEY = "dailyPortalNoteContent";
+let noteAutoSaveTimer = null;
 
 function todayIsoDate() {
   return new Date().toISOString().slice(0, 10);
@@ -41,7 +42,7 @@ function loadNote() {
   noteArea.value = noteValue;
 }
 
-function saveNote() {
+function saveNote(showStatus = true) {
   const dateKey = getSelectedNoteDate();
   const noteArea = document.getElementById("note-area");
   if (!noteArea) return;
@@ -56,7 +57,19 @@ function saveNote() {
     globalThis.cloudSyncSaveKey(NOTE_STORAGE_KEY, noteValue);
     globalThis.cloudSyncSaveKey(DAILY_NOTE_STORAGE_KEY, dailyNotes);
   }
-  showNoteSaveStatus(`Saved note for ${dateKey}`);
+  if (showStatus) {
+    showNoteSaveStatus(`Saved note for ${dateKey}`);
+  }
+}
+
+function queueAutoSaveNote() {
+  if (noteAutoSaveTimer) {
+    clearTimeout(noteAutoSaveTimer);
+  }
+  noteAutoSaveTimer = setTimeout(() => {
+    saveNote(false);
+    showNoteSaveStatus(`Auto-saved note for ${getSelectedNoteDate()}`);
+  }, 1200);
 }
 
 async function loadNoteRecord() {
@@ -83,13 +96,22 @@ async function initNotePage() {
 
   const saveBtn = document.getElementById("save-note-btn");
   if (saveBtn) {
-    saveBtn.addEventListener("click", saveNote);
+    saveBtn.addEventListener("click", () => saveNote(true));
   }
 
   const loadBtn = document.getElementById("load-note-btn");
   if (loadBtn) {
     loadBtn.addEventListener("click", loadNoteRecord);
   }
+
+  const noteArea = document.getElementById("note-area");
+  if (noteArea) {
+    noteArea.addEventListener("input", queueAutoSaveNote);
+  }
+
+  setInterval(() => {
+    saveNote(false);
+  }, 120000);
 }
 
 globalThis.addEventListener("DOMContentLoaded", initNotePage);

@@ -38,6 +38,7 @@ function getActiveRecordingProducts() {
 let untitledColumns = 6;
 const LOADING_STORAGE_KEY = "recordingLoadingTotals";
 const DAILY_RECORDS_STORAGE_KEY = "dailyRecordingSheetData";
+let recordAutoSaveTimer = null;
 
 function createInputCell() {
   const td = document.createElement("td");
@@ -132,7 +133,7 @@ function collectCurrentSheetData() {
   };
 }
 
-function saveDailyRecord() {
+function saveDailyRecord(showStatus = true) {
   const dateKey = getSelectedDate();
   const allRecords = readAllDailyRecords();
   allRecords[dateKey] = collectCurrentSheetData();
@@ -147,7 +148,19 @@ function saveDailyRecord() {
       // Ignore sync serialization issues
     }
   }
-  showSaveStatus(`Saved for ${dateKey}`);
+  if (showStatus) {
+    showSaveStatus(`Saved for ${dateKey}`);
+  }
+}
+
+function queueAutoSaveRecord() {
+  if (recordAutoSaveTimer) {
+    clearTimeout(recordAutoSaveTimer);
+  }
+  recordAutoSaveTimer = setTimeout(() => {
+    saveDailyRecord(false);
+    showSaveStatus(`Auto-saved for ${getSelectedDate()}`);
+  }, 1200);
 }
 
 function applySavedSheetData(savedData) {
@@ -288,9 +301,18 @@ async function initRecordingPage() {
   buildRecordingRows();
   loadDailyRecord();
   highlightRequestedItem();
-  document.getElementById("save-record-btn").addEventListener("click", saveDailyRecord);
+  document.getElementById("save-record-btn").addEventListener("click", () => saveDailyRecord(true));
   document.getElementById("load-record-btn").addEventListener("click", loadDailyRecordWithHydration);
   document.getElementById("add-column-btn").addEventListener("click", addUntitledColumn);
+
+  const recordingBody = document.getElementById("recording-body");
+  if (recordingBody) {
+    recordingBody.addEventListener("input", queueAutoSaveRecord);
+  }
+
+  setInterval(() => {
+    saveDailyRecord(false);
+  }, 120000);
 }
 
 globalThis.addEventListener("DOMContentLoaded", initRecordingPage);
