@@ -28,7 +28,7 @@ body {
 }
 
 header {
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(224, 8, 8, 0.88);
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
@@ -68,7 +68,7 @@ nav {
 }
 
 .global-search input {
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(129, 167, 146, 0.95);
 }
 
 .search-results {
@@ -283,7 +283,7 @@ label {
   margin-bottom: 0.2rem;
 }
 
-input, textarea, button {
+input, textarea, select, button {
   width: 100%;
   padding: 0.55rem 0.65rem;
   border: 1px solid var(--border);
@@ -293,7 +293,8 @@ input, textarea, button {
 }
 
 input:focus,
-textarea:focus {
+textarea:focus,
+select:focus {
   outline: none;
   border-color: #7ba4ff;
   box-shadow: 0 0 0 4px var(--soft-glow);
@@ -424,6 +425,24 @@ tr.searched-row td {
 .center-note {
   text-align: center;
   padding: 2rem 1rem;
+}
+
+.access-main {
+  padding-top: 4rem;
+}
+
+.access-card {
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.access-form {
+  gap: 0.8rem;
+}
+
+#access-status {
+  color: var(--muted);
+  margin-top: 0.8rem;
 }
 
 footer {

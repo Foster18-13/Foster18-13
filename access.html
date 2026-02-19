@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Twellium Portal Access</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <main class="container grid access-main">
+    <section class="card access-card">
+      <h1>Twellium Warehouse Portal</h1>
+      <p>Select your shift and enter password to access the portal.</p>
+      <form id="portal-access-form" class="grid access-form">
+        <div>
+          <label for="shift">Shift</label>
+          <select id="shift" required>
+            <option value="day">Day Shift</option>
+            <option value="night">Night Shift</option>
+          </select>
+        </div>
+        <div>
+          <label for="access-password">Password</label>
+          <input id="access-password" type="password" required />
+        </div>
+        <button type="submit">Open Portal</button>
+      </form>
+      <p id="access-status"></p>
+    </section>
+  </main>
+
+  <script src="auth.js"></script>
+</body>
+
+</html>
