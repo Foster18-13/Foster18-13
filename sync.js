@@ -9,6 +9,7 @@ const SYNC_KEYS = [
 ];
 
 let syncDatabase = null;
+const activeRealtimeSubscriptions = [];
 
 function canInitFirebase() {
   return typeof firebase !== "undefined"
@@ -70,6 +71,60 @@ async function cloudSyncHydrateAll() {
   return cloudSyncHydrate(SYNC_KEYS);
 }
 
+function cloudSyncSubscribe(keys, onChange = null) {
+  if (!ensureFirebaseReady()) return () => {};
+
+  const targetKeys = Array.isArray(keys) && keys.length ? keys : SYNC_KEYS;
+
+  const refs = [];
+
+  targetKeys.forEach((key) => {
+    try {
+      const ref = keyRef(key);
+      const handler = (snapshot) => {
+        if (snapshot.exists()) {
+          localStorage.setItem(key, JSON.stringify(snapshot.val()));
+        } else {
+          localStorage.removeItem(key);
+        }
+
+        if (typeof onChange === "function") {
+          onChange(key, snapshot.exists() ? snapshot.val() : null);
+        }
+      };
+
+      ref.on("value", handler);
+      refs.push({ ref, handler });
+      activeRealtimeSubscriptions.push({ ref, handler });
+    } catch {
+      // Continue other keys
+    }
+  });
+
+  return () => {
+    refs.forEach(({ ref, handler }) => {
+      try {
+        ref.off("value", handler);
+      } catch {
+        // ignore
+      }
+    });
+  };
+}
+
+function cloudSyncUnsubscribeAll() {
+  while (activeRealtimeSubscriptions.length) {
+    const item = activeRealtimeSubscriptions.pop();
+    try {
+      item.ref.off("value", item.handler);
+    } catch {
+      // ignore
+    }
+  }
+}
+
 globalThis.cloudSyncSaveKey = cloudSyncSaveKey;
 globalThis.cloudSyncHydrate = cloudSyncHydrate;
 globalThis.cloudSyncHydrateAll = cloudSyncHydrateAll;
+globalThis.cloudSyncSubscribe = cloudSyncSubscribe;
+globalThis.cloudSyncUnsubscribeAll = cloudSyncUnsubscribeAll;

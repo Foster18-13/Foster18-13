@@ -134,4 +134,10 @@ globalThis.addEventListener("DOMContentLoaded", async () => {
   }
 
   setInterval(refreshSummary, 10000);
+
+  if (typeof globalThis.cloudSyncSubscribe === "function") {
+    globalThis.cloudSyncSubscribe([SUMMARY_STORAGE_KEY, DAILY_BALANCE_STORAGE_KEY, "portalProductList"], () => {
+      refreshSummary();
+    });
+  }
 });

@@ -314,6 +314,13 @@ async function initRecordingPage() {
   setInterval(() => {
     saveDailyRecord(false);
   }, 120000);
+
+  if (typeof globalThis.cloudSyncSubscribe === "function") {
+    globalThis.cloudSyncSubscribe([DAILY_RECORDS_STORAGE_KEY, LOADING_STORAGE_KEY, "portalProductList"], () => {
+      loadDailyRecord();
+      highlightRequestedItem();
+    });
+  }
 }
 
 globalThis.addEventListener("DOMContentLoaded", initRecordingPage);

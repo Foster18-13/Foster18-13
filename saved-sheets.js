@@ -26,9 +26,12 @@ function setupCloudStorageForm() {
 
   if (!fieldMap.apiKey || !dbPathInput) return;
 
-  const currentConfig = typeof globalThis.getFirebaseRuntimeConfig === "function"
-    ? globalThis.getFirebaseRuntimeConfig()
-    : (typeof FIREBASE_CONFIG !== "undefined" ? FIREBASE_CONFIG : {});
+  let currentConfig = {};
+  if (typeof globalThis.getFirebaseRuntimeConfig === "function") {
+    currentConfig = globalThis.getFirebaseRuntimeConfig();
+  } else if (typeof FIREBASE_CONFIG !== "undefined") {
+    currentConfig = FIREBASE_CONFIG;
+  }
 
   Object.entries(fieldMap).forEach(([key, input]) => {
     input.value = String(currentConfig?.[key] || "");
@@ -479,6 +482,20 @@ globalThis.addEventListener("DOMContentLoaded", async () => {
   setupCloudStorageForm();
   setupProductManagerActions();
   renderSavedSheets();
+
+  if (typeof globalThis.cloudSyncSubscribe === "function") {
+    globalThis.cloudSyncSubscribe([
+      DAILY_RECORDS_STORAGE_KEY,
+      DAILY_BALANCE_STORAGE_KEY,
+      LOADING_STORAGE_KEY,
+      DAILY_NOTE_STORAGE_KEY,
+      NOTE_STORAGE_KEY,
+      BALANCE_STORAGE_KEY,
+      "portalProductList"
+    ], () => {
+      renderSavedSheets();
+    });
+  }
 
   const productFilter = document.getElementById("saved-product-filter");
   if (productFilter) {

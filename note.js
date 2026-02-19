@@ -112,6 +112,12 @@ async function initNotePage() {
   setInterval(() => {
     saveNote(false);
   }, 120000);
+
+  if (typeof globalThis.cloudSyncSubscribe === "function") {
+    globalThis.cloudSyncSubscribe([DAILY_NOTE_STORAGE_KEY, "portalProductList"], () => {
+      loadNote();
+    });
+  }
 }
 
 globalThis.addEventListener("DOMContentLoaded", initNotePage);

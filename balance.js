@@ -336,6 +336,12 @@ globalThis.addEventListener("DOMContentLoaded", () => {
     setInterval(() => {
       saveBalanceRecord(false);
     }, 120000);
+
+    if (typeof globalThis.cloudSyncSubscribe === "function") {
+      globalThis.cloudSyncSubscribe([BALANCE_STORAGE_KEY, DAILY_BALANCE_STORAGE_KEY, LOADING_STORAGE_KEY, "portalProductList"], async () => {
+        await loadBalanceRecord();
+      });
+    }
   };
   init();
 });
