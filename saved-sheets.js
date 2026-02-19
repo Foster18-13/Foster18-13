@@ -56,6 +56,7 @@ function renderProductManager() {
 
     const removeBtn = document.createElement("button");
     removeBtn.type = "button";
+    removeBtn.className = "remove-btn";
     removeBtn.textContent = "Remove";
     removeBtn.addEventListener("click", () => {
       if (typeof globalThis.removeProduct === "function" && globalThis.removeProduct(product)) {
@@ -66,6 +67,7 @@ function renderProductManager() {
 
     const editBtn = document.createElement("button");
     editBtn.type = "button";
+    editBtn.className = "edit-btn";
     editBtn.textContent = "Edit";
     editBtn.addEventListener("click", () => {
       const nextName = prompt("Edit product name:", product);
@@ -78,9 +80,13 @@ function renderProductManager() {
       showProductStatus("Unable to update product name.");
     });
 
+    const actions = document.createElement("div");
+    actions.className = "product-item-actions";
+    actions.appendChild(editBtn);
+    actions.appendChild(removeBtn);
+
     item.appendChild(name);
-    item.appendChild(editBtn);
-    item.appendChild(removeBtn);
+    item.appendChild(actions);
     box.appendChild(item);
   });
 }

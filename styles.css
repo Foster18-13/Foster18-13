@@ -415,9 +415,28 @@ tr.searched-row td {
   font-size: 0.88rem;
 }
 
+.product-item-actions {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+
 .product-item button {
   width: auto;
   padding: 0.35rem 0.55rem;
+}
+
+.product-item .edit-btn {
+  background: #16a34a;
+  border-color: #16a34a;
+}
+
+.product-item .edit-btn:hover {
+  background: #15803d;
+  border-color: #15803d;
+}
+
+.product-item .remove-btn {
   background: #ef4444;
   border-color: #ef4444;
 }
