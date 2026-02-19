@@ -118,11 +118,6 @@ function saveBalanceRecord(showStatus = true) {
   const dailyRecords = readDailyBalanceRecords();
   dailyRecords[dateKey] = rows;
   writeDailyBalanceRecords(dailyRecords);
-
-  if (typeof globalThis.cloudSyncSaveKey === "function") {
-    globalThis.cloudSyncSaveKey(BALANCE_STORAGE_KEY, rows);
-    globalThis.cloudSyncSaveKey(DAILY_BALANCE_STORAGE_KEY, dailyRecords);
-  }
   if (showStatus) {
     showBalanceSaveStatus(`Saved for ${dateKey}`);
   }
@@ -266,10 +261,6 @@ function buildBalanceRows(savedRows = loadSavedData()) {
 }
 
 async function loadBalanceRecord() {
-  if (typeof globalThis.cloudSyncHydrate === "function") {
-    await globalThis.cloudSyncHydrate([DAILY_BALANCE_STORAGE_KEY, LOADING_STORAGE_KEY]);
-  }
-
   const dateKey = getSelectedBalanceDate();
   const rows = loadSavedDataForDate(dateKey);
   if (!rows.length) {
@@ -309,10 +300,6 @@ function highlightRequestedItem() {
 
 globalThis.addEventListener("DOMContentLoaded", () => {
   const init = async () => {
-    if (typeof globalThis.cloudSyncHydrate === "function") {
-      await globalThis.cloudSyncHydrate([BALANCE_STORAGE_KEY, DAILY_BALANCE_STORAGE_KEY, LOADING_STORAGE_KEY, "portalProductList"]);
-    }
-
     const dateInput = document.getElementById("balance-date");
     if (dateInput) {
       dateInput.value = todayIsoDate();
@@ -336,12 +323,6 @@ globalThis.addEventListener("DOMContentLoaded", () => {
     setInterval(() => {
       saveBalanceRecord(false);
     }, 120000);
-
-    if (typeof globalThis.cloudSyncSubscribe === "function") {
-      globalThis.cloudSyncSubscribe([BALANCE_STORAGE_KEY, DAILY_BALANCE_STORAGE_KEY, LOADING_STORAGE_KEY, "portalProductList"], async () => {
-        await loadBalanceRecord();
-      });
-    }
   };
   init();
 });

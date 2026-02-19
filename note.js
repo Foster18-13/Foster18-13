@@ -52,11 +52,6 @@ function saveNote(showStatus = true) {
 
   localStorage.setItem(NOTE_STORAGE_KEY, noteValue);
   writeDailyNotes(dailyNotes);
-
-  if (typeof globalThis.cloudSyncSaveKey === "function") {
-    globalThis.cloudSyncSaveKey(NOTE_STORAGE_KEY, noteValue);
-    globalThis.cloudSyncSaveKey(DAILY_NOTE_STORAGE_KEY, dailyNotes);
-  }
   if (showStatus) {
     showNoteSaveStatus(`Saved note for ${dateKey}`);
   }
@@ -73,18 +68,11 @@ function queueAutoSaveNote() {
 }
 
 async function loadNoteRecord() {
-  if (typeof globalThis.cloudSyncHydrate === "function") {
-    await globalThis.cloudSyncHydrate([DAILY_NOTE_STORAGE_KEY]);
-  }
   loadNote();
   showNoteSaveStatus(`Loaded note for ${getSelectedNoteDate()}`);
 }
 
 async function initNotePage() {
-  if (typeof globalThis.cloudSyncHydrate === "function") {
-    await globalThis.cloudSyncHydrate([NOTE_STORAGE_KEY, DAILY_NOTE_STORAGE_KEY, "portalProductList"]);
-  }
-
   renderNav(location.pathname);
   const dateInput = document.getElementById("note-date");
   if (dateInput) {
@@ -112,12 +100,6 @@ async function initNotePage() {
   setInterval(() => {
     saveNote(false);
   }, 120000);
-
-  if (typeof globalThis.cloudSyncSubscribe === "function") {
-    globalThis.cloudSyncSubscribe([DAILY_NOTE_STORAGE_KEY, "portalProductList"], () => {
-      loadNote();
-    });
-  }
 }
 
 globalThis.addEventListener("DOMContentLoaded", initNotePage);

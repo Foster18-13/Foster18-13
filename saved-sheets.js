@@ -5,89 +5,6 @@ const LOADING_STORAGE_KEY = "recordingLoadingTotals";
 const NOTE_STORAGE_KEY = "portalNoteContent";
 const DAILY_NOTE_STORAGE_KEY = "dailyPortalNoteContent";
 
-function showCloudSetupStatus(message) {
-  const status = document.getElementById("cloud-setup-status");
-  if (status) {
-    status.textContent = message;
-  }
-}
-
-function setupCloudStorageForm() {
-  const fieldMap = {
-    apiKey: document.getElementById("fb-api-key"),
-    authDomain: document.getElementById("fb-auth-domain"),
-    databaseURL: document.getElementById("fb-database-url"),
-    projectId: document.getElementById("fb-project-id"),
-    storageBucket: document.getElementById("fb-storage-bucket"),
-    messagingSenderId: document.getElementById("fb-messaging-sender-id"),
-    appId: document.getElementById("fb-app-id")
-  };
-  const dbPathInput = document.getElementById("fb-db-path");
-
-  if (!fieldMap.apiKey || !dbPathInput) return;
-
-  let currentConfig = {};
-  if (typeof globalThis.getFirebaseRuntimeConfig === "function") {
-    currentConfig = globalThis.getFirebaseRuntimeConfig();
-  } else if (typeof FIREBASE_CONFIG !== "undefined") {
-    currentConfig = FIREBASE_CONFIG;
-  }
-
-  Object.entries(fieldMap).forEach(([key, input]) => {
-    input.value = String(currentConfig?.[key] || "");
-  });
-
-  if (typeof globalThis.getFirebaseRuntimeDbPath === "function") {
-    dbPathInput.value = globalThis.getFirebaseRuntimeDbPath() || "twelliumWarehousePortal";
-  }
-
-  const saveBtn = document.getElementById("save-cloud-setup-btn");
-  if (saveBtn) {
-    saveBtn.addEventListener("click", () => {
-      const config = {};
-      Object.entries(fieldMap).forEach(([key, input]) => {
-        config[key] = input.value.trim();
-      });
-
-      if (!config.databaseURL) {
-        showCloudSetupStatus("Database URL is required.");
-        return;
-      }
-
-      if (typeof globalThis.saveFirebaseRuntimeConfig === "function") {
-        globalThis.saveFirebaseRuntimeConfig(config, (dbPathInput.value || "").trim() || "twelliumWarehousePortal");
-      }
-
-      showCloudSetupStatus("Cloud setup saved. Reloading...");
-      setTimeout(() => location.reload(), 500);
-    });
-  }
-
-  const clearBtn = document.getElementById("clear-cloud-setup-btn");
-  if (clearBtn) {
-    clearBtn.addEventListener("click", () => {
-      if (typeof globalThis.clearFirebaseRuntimeConfig === "function") {
-        globalThis.clearFirebaseRuntimeConfig();
-      }
-      showCloudSetupStatus("Cloud setup cleared. Reloading...");
-      setTimeout(() => location.reload(), 500);
-    });
-  }
-
-  const testBtn = document.getElementById("test-cloud-setup-btn");
-  if (testBtn) {
-    testBtn.addEventListener("click", async () => {
-      if (typeof globalThis.cloudSyncHydrateAll !== "function") {
-        showCloudSetupStatus("Sync module not available.");
-        return;
-      }
-
-      const ok = await globalThis.cloudSyncHydrateAll();
-      showCloudSetupStatus(ok ? "Cloud connection successful." : "Cloud connection failed. Check your setup.");
-    });
-  }
-}
-
 function showSavedBalanceStatus(message) {
   const status = document.getElementById("saved-balance-status");
   if (status) {
@@ -323,12 +240,6 @@ function renderBalanceAndSummaryData() {
 
     localStorage.setItem(BALANCE_STORAGE_KEY, JSON.stringify(dateRows));
 
-    if (typeof globalThis.cloudSyncSaveKey === "function") {
-      globalThis.cloudSyncSaveKey(DAILY_BALANCE_STORAGE_KEY, allDaily);
-      globalThis.cloudSyncSaveKey(LOADING_STORAGE_KEY, nextLoadedMap);
-      globalThis.cloudSyncSaveKey(BALANCE_STORAGE_KEY, dateRows);
-    }
-
     showSavedBalanceStatus(`Saved ${payload.product} for ${dateKey}`);
     renderBalanceAndSummaryData();
   }
@@ -425,11 +336,6 @@ function renderNotesData() {
     localStorage.setItem(DAILY_NOTE_STORAGE_KEY, JSON.stringify(dailyNotes));
     localStorage.setItem(NOTE_STORAGE_KEY, text);
 
-    if (typeof globalThis.cloudSyncSaveKey === "function") {
-      globalThis.cloudSyncSaveKey(DAILY_NOTE_STORAGE_KEY, dailyNotes);
-      globalThis.cloudSyncSaveKey(NOTE_STORAGE_KEY, text);
-    }
-
     showSavedNoteStatus(`Saved note for ${dateKey}`);
     renderNotesData();
   }
@@ -470,32 +376,10 @@ function renderSavedSheets() {
   renderProductManager();
 }
 
-async function hydrateSavedSheetsData() {
-  if (typeof globalThis.cloudSyncHydrateAll === "function") {
-    await globalThis.cloudSyncHydrateAll();
-  }
-}
-
 globalThis.addEventListener("DOMContentLoaded", async () => {
-  await hydrateSavedSheetsData();
   renderNav(location.pathname);
-  setupCloudStorageForm();
   setupProductManagerActions();
   renderSavedSheets();
-
-  if (typeof globalThis.cloudSyncSubscribe === "function") {
-    globalThis.cloudSyncSubscribe([
-      DAILY_RECORDS_STORAGE_KEY,
-      DAILY_BALANCE_STORAGE_KEY,
-      LOADING_STORAGE_KEY,
-      DAILY_NOTE_STORAGE_KEY,
-      NOTE_STORAGE_KEY,
-      BALANCE_STORAGE_KEY,
-      "portalProductList"
-    ], () => {
-      renderSavedSheets();
-    });
-  }
 
   const productFilter = document.getElementById("saved-product-filter");
   if (productFilter) {
@@ -504,8 +388,7 @@ globalThis.addEventListener("DOMContentLoaded", async () => {
 
   const refreshBtn = document.getElementById("refresh-saved-btn");
   if (refreshBtn) {
-    refreshBtn.addEventListener("click", async () => {
-      await hydrateSavedSheetsData();
+    refreshBtn.addEventListener("click", () => {
       renderSavedSheets();
     });
   }

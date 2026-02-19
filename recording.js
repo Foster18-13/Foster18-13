@@ -140,15 +140,6 @@ function saveDailyRecord(showStatus = true) {
   allRecords[dateKey] = collectCurrentSheetData();
   writeAllDailyRecords(allRecords);
   saveLoadingTotals();
-  if (typeof globalThis.cloudSyncSaveKey === "function") {
-    globalThis.cloudSyncSaveKey(DAILY_RECORDS_STORAGE_KEY, allRecords);
-    try {
-      const loadingTotals = JSON.parse(localStorage.getItem(LOADING_STORAGE_KEY) || "{}");
-      globalThis.cloudSyncSaveKey(LOADING_STORAGE_KEY, loadingTotals);
-    } catch {
-      // Ignore sync serialization issues
-    }
-  }
   if (showStatus) {
     showSaveStatus(`Saved for ${dateKey}`);
   }
@@ -211,9 +202,6 @@ function loadDailyRecord() {
 }
 
 async function loadDailyRecordWithHydration() {
-  if (typeof globalThis.cloudSyncHydrate === "function") {
-    await globalThis.cloudSyncHydrate([DAILY_RECORDS_STORAGE_KEY, LOADING_STORAGE_KEY]);
-  }
   loadDailyRecord();
 }
 
@@ -290,9 +278,6 @@ function highlightRequestedItem() {
 }
 
 async function initRecordingPage() {
-  if (typeof globalThis.cloudSyncHydrate === "function") {
-    await globalThis.cloudSyncHydrate([DAILY_RECORDS_STORAGE_KEY, LOADING_STORAGE_KEY, "portalProductList"]);
-  }
   renderNav(location.pathname);
   const dateInput = document.getElementById("record-date");
   if (dateInput) {
@@ -314,13 +299,6 @@ async function initRecordingPage() {
   setInterval(() => {
     saveDailyRecord(false);
   }, 120000);
-
-  if (typeof globalThis.cloudSyncSubscribe === "function") {
-    globalThis.cloudSyncSubscribe([DAILY_RECORDS_STORAGE_KEY, LOADING_STORAGE_KEY, "portalProductList"], () => {
-      loadDailyRecord();
-      highlightRequestedItem();
-    });
-  }
 }
 
 globalThis.addEventListener("DOMContentLoaded", initRecordingPage);
