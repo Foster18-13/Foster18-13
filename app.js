@@ -83,9 +83,28 @@ function removeProduct(productName) {
   return true;
 }
 
+function editProduct(oldProductName, newProductName) {
+  const oldName = (oldProductName || "").trim();
+  const newName = (newProductName || "").trim();
+  if (!oldName || !newName) return false;
+
+  const current = getProductList();
+  const oldIndex = current.indexOf(oldName);
+  if (oldIndex < 0) return false;
+
+  const duplicate = current.some((item, index) => index !== oldIndex && item.toLowerCase() === newName.toLowerCase());
+  if (duplicate) return false;
+
+  const next = [...current];
+  next[oldIndex] = newName;
+  saveProductList(next);
+  return true;
+}
+
 globalThis.getProductList = getProductList;
 globalThis.addProduct = addProduct;
 globalThis.removeProduct = removeProduct;
+globalThis.editProduct = editProduct;
 
 function getSearchItems() {
   const pageItems = links.map(([href, label]) => ({

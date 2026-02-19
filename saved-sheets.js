@@ -60,11 +60,26 @@ function renderProductManager() {
     removeBtn.addEventListener("click", () => {
       if (typeof globalThis.removeProduct === "function" && globalThis.removeProduct(product)) {
         showProductStatus("Product removed.");
-        renderProductManager();
+        renderSavedSheets();
       }
     });
 
+    const editBtn = document.createElement("button");
+    editBtn.type = "button";
+    editBtn.textContent = "Edit";
+    editBtn.addEventListener("click", () => {
+      const nextName = prompt("Edit product name:", product);
+      if (nextName === null) return;
+      if (typeof globalThis.editProduct === "function" && globalThis.editProduct(product, nextName)) {
+        showProductStatus("Product updated.");
+        renderSavedSheets();
+        return;
+      }
+      showProductStatus("Unable to update product name.");
+    });
+
     item.appendChild(name);
+    item.appendChild(editBtn);
     item.appendChild(removeBtn);
     box.appendChild(item);
   });
@@ -85,7 +100,7 @@ function setupProductManagerActions() {
     if (typeof globalThis.addProduct === "function" && globalThis.addProduct(productName)) {
       input.value = "";
       showProductStatus("Product added.");
-      renderProductManager();
+      renderSavedSheets();
       return;
     }
 
