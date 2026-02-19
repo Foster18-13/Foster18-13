@@ -19,8 +19,9 @@
   <main class="container grid">
     <section class="card">
       <h1>Balance Sheet</h1>
-      <p>Formula: Balance = Opening Stock + Received Good + Returned Goods - Damaged Good - Goods Loaded. Closing Stock
-        mirrors Balance.</p>
+      <p>Formula: Balance = Opening Stock + Received Good + Returned Goods - Damaged Good - Goods Loaded. Remark =
+        Closing Stock - Balance.</p>
+      <p>Closing Stock is entered manually.</p>
       <p>Goods Loaded is automatically taken from Recording Sheet totals for each product.</p>
       <div class="table-wrap">
         <table>
@@ -34,6 +35,7 @@
               <th>Goods Loaded</th>
               <th>Balance</th>
               <th>Closing Stock</th>
+              <th>Remark</th>
             </tr>
           </thead>
           <tbody id="balance-body"></tbody>

@@ -72,7 +72,7 @@ function renderBalanceAndSummaryData() {
   if (!balanceRows.length) {
     const tr = document.createElement("tr");
     const td = document.createElement("td");
-    td.colSpan = 3;
+    td.colSpan = 4;
     td.textContent = "No saved balance/summary data yet.";
     tr.appendChild(td);
     body.appendChild(tr);
@@ -93,6 +93,10 @@ function renderBalanceAndSummaryData() {
     const closingCell = document.createElement("td");
     closingCell.textContent = String(Number(row.closing ?? 0));
     tr.appendChild(closingCell);
+
+    const remarkCell = document.createElement("td");
+    remarkCell.textContent = String(Number(row.remark ?? 0));
+    tr.appendChild(remarkCell);
 
     body.appendChild(tr);
   });

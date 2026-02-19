@@ -42,10 +42,11 @@ function calculateForRow(row) {
   const returned = Number(row.querySelector(".returned").value) || 0;
   const damaged = Number(row.querySelector(".damaged").value) || 0;
   const loaded = Number(row.querySelector(".loaded").value) || 0;
+  const closing = Number(row.querySelector(".closing").value) || 0;
 
   const balance = opening + received + returned - damaged - loaded;
   row.querySelector(".balance").value = balance;
-  row.querySelector(".closing").value = balance;
+  row.querySelector(".remark").value = closing - balance;
 }
 
 function getRowData(row) {
@@ -57,7 +58,8 @@ function getRowData(row) {
     damaged: Number(row.querySelector(".damaged").value) || 0,
     loaded: Number(row.querySelector(".loaded").value) || 0,
     balance: Number(row.querySelector(".balance").value) || 0,
-    closing: Number(row.querySelector(".closing").value) || 0
+    closing: Number(row.querySelector(".closing").value) || 0,
+    remark: Number(row.querySelector(".remark").value) || 0
   };
 }
 
@@ -82,6 +84,7 @@ function applySavedValues(row, savedRow) {
   row.querySelector(".received").value = savedRow.received ?? 0;
   row.querySelector(".returned").value = savedRow.returned ?? 0;
   row.querySelector(".damaged").value = savedRow.damaged ?? 0;
+  row.querySelector(".closing").value = savedRow.closing ?? 0;
 }
 
 function loadLoadingTotals() {
@@ -96,7 +99,7 @@ function loadLoadingTotals() {
 }
 
 function attachRecalc(row) {
-  [".opening", ".received", ".returned", ".damaged"].forEach((selector) => {
+  [".opening", ".received", ".returned", ".damaged", ".closing"].forEach((selector) => {
     row.querySelector(selector).addEventListener("input", () => {
       calculateForRow(row);
       saveAllRows();
@@ -155,12 +158,20 @@ function buildBalanceRows() {
     const closingCell = document.createElement("td");
     const closingValue = document.createElement("input");
     closingValue.type = "number";
-    closingValue.readOnly = true;
     closingValue.value = "0";
     closingValue.className = "closing";
-    closingCell.className = "readonly";
     closingCell.appendChild(closingValue);
     tr.appendChild(closingCell);
+
+    const remarkCell = document.createElement("td");
+    const remarkValue = document.createElement("input");
+    remarkValue.type = "number";
+    remarkValue.readOnly = true;
+    remarkValue.value = "0";
+    remarkValue.className = "remark";
+    remarkCell.className = "readonly";
+    remarkCell.appendChild(remarkValue);
+    tr.appendChild(remarkCell);
 
     body.appendChild(tr);
 
