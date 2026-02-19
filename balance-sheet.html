@@ -23,6 +23,10 @@
         Closing Stock - Balance.</p>
       <p>Closing Stock is entered manually.</p>
       <p>Goods Loaded is automatically taken from Recording Sheet totals for each product.</p>
+      <div class="tools">
+        <button id="save-balance-btn" type="button">Save Balance</button>
+        <span id="balance-save-status"></span>
+      </div>
       <div class="table-wrap">
         <table>
           <thead>
@@ -46,6 +50,10 @@
 
   <footer>Balance Sheet</footer>
   <script src="auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="sync.js"></script>
   <script src="app.js"></script>
   <script src="balance.js"></script>
 </body>

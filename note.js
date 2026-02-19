@@ -1,5 +1,12 @@
 const NOTE_STORAGE_KEY = "portalNoteContent";
 
+function showNoteSaveStatus(message) {
+  const status = document.getElementById("note-save-status");
+  if (status) {
+    status.textContent = message;
+  }
+}
+
 function loadNote() {
   const noteArea = document.getElementById("note-area");
   if (!noteArea) return;
@@ -9,14 +16,24 @@ function loadNote() {
 function saveNote() {
   const noteArea = document.getElementById("note-area");
   if (!noteArea) return;
-  localStorage.setItem(NOTE_STORAGE_KEY, noteArea.value || "");
+  const noteValue = noteArea.value || "";
+  localStorage.setItem(NOTE_STORAGE_KEY, noteValue);
+  if (typeof globalThis.cloudSyncSaveKey === "function") {
+    globalThis.cloudSyncSaveKey(NOTE_STORAGE_KEY, noteValue);
+  }
+  showNoteSaveStatus(`Saved at ${new Date().toLocaleTimeString()}`);
 }
 
-window.addEventListener("DOMContentLoaded", () => {
+async function initNotePage() {
+  if (typeof globalThis.cloudSyncHydrate === "function") {
+    await globalThis.cloudSyncHydrate([NOTE_STORAGE_KEY, "portalProductList"]);
+  }
   renderNav(location.pathname);
   loadNote();
-  const noteArea = document.getElementById("note-area");
-  if (noteArea) {
-    noteArea.addEventListener("input", saveNote);
+  const saveBtn = document.getElementById("save-note-btn");
+  if (saveBtn) {
+    saveBtn.addEventListener("click", saveNote);
   }
-});
+}
+
+globalThis.addEventListener("DOMContentLoaded", initNotePage);

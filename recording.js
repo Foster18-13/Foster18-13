@@ -137,6 +137,16 @@ function saveDailyRecord() {
   const allRecords = readAllDailyRecords();
   allRecords[dateKey] = collectCurrentSheetData();
   writeAllDailyRecords(allRecords);
+  saveLoadingTotals();
+  if (typeof globalThis.cloudSyncSaveKey === "function") {
+    globalThis.cloudSyncSaveKey(DAILY_RECORDS_STORAGE_KEY, allRecords);
+    try {
+      const loadingTotals = JSON.parse(localStorage.getItem(LOADING_STORAGE_KEY) || "{}");
+      globalThis.cloudSyncSaveKey(LOADING_STORAGE_KEY, loadingTotals);
+    } catch {
+      // Ignore sync serialization issues
+    }
+  }
   showSaveStatus(`Saved for ${dateKey}`);
 }
 
@@ -184,6 +194,13 @@ function loadDailyRecord() {
   applySavedSheetData(savedData);
   highlightRequestedItem();
   showSaveStatus(`Loaded data for ${dateKey}`);
+}
+
+async function loadDailyRecordWithHydration() {
+  if (typeof globalThis.cloudSyncHydrate === "function") {
+    await globalThis.cloudSyncHydrate([DAILY_RECORDS_STORAGE_KEY, LOADING_STORAGE_KEY]);
+  }
+  loadDailyRecord();
 }
 
 function buildRecordingRows() {
@@ -258,17 +275,22 @@ function highlightRequestedItem() {
   }
 }
 
-window.addEventListener("DOMContentLoaded", () => {
+async function initRecordingPage() {
+  if (typeof globalThis.cloudSyncHydrate === "function") {
+    await globalThis.cloudSyncHydrate([DAILY_RECORDS_STORAGE_KEY, LOADING_STORAGE_KEY, "portalProductList"]);
+  }
   renderNav(location.pathname);
   const dateInput = document.getElementById("record-date");
   if (dateInput) {
     dateInput.value = todayIsoDate();
-    dateInput.addEventListener("change", loadDailyRecord);
+    dateInput.addEventListener("change", loadDailyRecordWithHydration);
   }
   buildRecordingRows();
   loadDailyRecord();
   highlightRequestedItem();
   document.getElementById("save-record-btn").addEventListener("click", saveDailyRecord);
-  document.getElementById("load-record-btn").addEventListener("click", loadDailyRecord);
+  document.getElementById("load-record-btn").addEventListener("click", loadDailyRecordWithHydration);
   document.getElementById("add-column-btn").addEventListener("click", addUntitledColumn);
-});
+}
+
+globalThis.addEventListener("DOMContentLoaded", initRecordingPage);

@@ -49,6 +49,9 @@ function readStoredProductList() {
 
 function saveProductList(list) {
   localStorage.setItem(PRODUCT_LIST_STORAGE_KEY, JSON.stringify(list));
+  if (typeof globalThis.cloudSyncSaveKey === "function") {
+    globalThis.cloudSyncSaveKey(PRODUCT_LIST_STORAGE_KEY, list);
+  }
 }
 
 function getProductList() {

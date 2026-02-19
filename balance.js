@@ -37,6 +37,13 @@ function getActiveBalanceProducts() {
 const BALANCE_STORAGE_KEY = "availableStockData";
 const LOADING_STORAGE_KEY = "recordingLoadingTotals";
 
+function showBalanceSaveStatus(message) {
+  const status = document.getElementById("balance-save-status");
+  if (status) {
+    status.textContent = message;
+  }
+}
+
 function balanceInput(name) {
   const input = document.createElement("input");
   input.type = "number";
@@ -76,6 +83,15 @@ function getRowData(row) {
 function saveAllRows() {
   const rows = [...document.querySelectorAll("#balance-body tr")].map((row) => getRowData(row));
   localStorage.setItem(BALANCE_STORAGE_KEY, JSON.stringify(rows));
+  return rows;
+}
+
+function saveBalanceRecord() {
+  const rows = saveAllRows();
+  if (typeof globalThis.cloudSyncSaveKey === "function") {
+    globalThis.cloudSyncSaveKey(BALANCE_STORAGE_KEY, rows);
+  }
+  showBalanceSaveStatus(`Saved at ${new Date().toLocaleTimeString()}`);
 }
 
 function loadSavedData() {
@@ -222,8 +238,18 @@ function highlightRequestedItem() {
   }
 }
 
-window.addEventListener("DOMContentLoaded", () => {
-  renderNav(location.pathname);
-  buildBalanceRows();
-  highlightRequestedItem();
+globalThis.addEventListener("DOMContentLoaded", () => {
+  const init = async () => {
+    if (typeof globalThis.cloudSyncHydrate === "function") {
+      await globalThis.cloudSyncHydrate([BALANCE_STORAGE_KEY, LOADING_STORAGE_KEY, "portalProductList"]);
+    }
+    renderNav(location.pathname);
+    buildBalanceRows();
+    highlightRequestedItem();
+    const saveBtn = document.getElementById("save-balance-btn");
+    if (saveBtn) {
+      saveBtn.addEventListener("click", saveBalanceRecord);
+    }
+  };
+  init();
 });

@@ -73,19 +73,20 @@ function highlightRequestedItem() {
   }
 }
 
-window.addEventListener("DOMContentLoaded", () => {
-  renderNav(location.pathname);
+async function refreshSummary() {
+  if (typeof globalThis.cloudSyncHydrate === "function") {
+    await globalThis.cloudSyncHydrate([SUMMARY_STORAGE_KEY, "portalProductList"]);
+  }
   renderSummaryRows();
   highlightRequestedItem();
+}
+
+globalThis.addEventListener("DOMContentLoaded", async () => {
+  renderNav(location.pathname);
+  await refreshSummary();
   const refreshBtn = document.getElementById("refresh-summary-btn");
   if (refreshBtn) {
-    refreshBtn.addEventListener("click", () => {
-      renderSummaryRows();
-      highlightRequestedItem();
-    });
+    refreshBtn.addEventListener("click", refreshSummary);
   }
-  setInterval(() => {
-    renderSummaryRows();
-    highlightRequestedItem();
-  }, 10000);
+  setInterval(refreshSummary, 10000);
 });

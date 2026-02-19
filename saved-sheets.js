@@ -195,12 +195,22 @@ function renderSavedSheets() {
   renderProductManager();
 }
 
-window.addEventListener("DOMContentLoaded", () => {
+async function hydrateSavedSheetsData() {
+  if (typeof globalThis.cloudSyncHydrateAll === "function") {
+    await globalThis.cloudSyncHydrateAll();
+  }
+}
+
+globalThis.addEventListener("DOMContentLoaded", async () => {
+  await hydrateSavedSheetsData();
   renderNav(location.pathname);
   setupProductManagerActions();
   renderSavedSheets();
   const refreshBtn = document.getElementById("refresh-saved-btn");
   if (refreshBtn) {
-    refreshBtn.addEventListener("click", renderSavedSheets);
+    refreshBtn.addEventListener("click", async () => {
+      await hydrateSavedSheetsData();
+      renderSavedSheets();
+    });
   }
 });
