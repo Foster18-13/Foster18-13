@@ -144,10 +144,63 @@ function buildPrintableTableHtml(tableId) {
   `;
 }
 
+function getTableDataForExport(tableId) {
+  const table = document.getElementById(tableId);
+  if (!table) return { headers: [], rows: [] };
+
+  const headers = Array.from(table.querySelectorAll("thead th")).map((cell) => cell.textContent.trim());
+  const rows = Array.from(table.querySelectorAll("tbody tr"))
+    .filter((row) => row.style.display !== "none")
+    .map((row) => Array.from(row.querySelectorAll("td")).map((cell) => getCellValue(cell)));
+
+  return { headers, rows };
+}
+
+function exportTableAsPdfFile(tableId, title, filePrefix) {
+  const date = getSelectedDate();
+  const { headers, rows } = getTableDataForExport(tableId);
+  if (!headers.length || !rows.length) {
+    return false;
+  }
+
+  const jsPdfClass = globalThis.jspdf?.jsPDF;
+  if (typeof jsPdfClass !== "function") {
+    return false;
+  }
+
+  const doc = new jsPdfClass({ orientation: "landscape", unit: "pt", format: "a4" });
+
+  doc.setFontSize(14);
+  doc.text(title, 40, 36);
+  doc.setFontSize(10);
+  doc.text(`Date: ${date}`, 40, 54);
+
+  if (typeof doc.autoTable !== "function") {
+    return false;
+  }
+
+  doc.autoTable({
+    head: [headers],
+    body: rows,
+    startY: 70,
+    styles: { fontSize: 8, cellPadding: 4 },
+    headStyles: { fillColor: [18, 84, 161] }
+  });
+
+  doc.save(`${filePrefix}_${date}.pdf`);
+  return true;
+}
+
 function exportTableAsPdf(tableId, title, filePrefix) {
   const printableTable = buildPrintableTableHtml(tableId);
   if (!printableTable) {
     setStatus("Nothing to export.", "error");
+    return;
+  }
+
+  const pdfDownloaded = exportTableAsPdfFile(tableId, title, filePrefix);
+  if (pdfDownloaded) {
+    setStatus("PDF downloaded to your files.", "ok");
     return;
   }
 
