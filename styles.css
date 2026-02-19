@@ -141,6 +141,36 @@ nav a {
   transition: all 0.2s ease;
 }
 
+nav a:nth-child(1) {
+  background: #ffe9ec;
+  border-color: #ffb8c3;
+}
+
+nav a:nth-child(2) {
+  background: #e8f7ff;
+  border-color: #9edfff;
+}
+
+nav a:nth-child(3) {
+  background: #eaf3ff;
+  border-color: #adc9ff;
+}
+
+nav a:nth-child(4) {
+  background: #edfbea;
+  border-color: #b8e9ad;
+}
+
+nav a:nth-child(5) {
+  background: #fff4e6;
+  border-color: #ffd09f;
+}
+
+nav a:nth-child(6) {
+  background: #f1eaff;
+  border-color: #ccb3ff;
+}
+
 nav a:hover {
   border-color: #9db9ff;
   background: #eef4ff;
@@ -200,6 +230,31 @@ main {
 .portal-card h2 {
   margin: 0 0 0.45rem;
   font-size: 1.02rem;
+}
+
+.portal-card:nth-child(1) {
+  background: linear-gradient(180deg, #e8f7ff, #dff2ff);
+  border-color: #a7dfff;
+}
+
+.portal-card:nth-child(2) {
+  background: linear-gradient(180deg, #efeaff, #e6ddff);
+  border-color: #c7b4ff;
+}
+
+.portal-card:nth-child(3) {
+  background: linear-gradient(180deg, #e9ffef, #ddf8e6);
+  border-color: #a9e2ba;
+}
+
+.portal-card:nth-child(4) {
+  background: linear-gradient(180deg, #fff3e5, #ffe8cc);
+  border-color: #ffc98e;
+}
+
+.portal-card:nth-child(5) {
+  background: linear-gradient(180deg, #ffeef4, #ffe0eb);
+  border-color: #ffb9d1;
 }
 
 .portal-card p {
