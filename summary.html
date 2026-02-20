@@ -23,39 +23,44 @@
         <button class="button" id="globalSearchBtn" type="button">Search</button>
       </div>
     </div>
-    <nav class="main-nav">
-      <a href="home.html">Home</a>
-      <a href="balance.html">Balance Sheet</a>
-      <a href="recording.html">Recording Sheet</a>
-      <a href="summary.html">Summary Sheet</a>
-      <a href="purchase.html">Purchase Sheet</a>
-      <a href="products.html">Products</a>
-    </nav>
   </header>
 
-  <main class="page">
-    <section class="card">
-      <h2 class="card-title">Summary Sheet (Stock Available)</h2>
-      <p class="card-subtitle">Displays stock available for each product on the selected date.</p>
-      <div class="toolbar">
-        <button class="button" id="refreshSummary" type="button">Refresh</button>
-        <button class="button" id="exportSummary" type="button">Export CSV</button>
-        <button class="button" id="exportSummaryPdf" type="button">Export PDF</button>
-        <span id="status" class="status"></span>
-      </div>
-      <div class="table-wrap">
-        <table id="summaryTable">
-          <thead>
-            <tr>
-              <th>Product Name</th>
-              <th>Stock Available</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </section>
-  </main>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <nav class="main-nav">
+        <a href="home.html">Home</a>
+        <a href="balance.html">Balance Sheet</a>
+        <a href="recording.html">Recording Sheet</a>
+        <a href="summary.html">Summary Sheet</a>
+        <a href="purchase.html">Purchase Sheet</a>
+        <a href="products.html">Products</a>
+      </nav>
+    </aside>
+
+    <main class="page">
+      <section class="card">
+        <h2 class="card-title">Summary Sheet (Stock Available)</h2>
+        <p class="card-subtitle">Displays stock available for each product on the selected date.</p>
+        <div class="toolbar">
+          <button class="button" id="refreshSummary" type="button">Refresh</button>
+          <button class="button" id="exportSummary" type="button">Export CSV</button>
+          <button class="button" id="exportSummaryPdf" type="button">Export PDF</button>
+          <span id="status" class="status"></span>
+        </div>
+        <div class="table-wrap">
+          <table id="summaryTable">
+            <thead>
+              <tr>
+                <th>Product Name</th>
+                <th>Stock Available</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>

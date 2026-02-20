@@ -1,5 +1,5 @@
 function markActiveNav() {
-  const current = location.pathname.split("/").pop() || "balance.html";
+  const current = location.pathname.split("/").pop() || "home.html";
   document.querySelectorAll(".main-nav a").forEach((link) => {
     const target = link.getAttribute("href");
     if (target === current) {

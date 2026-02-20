@@ -23,40 +23,45 @@
         <button class="button" id="globalSearchBtn" type="button">Search</button>
       </div>
     </div>
-    <nav class="main-nav">
-      <a href="home.html">Home</a>
-      <a href="balance.html">Balance Sheet</a>
-      <a href="recording.html">Recording Sheet</a>
-      <a href="summary.html">Summary Sheet</a>
-      <a href="purchase.html">Purchase Sheet</a>
-      <a href="products.html">Products</a>
-    </nav>
   </header>
 
-  <main class="page">
-    <section class="card">
-      <h2 class="card-title">Welcome to the Twellium Warehouse Portal</h2>
-      <p class="card-subtitle">Use this portal to manage daily warehouse operations, monitor stock balances, and keep
-        all sheet records up to date.</p>
-      <div class="toolbar">
-        <a class="button button-primary" href="balance.html">Open Balance Sheet</a>
-        <a class="button" href="recording.html">Open Recording Sheet</a>
-        <a class="button" href="summary.html">Open Summary Sheet</a>
-        <a class="button" href="purchase.html">Open Purchase Sheet</a>
-      </div>
-    </section>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <nav class="main-nav">
+        <a href="home.html">Home</a>
+        <a href="balance.html">Balance Sheet</a>
+        <a href="recording.html">Recording Sheet</a>
+        <a href="summary.html">Summary Sheet</a>
+        <a href="purchase.html">Purchase Sheet</a>
+        <a href="products.html">Products</a>
+      </nav>
+    </aside>
 
-    <section class="card">
-      <h2 class="card-title">Daily Workflow</h2>
-      <p class="card-subtitle">Recommended order for accurate day-end reporting.</p>
-      <ol>
-        <li>Record incoming stock in the Purchase Sheet.</li>
-        <li>Capture dispatch/load quantities in the Recording Sheet.</li>
-        <li>Review opening, loading, damages, balance and closing in the Balance Sheet.</li>
-        <li>Confirm available stock in the Summary Sheet.</li>
-      </ol>
-    </section>
-  </main>
+    <main class="page">
+      <section class="card">
+        <h2 class="card-title">Welcome to the Twellium Warehouse Portal</h2>
+        <p class="card-subtitle">Use this portal to manage daily warehouse operations, monitor stock balances, and keep
+          all sheet records up to date.</p>
+        <div class="toolbar">
+          <a class="button button-primary" href="balance.html">Open Balance Sheet</a>
+          <a class="button" href="recording.html">Open Recording Sheet</a>
+          <a class="button" href="summary.html">Open Summary Sheet</a>
+          <a class="button" href="purchase.html">Open Purchase Sheet</a>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title">Daily Workflow</h2>
+        <p class="card-subtitle">Recommended order for accurate day-end reporting.</p>
+        <ol>
+          <li>Record incoming stock in the Purchase Sheet.</li>
+          <li>Capture dispatch/load quantities in the Recording Sheet.</li>
+          <li>Review opening, loading, damages, balance and closing in the Balance Sheet.</li>
+          <li>Confirm available stock in the Summary Sheet.</li>
+        </ol>
+      </section>
+    </main>
+  </div>
 
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>

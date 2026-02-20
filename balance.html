@@ -23,47 +23,53 @@
         <button class="button" id="globalSearchBtn" type="button">Search</button>
       </div>
     </div>
-    <nav class="main-nav">
-      <a href="home.html">Home</a>
-      <a href="balance.html">Balance Sheet</a>
-      <a href="recording.html">Recording Sheet</a>
-      <a href="summary.html">Summary Sheet</a>
-      <a href="purchase.html">Purchase Sheet</a>
-      <a href="products.html">Products</a>
-    </nav>
   </header>
 
-  <main class="page">
-    <section class="card">
-      <h2 class="card-title">Daily Balance Sheet</h2>
-      <p class="card-subtitle">Formula: Balance = Opening Stock + Returns + Goods Received - Loading - Damages. Opening
-        stock auto-carries from previous day closing when empty, and closing stock is entered manually.</p>
-      <div class="toolbar">
-        <button class="button button-primary" id="saveBalance" type="button">Save Balance Sheet</button>
-        <button class="button" id="exportBalance" type="button">Export CSV</button>
-        <button class="button" id="exportBalancePdf" type="button">Export PDF</button>
-        <span id="status" class="status"></span>
-      </div>
-      <div class="table-wrap">
-        <table id="balanceTable">
-          <thead>
-            <tr>
-              <th>Product Name</th>
-              <th>Opening Stock</th>
-              <th>Returns</th>
-              <th>Goods Received</th>
-              <th>Damages</th>
-              <th>Loading</th>
-              <th>Balance</th>
-              <th>Closing Stock (Manual)</th>
-              <th>Remark (Closing - Balance)</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </section>
-  </main>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <nav class="main-nav">
+        <a href="home.html">Home</a>
+        <a href="balance.html">Balance Sheet</a>
+        <a href="recording.html">Recording Sheet</a>
+        <a href="summary.html">Summary Sheet</a>
+        <a href="purchase.html">Purchase Sheet</a>
+        <a href="products.html">Products</a>
+      </nav>
+    </aside>
+
+    <main class="page">
+      <section class="card">
+        <h2 class="card-title">Daily Balance Sheet</h2>
+        <p class="card-subtitle">Formula: Balance = Opening Stock + Returns + Goods Received - Loading - Damages.
+          Opening
+          stock auto-carries from previous day closing when empty, and closing stock is entered manually.</p>
+        <div class="toolbar">
+          <button class="button button-primary" id="saveBalance" type="button">Save Balance Sheet</button>
+          <button class="button" id="exportBalance" type="button">Export CSV</button>
+          <button class="button" id="exportBalancePdf" type="button">Export PDF</button>
+          <span id="status" class="status"></span>
+        </div>
+        <div class="table-wrap">
+          <table id="balanceTable">
+            <thead>
+              <tr>
+                <th>Product Name</th>
+                <th>Opening Stock</th>
+                <th>Returns</th>
+                <th>Goods Received</th>
+                <th>Damages</th>
+                <th>Loading</th>
+                <th>Balance</th>
+                <th>Closing Stock (Manual)</th>
+                <th>Remark (Closing - Balance)</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
