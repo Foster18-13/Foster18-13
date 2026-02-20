@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Summary Sheet | Twellium Warehouse Portal</title>
+  <title>Home | Twellium Warehouse Portal</title>
   <link rel="stylesheet" href="assets/css/style.css" />
 </head>
 
@@ -35,30 +35,29 @@
 
   <main class="page">
     <section class="card">
-      <h2 class="card-title">Summary Sheet (Stock Available)</h2>
-      <p class="card-subtitle">Displays stock available for each product on the selected date.</p>
+      <h2 class="card-title">Welcome to the Twellium Warehouse Portal</h2>
+      <p class="card-subtitle">Use this portal to manage daily warehouse operations, monitor stock balances, and keep
+        all sheet records up to date.</p>
       <div class="toolbar">
-        <button class="button" id="refreshSummary" type="button">Refresh</button>
-        <button class="button" id="exportSummary" type="button">Export CSV</button>
-        <button class="button" id="exportSummaryPdf" type="button">Export PDF</button>
-        <span id="status" class="status"></span>
+        <a class="button button-primary" href="balance.html">Open Balance Sheet</a>
+        <a class="button" href="recording.html">Open Recording Sheet</a>
+        <a class="button" href="summary.html">Open Summary Sheet</a>
+        <a class="button" href="purchase.html">Open Purchase Sheet</a>
       </div>
-      <div class="table-wrap">
-        <table id="summaryTable">
-          <thead>
-            <tr>
-              <th>Product Name</th>
-              <th>Stock Available</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="card-title">Daily Workflow</h2>
+      <p class="card-subtitle">Recommended order for accurate day-end reporting.</p>
+      <ol>
+        <li>Record incoming stock in the Purchase Sheet.</li>
+        <li>Capture dispatch/load quantities in the Recording Sheet.</li>
+        <li>Review opening, loading, damages, balance and closing in the Balance Sheet.</li>
+        <li>Confirm available stock in the Summary Sheet.</li>
+      </ol>
     </section>
   </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
@@ -66,7 +65,6 @@
   <script src="assets/js/storage.js"></script>
   <script src="assets/js/common.js"></script>
   <script src="assets/js/cloud-sync.js"></script>
-  <script src="assets/js/summary.js"></script>
 </body>
 
 </html>
