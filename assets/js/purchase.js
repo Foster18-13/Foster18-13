@@ -30,7 +30,7 @@ function renderPurchaseTable() {
           <td>${product ? product.name : "Unknown Product"}</td>
           <td>${purchase.waybill}</td>
           <td>${purchase.batchCode}</td>
-          <td>${purchase.pallets}</td>
+          <td>${purchase.quantityReceived ?? purchase.pallets}</td>
           <td>${purchase.dateReceived}</td>
           <td><button class="button button-danger" data-delete-id="${purchase.id}" type="button">Delete</button></td>
         </tr>
@@ -49,9 +49,9 @@ function addPurchaseEntry(event) {
   const productId = document.getElementById("productId").value;
   const waybill = document.getElementById("waybill").value.trim();
   const batchCode = document.getElementById("batchCode").value.trim();
-  const pallets = document.getElementById("pallets").value;
+  const quantityReceived = document.getElementById("quantityReceived").value;
   const factor = getSelectedProductFactor();
-  const goodsReceived = asNumber(pallets) * factor;
+  const goodsReceived = asNumber(quantityReceived) * factor;
   const dateReceived = document.getElementById("dateReceived").value;
 
   if (!productId || !waybill || !batchCode || !dateReceived) {
@@ -68,7 +68,8 @@ function addPurchaseEntry(event) {
     productId,
     waybill,
     batchCode,
-    pallets,
+    quantityReceived,
+    pallets: quantityReceived,
     factor,
     goodsReceived,
     dateReceived
