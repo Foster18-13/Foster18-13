@@ -4,13 +4,6 @@ function renderPurchaseProductOptions() {
   productSelect.innerHTML = createProductOptions(data.products);
 }
 
-function getSelectedProductFactor() {
-  const data = loadData();
-  const productId = document.getElementById("productId").value;
-  const product = getProductById(data, productId);
-  return asNumber(product?.palletFactor) || 1;
-}
-
 function renderPurchaseTable() {
   const tbody = document.querySelector("#purchaseTable tbody");
   const data = loadData();
@@ -30,6 +23,7 @@ function renderPurchaseTable() {
           <td>${product ? product.name : "Unknown Product"}</td>
           <td>${purchase.waybill}</td>
           <td>${purchase.batchCode}</td>
+          <td>${purchase.vehicleNumber ?? ""}</td>
           <td>${purchase.quantityReceived ?? purchase.pallets}</td>
           <td>${purchase.dateReceived}</td>
           <td><button class="button button-danger" data-delete-id="${purchase.id}" type="button">Delete</button></td>
@@ -49,12 +43,12 @@ function addPurchaseEntry(event) {
   const productId = document.getElementById("productId").value;
   const waybill = document.getElementById("waybill").value.trim();
   const batchCode = document.getElementById("batchCode").value.trim();
+  const vehicleNumber = document.getElementById("vehicleNumber").value.trim();
   const quantityReceived = document.getElementById("quantityReceived").value;
-  const factor = getSelectedProductFactor();
-  const goodsReceived = asNumber(quantityReceived) * factor;
+  const goodsReceived = asNumber(quantityReceived);
   const dateReceived = document.getElementById("dateReceived").value;
 
-  if (!productId || !waybill || !batchCode || !dateReceived) {
+  if (!productId || !waybill || !batchCode || !vehicleNumber || !dateReceived) {
     setStatus("All fields are required.", "error");
     return;
   }
@@ -68,9 +62,9 @@ function addPurchaseEntry(event) {
     productId,
     waybill,
     batchCode,
+    vehicleNumber,
     quantityReceived,
     pallets: quantityReceived,
-    factor,
     goodsReceived,
     dateReceived
   });

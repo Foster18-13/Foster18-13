@@ -292,16 +292,11 @@ function getLoadingForProduct(dayStore, productId) {
 }
 
 function getGoodsReceivedForProduct(dayStore, productId) {
-  const data = loadData();
-  const product = getProductById(data, productId);
-  const defaultFactor = asNumber(product?.palletFactor) || 1;
-
   return dayStore.purchases
     .filter((item) => item.productId === productId)
     .reduce((sum, item) => {
       const quantityReceived = item.quantityReceived ?? item.pallets;
-      const factor = asNumber(item.factor) || defaultFactor;
-      const goodsReceived = item.goodsReceived ?? asNumber(quantityReceived) * factor;
+      const goodsReceived = item.goodsReceived ?? quantityReceived;
       return sum + asNumber(goodsReceived);
     }, 0);
 }
