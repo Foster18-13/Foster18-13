@@ -31,7 +31,90 @@ function initSharedHeader() {
     });
   }
 
+  initDayLockControls();
   initGlobalSearch();
+}
+
+function getCurrentDayLockedState() {
+  const data = loadData();
+  const date = getSelectedDate();
+  const dayStore = ensureDayStore(data, date);
+  return !!dayStore.locked;
+}
+
+function isAllowWhenLocked(element) {
+  if (!element) return false;
+  if (element.matches('[data-allow-locked="true"]')) return true;
+
+  const id = element.id || "";
+  if (id.startsWith("export")) return true;
+  if (id === "refreshSummary") return true;
+
+  return false;
+}
+
+function applyDayLockState(locked) {
+  const container = document.querySelector("main");
+  if (!container) return;
+
+  container.querySelectorAll("input, select, textarea, button").forEach((element) => {
+    if (isAllowWhenLocked(element)) {
+      element.disabled = false;
+      return;
+    }
+
+    const isReadonlyInput = element.matches('input[readonly], textarea[readonly]');
+    if (isReadonlyInput) return;
+
+    element.disabled = locked;
+  });
+}
+
+function renderDayLockControls() {
+  const toggleButton = document.getElementById("dayLockToggle");
+  const lockState = document.getElementById("dayLockState");
+  if (!toggleButton || !lockState) return;
+
+  const locked = getCurrentDayLockedState();
+  toggleButton.textContent = locked ? "Unlock Day" : "Lock Day";
+  lockState.textContent = locked ? "Day locked" : "Day open";
+  lockState.className = `status ${locked ? "error" : "ok"}`;
+  applyDayLockState(locked);
+}
+
+function initDayLockControls() {
+  const controls = document.querySelector(".topbar-controls");
+  if (!controls) return;
+
+  if (!document.getElementById("dayLockArea")) {
+    const wrapper = document.createElement("div");
+    wrapper.id = "dayLockArea";
+    wrapper.className = "day-lock-area";
+    wrapper.innerHTML = `
+      <button class="button" id="dayLockToggle" type="button">Lock Day</button>
+      <span class="status" id="dayLockState"></span>
+    `;
+    controls.appendChild(wrapper);
+  }
+
+  const toggleButton = document.getElementById("dayLockToggle");
+  if (toggleButton) {
+    toggleButton.addEventListener("click", () => {
+      const data = loadData();
+      const date = getSelectedDate();
+      const dayStore = ensureDayStore(data, date);
+      dayStore.locked = !dayStore.locked;
+      saveData(data);
+      renderDayLockControls();
+      setStatus(dayStore.locked ? "Day locked. Editing is disabled." : "Day unlocked. Editing is enabled.", dayStore.locked ? "error" : "ok");
+    });
+  }
+
+  renderDayLockControls();
+
+  globalThis.setTimeout(() => {
+    renderDayLockControls();
+  }, 300);
 }
 
 function setStatus(message, type = "") {

@@ -131,7 +131,8 @@ function ensureDayStore(data, date) {
       recordingColumns: 3,
       recording: {},
       balance: {},
-      purchases: []
+      purchases: [],
+      locked: false
     };
   }
 
@@ -140,6 +141,7 @@ function ensureDayStore(data, date) {
   if (!day.balance || typeof day.balance !== "object") day.balance = {};
   if (!Array.isArray(day.purchases)) day.purchases = [];
   if (!Number.isInteger(day.recordingColumns) || day.recordingColumns < 1) day.recordingColumns = 3;
+  if (typeof day.locked !== "boolean") day.locked = false;
 
   return day;
 }

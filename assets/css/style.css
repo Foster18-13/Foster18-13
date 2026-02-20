@@ -259,6 +259,13 @@ td textarea {
   flex-wrap: wrap;
 }
 
+.day-lock-area {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 @media (max-width: 720px) {
   .header-inner {
     flex-direction: column;
