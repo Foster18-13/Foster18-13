@@ -15,6 +15,7 @@ function initSharedHeader() {
   if (!dateInput) return;
 
   dateInput.value = getSelectedDate();
+  initDateQuickNavigation();
   dateInput.addEventListener("change", () => {
     if (!dateInput.value) return;
     setSelectedDate(dateInput.value);
@@ -33,6 +34,46 @@ function initSharedHeader() {
 
   initDayLockControls();
   initGlobalSearch();
+}
+
+function shiftWorkingDate(days) {
+  const current = getSelectedDate() || todayISO();
+  const base = new Date(`${current}T00:00:00`);
+  if (Number.isNaN(base.getTime())) return;
+
+  base.setDate(base.getDate() + days);
+  const nextDate = base.toISOString().slice(0, 10);
+  setSelectedDate(nextDate);
+  location.reload();
+}
+
+function initDateQuickNavigation() {
+  const controls = document.querySelector(".topbar-controls");
+  const todayButton = document.getElementById("jumpToday");
+  if (!controls || !todayButton) return;
+
+  if (!document.getElementById("jumpPrevDay")) {
+    const prevButton = document.createElement("button");
+    prevButton.id = "jumpPrevDay";
+    prevButton.type = "button";
+    prevButton.className = "button";
+    prevButton.textContent = "Previous Day";
+    todayButton.before(prevButton);
+  }
+
+  if (!document.getElementById("jumpNextDay")) {
+    const nextButton = document.createElement("button");
+    nextButton.id = "jumpNextDay";
+    nextButton.type = "button";
+    nextButton.className = "button";
+    nextButton.textContent = "Next Day";
+    todayButton.after(nextButton);
+  }
+
+  const prevButton = document.getElementById("jumpPrevDay");
+  const nextButton = document.getElementById("jumpNextDay");
+  if (prevButton) prevButton.addEventListener("click", () => shiftWorkingDate(-1));
+  if (nextButton) nextButton.addEventListener("click", () => shiftWorkingDate(1));
 }
 
 function getCurrentDayLockedState() {
