@@ -21,7 +21,10 @@ function hasFirebaseConfig() {
 }
 
 function ensureCloudControls() {
-  const controls = document.querySelector(".topbar-controls");
+  const current = location.pathname.split("/").pop() || "index.html";
+  if (current !== "home.html" && current !== "index.html") return;
+
+  const controls = document.getElementById("homeCloudAuthMount") || document.querySelector(".topbar-controls");
   if (!controls || document.getElementById("cloudAuthArea")) return;
 
   const wrapper = document.createElement("div");
