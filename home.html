@@ -42,12 +42,13 @@
         <h2 class="card-title">Welcome to the Twellium Warehouse Portal</h2>
         <p class="card-subtitle">Use this portal to manage daily warehouse operations, monitor stock balances, and keep
           all sheet records up to date.</p>
+        <p id="loginGateStatus" class="status"></p>
         <div id="homeCloudAuthMount" class="toolbar"></div>
         <div class="toolbar">
-          <a class="button button-primary" href="balance.html">Open Balance Sheet</a>
-          <a class="button" href="recording.html">Open Recording Sheet</a>
-          <a class="button" href="summary.html">Open Summary Sheet</a>
-          <a class="button" href="purchase.html">Open Purchase Sheet</a>
+          <a class="button button-primary" data-requires-auth="true" href="balance.html">Open Balance Sheet</a>
+          <a class="button" data-requires-auth="true" href="recording.html">Open Recording Sheet</a>
+          <a class="button" data-requires-auth="true" href="summary.html">Open Summary Sheet</a>
+          <a class="button" data-requires-auth="true" href="purchase.html">Open Purchase Sheet</a>
         </div>
       </section>
 

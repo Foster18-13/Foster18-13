@@ -274,6 +274,15 @@ td textarea {
   flex-wrap: wrap;
 }
 
+.auth-locked {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+#loginGateStatus {
+  margin-bottom: 10px;
+}
+
 .day-lock-area {
   display: flex;
   align-items: center;

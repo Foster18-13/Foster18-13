@@ -8,6 +8,82 @@ function markActiveNav() {
   });
 }
 
+function getCurrentPageName() {
+  return location.pathname.split("/").pop() || "index.html";
+}
+
+function isHomePage(pageName) {
+  return pageName === "home.html" || pageName === "index.html";
+}
+
+function setHomeLoginStatus(message, type = "") {
+  const element = document.getElementById("loginGateStatus");
+  if (!element) return;
+  element.textContent = message;
+  element.className = `status ${type}`.trim();
+}
+
+function toggleProtectedAccessLinks(locked) {
+  document.querySelectorAll('[data-requires-auth="true"]').forEach((link) => {
+    if (locked) {
+      link.classList.add("auth-locked");
+      link.setAttribute("aria-disabled", "true");
+      link.setAttribute("tabindex", "-1");
+    } else {
+      link.classList.remove("auth-locked");
+      link.removeAttribute("aria-disabled");
+      link.removeAttribute("tabindex");
+    }
+  });
+}
+
+function initAuthAccessGuard() {
+  const currentPage = getCurrentPageName();
+  const onHome = isHomePage(currentPage);
+  const firebaseReady = !!globalThis.firebase?.initializeApp;
+  const firebaseConfig = globalThis.FIREBASE_CONFIG;
+  const hasConfig = !!(firebaseConfig?.apiKey && firebaseConfig?.authDomain && firebaseConfig?.projectId && firebaseConfig?.appId);
+
+  if (!firebaseReady || !hasConfig) {
+    if (onHome) {
+      toggleProtectedAccessLinks(true);
+      setHomeLoginStatus("Login is required before accessing the portal.", "error");
+    }
+    return;
+  }
+
+  if (!globalThis.firebase.apps.length) {
+    globalThis.firebase.initializeApp(firebaseConfig);
+  }
+
+  const auth = globalThis.firebase.auth();
+  auth.onAuthStateChanged((user) => {
+    if (user) {
+      if (onHome) {
+        toggleProtectedAccessLinks(false);
+        const label = user.email || user.displayName || "Signed in";
+        setHomeLoginStatus(`Access granted: ${label}`, "ok");
+
+        const params = new URLSearchParams(location.search);
+        const nextPage = params.get("next");
+        if (nextPage && nextPage !== "home.html" && nextPage !== "index.html") {
+          location.replace(nextPage);
+        }
+      }
+      return;
+    }
+
+    if (!onHome) {
+      const target = encodeURIComponent(currentPage || "home.html");
+      location.replace(`home.html?authRequired=1&next=${target}`);
+      return;
+    }
+
+    toggleProtectedAccessLinks(true);
+    setHomeLoginStatus("Please sign in first to access the website.", "error");
+  });
+}
+
 function initSharedHeader() {
   markActiveNav();
 
@@ -446,4 +522,9 @@ function initGlobalSearch() {
   });
 }
 
-document.addEventListener("DOMContentLoaded", initSharedHeader);
+function initCommon() {
+  initSharedHeader();
+  initAuthAccessGuard();
+}
+
+document.addEventListener("DOMContentLoaded", initCommon);
