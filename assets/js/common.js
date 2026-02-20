@@ -42,6 +42,18 @@ function getCurrentDayLockedState() {
   return !!dayStore.locked;
 }
 
+function getCurrentDayLockDetails() {
+  const data = loadData();
+  const date = getSelectedDate();
+  return ensureDayStore(data, date);
+}
+
+function formatApprovalTimestamp(timestamp) {
+  const value = asNumber(timestamp);
+  if (!value) return "";
+  return new Date(value).toLocaleString();
+}
+
 function isAllowWhenLocked(element) {
   if (!element) return false;
   if (element.matches('[data-allow-locked="true"]')) return true;
@@ -73,12 +85,25 @@ function applyDayLockState(locked) {
 function renderDayLockControls() {
   const toggleButton = document.getElementById("dayLockToggle");
   const lockState = document.getElementById("dayLockState");
+  const approvalInfo = document.getElementById("dayLockApproval");
   if (!toggleButton || !lockState) return;
 
-  const locked = getCurrentDayLockedState();
+  const details = getCurrentDayLockDetails();
+  const locked = !!details.locked;
   toggleButton.textContent = locked ? "Unlock Day" : "Lock Day";
   lockState.textContent = locked ? "Day locked" : "Day open";
   lockState.className = `status ${locked ? "error" : "ok"}`;
+
+  if (approvalInfo) {
+    if (locked && details.lockedBy && details.lockedAt) {
+      approvalInfo.textContent = `Approved by ${details.lockedBy} on ${formatApprovalTimestamp(details.lockedAt)}`;
+      approvalInfo.className = "status";
+    } else {
+      approvalInfo.textContent = "";
+      approvalInfo.className = "status";
+    }
+  }
+
   applyDayLockState(locked);
 }
 
@@ -93,6 +118,7 @@ function initDayLockControls() {
     wrapper.innerHTML = `
       <button class="button" id="dayLockToggle" type="button">Lock Day</button>
       <span class="status" id="dayLockState"></span>
+      <span class="status" id="dayLockApproval"></span>
     `;
     controls.appendChild(wrapper);
   }
@@ -103,10 +129,25 @@ function initDayLockControls() {
       const data = loadData();
       const date = getSelectedDate();
       const dayStore = ensureDayStore(data, date);
-      dayStore.locked = !dayStore.locked;
+
+      if (dayStore.locked) {
+        dayStore.locked = false;
+      } else {
+        const approverInput = prompt("Enter supervisor approval name:");
+        const approver = String(approverInput || "").trim();
+        if (!approver) {
+          setStatus("Lock cancelled: supervisor name is required.", "error");
+          return;
+        }
+
+        dayStore.locked = true;
+        dayStore.lockedBy = approver;
+        dayStore.lockedAt = Date.now();
+      }
+
       saveData(data);
       renderDayLockControls();
-      setStatus(dayStore.locked ? "Day locked. Editing is disabled." : "Day unlocked. Editing is enabled.", dayStore.locked ? "error" : "ok");
+      setStatus(dayStore.locked ? "Day locked with supervisor approval." : "Day unlocked. Editing is enabled.", dayStore.locked ? "error" : "ok");
     });
   }
 

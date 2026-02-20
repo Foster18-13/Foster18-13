@@ -132,7 +132,9 @@ function ensureDayStore(data, date) {
       recording: {},
       balance: {},
       purchases: [],
-      locked: false
+      locked: false,
+      lockedBy: "",
+      lockedAt: 0
     };
   }
 
@@ -142,6 +144,8 @@ function ensureDayStore(data, date) {
   if (!Array.isArray(day.purchases)) day.purchases = [];
   if (!Number.isInteger(day.recordingColumns) || day.recordingColumns < 1) day.recordingColumns = 3;
   if (typeof day.locked !== "boolean") day.locked = false;
+  if (typeof day.lockedBy !== "string") day.lockedBy = "";
+  day.lockedAt = asNumber(day.lockedAt);
 
   return day;
 }
