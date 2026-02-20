@@ -46,9 +46,21 @@ function todayISO() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function inferPalletFactorFromName(name) {
+  const text = String(name || "");
+  const match = /x\s*(\d+)/i.exec(text);
+  if (!match) return 1;
+  const value = Number(match[1]);
+  return Number.isFinite(value) && value > 0 ? value : 1;
+}
+
 function defaultData() {
   return {
-    products: REQUIRED_PRODUCTS.map((name) => ({ id: generateId("product"), name })),
+    products: REQUIRED_PRODUCTS.map((name) => ({
+      id: generateId("product"),
+      name,
+      palletFactor: inferPalletFactorFromName(name)
+    })),
     daily: {},
     _meta: {
       updatedAt: Date.now()
@@ -68,7 +80,11 @@ function ensureRequiredProducts(data) {
   }
 
   if (isLegacyStarterList(data.products)) {
-    data.products = REQUIRED_PRODUCTS.map((name) => ({ id: generateId("product"), name }));
+    data.products = REQUIRED_PRODUCTS.map((name) => ({
+      id: generateId("product"),
+      name,
+      palletFactor: inferPalletFactorFromName(name)
+    }));
     return true;
   }
 
@@ -78,8 +94,20 @@ function ensureRequiredProducts(data) {
   REQUIRED_PRODUCTS.forEach((name) => {
     const key = name.toLowerCase();
     if (!currentNames.has(key)) {
-      data.products.push({ id: generateId("product"), name });
+      data.products.push({
+        id: generateId("product"),
+        name,
+        palletFactor: inferPalletFactorFromName(name)
+      });
       currentNames.add(key);
+      changed = true;
+    }
+  });
+
+  data.products.forEach((product) => {
+    const factor = Number(product.palletFactor);
+    if (!Number.isFinite(factor) || factor <= 0) {
+      product.palletFactor = inferPalletFactorFromName(product.name);
       changed = true;
     }
   });
@@ -193,7 +221,26 @@ function addProduct(name) {
   const exists = data.products.some((product) => product.name.toLowerCase() === clean.toLowerCase());
   if (exists) return { ok: false, message: "Product already exists." };
 
-  data.products.push({ id: generateId("product"), name: clean });
+  data.products.push({
+    id: generateId("product"),
+    name: clean,
+    palletFactor: inferPalletFactorFromName(clean)
+  });
+  saveData(data);
+  return { ok: true };
+}
+
+function updateProductPalletFactor(productId, factor) {
+  const value = Number(factor);
+  if (!Number.isFinite(value) || value <= 0) {
+    return { ok: false, message: "Pallet factor must be greater than 0." };
+  }
+
+  const data = loadData();
+  const target = data.products.find((item) => item.id === productId);
+  if (!target) return { ok: false, message: "Product not found." };
+
+  target.palletFactor = value;
   saveData(data);
   return { ok: true };
 }
@@ -247,7 +294,10 @@ function getLoadingForProduct(dayStore, productId) {
 function getGoodsReceivedForProduct(dayStore, productId) {
   return dayStore.purchases
     .filter((item) => item.productId === productId)
-    .reduce((sum, item) => sum + asNumber(item.pallets), 0);
+    .reduce((sum, item) => {
+      const goodsReceived = item.goodsReceived ?? item.pallets;
+      return sum + asNumber(goodsReceived);
+    }, 0);
 }
 
 function computeBalanceValue({ opening, returns, goodsReceived, loading, damages }) {

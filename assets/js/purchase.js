@@ -4,6 +4,23 @@ function renderPurchaseProductOptions() {
   productSelect.innerHTML = createProductOptions(data.products);
 }
 
+function getSelectedProductFactor() {
+  const data = loadData();
+  const productId = document.getElementById("productId").value;
+  const product = getProductById(data, productId);
+  return asNumber(product?.palletFactor) || 1;
+}
+
+function updateGoodsReceivedPreview() {
+  const palletsInput = document.getElementById("pallets");
+  const goodsReceivedInput = document.getElementById("goodsReceived");
+  if (!palletsInput || !goodsReceivedInput) return;
+
+  const pallets = asNumber(palletsInput.value);
+  const factor = getSelectedProductFactor();
+  goodsReceivedInput.value = pallets * factor;
+}
+
 function renderPurchaseTable() {
   const tbody = document.querySelector("#purchaseTable tbody");
   const data = loadData();
@@ -11,7 +28,7 @@ function renderPurchaseTable() {
   const dayStore = ensureDayStore(data, date);
 
   if (!dayStore.purchases.length) {
-    tbody.innerHTML = `<tr><td colspan="6">No purchase entries for this date.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7">No purchase entries for this date.</td></tr>`;
     return;
   }
 
@@ -24,6 +41,7 @@ function renderPurchaseTable() {
           <td>${purchase.waybill}</td>
           <td>${purchase.batchCode}</td>
           <td>${purchase.pallets}</td>
+          <td>${purchase.goodsReceived ?? purchase.pallets}</td>
           <td>${purchase.dateReceived}</td>
           <td><button class="button button-danger" data-delete-id="${purchase.id}" type="button">Delete</button></td>
         </tr>
@@ -43,6 +61,8 @@ function addPurchaseEntry(event) {
   const waybill = document.getElementById("waybill").value.trim();
   const batchCode = document.getElementById("batchCode").value.trim();
   const pallets = document.getElementById("pallets").value;
+  const factor = getSelectedProductFactor();
+  const goodsReceived = asNumber(pallets) * factor;
   const dateReceived = document.getElementById("dateReceived").value;
 
   if (!productId || !waybill || !batchCode || !dateReceived) {
@@ -60,12 +80,15 @@ function addPurchaseEntry(event) {
     waybill,
     batchCode,
     pallets,
+    factor,
+    goodsReceived,
     dateReceived
   });
 
   saveData(data);
   event.target.reset();
   document.getElementById("dateReceived").value = date;
+  document.getElementById("goodsReceived").value = "";
   renderPurchaseTable();
   setStatus("Purchase entry added.", "ok");
 }
@@ -85,11 +108,16 @@ document.addEventListener("DOMContentLoaded", () => {
   renderPurchaseTable();
   const currentDate = getSelectedDate();
   document.getElementById("dateReceived").value = currentDate;
+  updateGoodsReceivedPreview();
 
   const form = document.getElementById("purchaseForm");
   const exportButton = document.getElementById("exportPurchase");
   const exportPdfButton = document.getElementById("exportPurchasePdf");
+  const productInput = document.getElementById("productId");
+  const palletsInput = document.getElementById("pallets");
   form.addEventListener("submit", addPurchaseEntry);
+  if (productInput) productInput.addEventListener("change", updateGoodsReceivedPreview);
+  if (palletsInput) palletsInput.addEventListener("input", updateGoodsReceivedPreview);
   if (exportButton) {
     exportButton.addEventListener("click", () => {
       exportTableAsCsv("purchaseTable", "purchase_sheet");
