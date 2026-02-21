@@ -23,14 +23,27 @@ function setupRegistrationForm() {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const username = document.getElementById('username').value;
-    const email = document.getElementById('email').value;
+    const username = document.getElementById('username').value.trim();
+    const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
 
     // Clear error
     errorDiv.style.display = 'none';
     errorDiv.textContent = '';
+
+    // Validate inputs
+    if (!username || !email || !password || !confirmPassword) {
+      errorDiv.textContent = 'Please fill in all required fields.';
+      errorDiv.style.display = 'block';
+      return;
+    }
+
+    if (username.length < 3) {
+      errorDiv.textContent = 'Username must be at least 3 characters long.';
+      errorDiv.style.display = 'block';
+      return;
+    }
 
     // Validate passwords match
     if (password !== confirmPassword) {
@@ -52,6 +65,7 @@ function setupRegistrationForm() {
 
       // Create Firebase user
       const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
+      console.log('User created:', userCredential.user.uid);
 
       // Update user profile with username
       await userCredential.user.updateProfile({
@@ -87,12 +101,16 @@ function setupRegistrationForm() {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Register';
 
+      console.error('Registration error:', error.code, error.message);
+
       if (error.code === 'auth/email-already-in-use') {
         errorDiv.textContent = 'Email already in use. Please use a different email or login.';
       } else if (error.code === 'auth/invalid-email') {
-        errorDiv.textContent = 'Invalid email address.';
+        errorDiv.textContent = 'Invalid email address format.';
       } else if (error.code === 'auth/weak-password') {
-        errorDiv.textContent = 'Password is too weak. Please use a stronger password.';
+        errorDiv.textContent = 'Password is too weak. Please use a stronger password (min. 6 characters).';
+      } else if (error.code === 'auth/operation-not-allowed') {
+        errorDiv.textContent = 'Email/password registration is not enabled. Please contact support.';
       } else {
         errorDiv.textContent = error.message || 'Registration failed. Please try again.';
       }
@@ -170,16 +188,17 @@ function protectPortalPageWithAuth() {
 // Initialize on page load
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
+    initializeUserAuth();
+    // Give Firebase a moment to fully initialize
     setTimeout(() => {
-      initializeUserAuth();
       setupUserAuthPage();
       protectPortalPageWithAuth();
-    }, 100);
+    }, 200);
   });
 } else {
+  initializeUserAuth();
   setTimeout(() => {
-    initializeUserAuth();
     setupUserAuthPage();
     protectPortalPageWithAuth();
-  }, 100);
+  }, 200);
 }

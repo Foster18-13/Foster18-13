@@ -79,6 +79,8 @@ function ensureRequiredProducts(data) {
     data.products = [];
   }
 
+  const deletedRequired = getDeletedRequiredSet(data);
+
   if (isLegacyStarterList(data.products)) {
     data.products = REQUIRED_PRODUCTS.map((name) => ({
       id: generateId("product"),
@@ -93,7 +95,7 @@ function ensureRequiredProducts(data) {
 
   REQUIRED_PRODUCTS.forEach((name) => {
     const key = name.toLowerCase();
-    if (!currentNames.has(key)) {
+    if (!currentNames.has(key) && !deletedRequired.has(key)) {
       data.products.push({
         id: generateId("product"),
         name,
@@ -113,6 +115,12 @@ function ensureRequiredProducts(data) {
   });
 
   return changed;
+}
+
+function getDeletedRequiredSet(data) {
+  const meta = data._meta && typeof data._meta === "object" ? data._meta : {};
+  const deleted = Array.isArray(meta.deletedRequired) ? meta.deletedRequired : [];
+  return new Set(deleted.map((item) => String(item).toLowerCase().trim()).filter(Boolean));
 }
 
 function loadData() {
@@ -221,6 +229,15 @@ function addProduct(name) {
   const exists = data.products.some((product) => product.name.toLowerCase() === clean.toLowerCase());
   if (exists) return { ok: false, message: "Product already exists." };
 
+  const deletedRequired = getDeletedRequiredSet(data);
+  const cleanKey = clean.toLowerCase();
+  if (deletedRequired.has(cleanKey)) {
+    data._meta = data._meta && typeof data._meta === "object" ? data._meta : {};
+    data._meta.deletedRequired = Array.isArray(data._meta.deletedRequired)
+      ? data._meta.deletedRequired.filter((item) => String(item).toLowerCase().trim() !== cleanKey)
+      : [];
+  }
+
   data.products.push({
     id: generateId("product"),
     name: clean,
@@ -263,7 +280,21 @@ function updateProduct(productId, newName) {
 
 function deleteProduct(productId) {
   const data = loadData();
+  const target = data.products.find((item) => item.id === productId);
   data.products = data.products.filter((item) => item.id !== productId);
+
+  if (target) {
+    const targetKey = String(target.name || "").toLowerCase().trim();
+    const requiredKey = REQUIRED_PRODUCTS.find((name) => name.toLowerCase() === targetKey);
+    if (requiredKey) {
+      data._meta = data._meta && typeof data._meta === "object" ? data._meta : {};
+      const deleted = Array.isArray(data._meta.deletedRequired) ? data._meta.deletedRequired : [];
+      if (!deleted.some((item) => String(item).toLowerCase().trim() === targetKey)) {
+        deleted.push(requiredKey);
+      }
+      data._meta.deletedRequired = deleted;
+    }
+  }
 
   Object.values(data.daily).forEach((day) => {
     if (day.recording) delete day.recording[productId];

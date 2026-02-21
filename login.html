@@ -140,6 +140,15 @@
       <div class="auth-links">
         <p>Don't have an account? <a href="register.html">Create one here</a></p>
       </div>
+      <div
+        style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ddd; font-size: 12px; color: #666; text-align: center;">
+        <p><strong>Troubleshooting:</strong> If you see an "invalid credential" error:</p>
+        <ol style="text-align: left; display: inline-block;">
+          <li>Check that Email/Password auth is enabled in Firebase Console</li>
+          <li>Verify your email is correct and account exists</li>
+          <li>Check that your password is correct</li>
+        </ol>
+      </div>
     </div>
   </div>
 
@@ -147,9 +156,12 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
   <script src="assets/js/firebase-config.js"></script>
+  <script src="assets/js/user-auth.js"></script>
   <script>
-    // Initialize Firebase
-    firebase.initializeApp(FIREBASE_CONFIG);
+    // Initialize Firebase if not already initialized
+    if (!firebase.apps.length) {
+      firebase.initializeApp(FIREBASE_CONFIG);
+    }
 
     // Redirect if already logged in
     firebase.auth().onAuthStateChanged((user) => {
@@ -162,11 +174,18 @@
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      const email = document.getElementById('email').value;
+      const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
       const errorDiv = document.getElementById('authError');
       const successDiv = document.getElementById('authSuccess');
       const submitBtn = document.getElementById('submitBtn');
+
+      // Validation
+      if (!email || !password) {
+        errorDiv.textContent = 'Please enter both email and password.';
+        errorDiv.style.display = 'block';
+        return;
+      }
 
       // Clear messages
       errorDiv.style.display = 'none';
@@ -178,7 +197,8 @@
         submitBtn.disabled = true;
         submitBtn.textContent = 'Logging in...';
 
-        await firebase.auth().signInWithEmailAndPassword(email, password);
+        const result = await firebase.auth().signInWithEmailAndPassword(email, password);
+        console.log('Login successful:', result.user.email);
 
         successDiv.textContent = 'Login successful! Redirecting...';
         successDiv.style.display = 'block';
@@ -191,12 +211,18 @@
         submitBtn.disabled = false;
         submitBtn.textContent = 'Login';
 
+        console.error('Login error:', error.code, error.message);
+
         if (error.code === 'auth/user-not-found') {
-          errorDiv.textContent = 'No account found with this email.';
+          errorDiv.textContent = 'No account found with this email. Please register first.';
         } else if (error.code === 'auth/wrong-password') {
           errorDiv.textContent = 'Incorrect password.';
         } else if (error.code === 'auth/invalid-email') {
           errorDiv.textContent = 'Invalid email address.';
+        } else if (error.code === 'auth/invalid-credential' || error.code === 'auth/invalid-user-credential') {
+          errorDiv.textContent = 'Invalid email or password. Please check and try again.';
+        } else if (error.code === 'auth/too-many-requests') {
+          errorDiv.textContent = 'Too many failed login attempts. Please try again later.';
         } else {
           errorDiv.textContent = error.message || 'Login failed. Please try again.';
         }
