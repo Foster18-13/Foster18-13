@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login | Twellium Warehouse Portal</title>
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <style>
+    .auth-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: #f5f5f5;
+      padding: 1rem;
+    }
+
+    .auth-card {
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .auth-card h2 {
+      margin-bottom: 1.5rem;
+      text-align: center;
+      color: #333;
+    }
+
+    .auth-card h3 {
+      margin-bottom: 1rem;
+      text-align: center;
+      color: #666;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-size: 14px;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #007bff;
+    }
+
+    .auth-error {
+      color: #842029;
+      background: #f8d7da;
+      padding: 0.75rem;
+      border-radius: 4px;
+      margin-bottom: 1rem;
+      display: none;
+      font-size: 14px;
+    }
+
+    .auth-success {
+      color: #155724;
+      background: #d4edda;
+      padding: 0.75rem;
+      border-radius: 4px;
+      margin-bottom: 1rem;
+      display: none;
+      font-size: 14px;
+    }
+
+    .auth-links {
+      text-align: center;
+      margin-top: 1rem;
+    }
+
+    .auth-links a {
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    .auth-links a:hover {
+      text-decoration: underline;
+    }
+
+    button[type="submit"] {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 0.5rem;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    button[type="submit"]:hover {
+      background-color: #0056b3;
+    }
+
+    button[type="submit"]:disabled {
+      background-color: #6c757d;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="auth-container">
+    <div class="auth-card">
+      <h2>Twellium Warehouse Portal</h2>
+      <h3>Login</h3>
+      <div id="authError" class="auth-error"></div>
+      <div id="authSuccess" class="auth-success"></div>
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" required autocomplete="email" />
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" required autocomplete="current-password" />
+        </div>
+        <button class="button button-primary" type="submit" id="submitBtn">Login</button>
+      </form>
+      <div class="auth-links">
+        <p>Don't have an account? <a href="register.html">Create one here</a></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="assets/js/firebase-config.js"></script>
+  <script>
+    // Initialize Firebase
+    firebase.initializeApp(FIREBASE_CONFIG);
+
+    // Redirect if already logged in
+    firebase.auth().onAuthStateChanged((user) => {
+      if (user) {
+        window.location.href = 'home.html';
+      }
+    });
+
+    // Handle login form submission
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const errorDiv = document.getElementById('authError');
+      const successDiv = document.getElementById('authSuccess');
+      const submitBtn = document.getElementById('submitBtn');
+
+      // Clear messages
+      errorDiv.style.display = 'none';
+      errorDiv.textContent = '';
+      successDiv.style.display = 'none';
+      successDiv.textContent = '';
+
+      try {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Logging in...';
+
+        await firebase.auth().signInWithEmailAndPassword(email, password);
+
+        successDiv.textContent = 'Login successful! Redirecting...';
+        successDiv.style.display = 'block';
+
+        // Redirect to home after 1 second
+        setTimeout(() => {
+          window.location.href = 'home.html';
+        }, 1000);
+      } catch (error) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Login';
+
+        if (error.code === 'auth/user-not-found') {
+          errorDiv.textContent = 'No account found with this email.';
+        } else if (error.code === 'auth/wrong-password') {
+          errorDiv.textContent = 'Incorrect password.';
+        } else if (error.code === 'auth/invalid-email') {
+          errorDiv.textContent = 'Invalid email address.';
+        } else {
+          errorDiv.textContent = error.message || 'Login failed. Please try again.';
+        }
+        errorDiv.style.display = 'block';
+      }
+    });
+  </script>
+</body>
+
+</html>

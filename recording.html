@@ -21,6 +21,7 @@
         <button class="button" id="jumpToday" type="button">Today</button>
         <input class="input search-input" id="globalSearchInput" placeholder="Search item" />
         <button class="button" id="globalSearchBtn" type="button">Search</button>
+        <div id="userControls" style="display: flex; gap: 1rem; align-items: center;"></div>
       </div>
     </div>
   </header>
@@ -66,10 +67,23 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
   <script src="assets/js/firebase-config.js"></script>
+  <script src="assets/js/user-auth.js"></script>
   <script src="assets/js/storage.js"></script>
   <script src="assets/js/common.js"></script>
   <script src="assets/js/cloud-sync.js"></script>
   <script src="assets/js/recording.js"></script>
+  <script>
+    // Setup user controls in header
+    firebase.auth().onAuthStateChanged((user) => {
+      const userControls = document.getElementById('userControls');
+      if (user) {
+        userControls.innerHTML = `
+          <span style="font-size: 14px;">Welcome, <strong>${user.displayName || user.email}</strong></span>
+          <button class="button" onclick="logoutUser()">Logout</button>
+        `;
+      }
+    });
+  </script>
 </body>
 
 </html>
