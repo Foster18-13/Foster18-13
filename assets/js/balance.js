@@ -94,7 +94,7 @@ function saveBalanceSheet() {
       warnings.push(`${productName}: Goods Returned looks high compared to available stock.`);
     }
     if (damages > opening + returns) {
-      warnings.push(`${productName}: Goods Returned looks high for the day.`);
+      warnings.push(`${productName}: Damages looks high for the day.`);
     }
     if (closing < 0) {
       warnings.push(`${productName}: Closing stock cannot be negative.`);
