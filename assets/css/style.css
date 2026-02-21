@@ -218,6 +218,10 @@ th {
   white-space: nowrap;
 }
 
+td:first-child {
+  min-width: 200px;
+}
+
 td input,
 td select,
 td textarea {
@@ -261,6 +265,11 @@ td textarea {
 .entry-waybill,
 .entry-qty {
   width: 100%;
+}
+
+input[data-total] {
+  min-width: 120px;
+  font-weight: 600;
 }
 
 .search-input {
