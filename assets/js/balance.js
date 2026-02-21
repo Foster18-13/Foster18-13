@@ -91,10 +91,10 @@ function saveBalanceSheet() {
     const productName = row.querySelector("td:first-child").textContent.trim();
 
     if (returns > opening + asNumber(row.querySelector("td:nth-child(4) input").value)) {
-      warnings.push(`${productName}: Returns looks high compared to available stock.`);
+      warnings.push(`${productName}: Goods Returned looks high compared to available stock.`);
     }
     if (damages > opening + returns) {
-      warnings.push(`${productName}: Damages looks high for the day.`);
+      warnings.push(`${productName}: Goods Returned looks high for the day.`);
     }
     if (closing < 0) {
       warnings.push(`${productName}: Closing stock cannot be negative.`);
