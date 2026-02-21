@@ -74,11 +74,12 @@ textarea {
 .input,
 .select,
 .textarea {
-  padding: 8px 10px;
-  border-radius: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
   border: 1px solid var(--border);
   background: #fff;
   color: var(--text);
+  font-size: 13px;
 }
 
 .button {
@@ -200,40 +201,36 @@ textarea {
 table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 760px;
+  min-width: 600px;
   background: #fff;
 }
 
 th,
 td {
   border-bottom: 1px solid var(--border);
-  padding: 8px;
+  padding: 4px 3px;
   text-align: left;
   vertical-align: top;
 }
 
 th {
   background: var(--surface-alt);
-  font-size: 13px;
+  font-size: 12px;
   white-space: nowrap;
+  padding: 4px 3px;
 }
 
 td:first-child {
-  min-width: 200px;
-}
-
-td {
-  padding: 6px 4px;
-}
-
-td:first-child {
-  padding: 6px 8px;
+  min-width: 180px;
+  padding: 4px 4px;
 }
 
 td input,
 td select,
 td textarea {
   width: 100%;
+  padding: 4px 6px !important;
+  font-size: 12px;
 }
 
 .status {
@@ -266,8 +263,8 @@ td textarea {
 
 .entry-cell-stack {
   display: grid;
-  gap: 3px;
-  min-width: 100px;
+  gap: 2px;
+  min-width: 85px;
 }
 
 .entry-waybill,
@@ -278,8 +275,10 @@ td textarea {
 }
 
 input[data-total] {
-  min-width: 120px;
+  min-width: 80px;
   font-weight: 600;
+  padding: 4px 6px !important;
+  font-size: 12px;
 }
 
 .search-input {
