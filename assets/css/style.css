@@ -222,6 +222,14 @@ td:first-child {
   min-width: 200px;
 }
 
+td {
+  padding: 6px 4px;
+}
+
+td:first-child {
+  padding: 6px 8px;
+}
+
 td input,
 td select,
 td textarea {
@@ -258,13 +266,15 @@ td textarea {
 
 .entry-cell-stack {
   display: grid;
-  gap: 6px;
-  min-width: 180px;
+  gap: 3px;
+  min-width: 100px;
 }
 
 .entry-waybill,
 .entry-qty {
   width: 100%;
+  padding: 6px 8px;
+  font-size: 13px;
 }
 
 input[data-total] {
