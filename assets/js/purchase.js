@@ -22,7 +22,6 @@ function renderPurchaseTable() {
         <tr>
           <td>${product ? product.name : "Unknown Product"}</td>
           <td>${purchase.waybill}</td>
-          <td>${purchase.batchCode}</td>
           <td>${purchase.vehicleNumber ?? ""}</td>
           <td>${purchase.quantityReceived ?? purchase.pallets}</td>
           <td>${purchase.dateReceived}</td>
@@ -42,13 +41,12 @@ function addPurchaseEntry(event) {
 
   const productId = document.getElementById("productId").value;
   const waybill = document.getElementById("waybill").value.trim();
-  const batchCode = document.getElementById("batchCode").value.trim();
   const vehicleNumber = document.getElementById("vehicleNumber").value.trim();
   const quantityReceived = document.getElementById("quantityReceived").value;
   const goodsReceived = asNumber(quantityReceived);
   const dateReceived = document.getElementById("dateReceived").value;
 
-  if (!productId || !waybill || !batchCode || !vehicleNumber || !dateReceived) {
+  if (!productId || !waybill || !vehicleNumber || !dateReceived) {
     setStatus("All fields are required.", "error");
     return;
   }
@@ -61,7 +59,6 @@ function addPurchaseEntry(event) {
     id: generateId("purchase"),
     productId,
     waybill,
-    batchCode,
     vehicleNumber,
     quantityReceived,
     pallets: quantityReceived,
