@@ -12,7 +12,7 @@ function renderRecordingTable() {
   const tbody = document.querySelector("#recordingTable tbody");
   const data = loadData();
   const date = getSelectedDate();
-  const dayStore = ensureDayStore(data, date);
+  const dayStore = getShiftStore(data, date);
   const columns = dayStore.recordingColumns;
 
   if (!data.products.length) {
@@ -77,7 +77,7 @@ function attachRecordingCalculations() {
 function saveRecordingSheet() {
   const data = loadData();
   const date = getSelectedDate();
-  const dayStore = ensureDayStore(data, date);
+  const dayStore = getShiftStore(data, date);
 
   document.querySelectorAll("#recordingTable tbody tr").forEach((row) => {
     const productId = row.dataset.productId;
@@ -99,7 +99,7 @@ function saveRecordingSheet() {
 function addRecordingColumn() {
   const data = loadData();
   const date = getSelectedDate();
-  const dayStore = ensureDayStore(data, date);
+  const dayStore = getShiftStore(data, date);
   dayStore.recordingColumns += 1;
   saveData(data);
   renderRecordingTable();
@@ -107,6 +107,15 @@ function addRecordingColumn() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  const shiftSelector = document.getElementById("shiftSelector");
+  if (shiftSelector) {
+    shiftSelector.value = getSelectedShift();
+    shiftSelector.addEventListener("change", (e) => {
+      setSelectedShift(e.target.value);
+      location.reload();
+    });
+  }
+
   renderRecordingTable();
   const saveButton = document.getElementById("saveRecording");
   const addColumnButton = document.getElementById("addColumn");

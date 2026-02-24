@@ -164,24 +164,51 @@ function saveData(data) {
 function ensureDayStore(data, date) {
   if (!data.daily[date]) {
     data.daily[date] = {
-      recordingColumns: 6,
-      recording: {},
-      balance: {},
-      purchases: [],
-      locked: false,
-      lockedBy: "",
-      lockedAt: 0
+      shift1: {
+        recordingColumns: 3,
+        recording: {},
+        balance: {},
+        purchases: [],
+        locked: false,
+        lockedBy: "",
+        lockedAt: 0
+      },
+      shift2: {
+        recordingColumns: 3,
+        recording: {},
+        balance: {},
+        purchases: [],
+        locked: false,
+        lockedBy: "",
+        lockedAt: 0
+      }
     };
   }
 
   const day = data.daily[date];
-  if (!day.recording || typeof day.recording !== "object") day.recording = {};
-  if (!day.balance || typeof day.balance !== "object") day.balance = {};
-  if (!Array.isArray(day.purchases)) day.purchases = [];
-  if (!Number.isInteger(day.recordingColumns) || day.recordingColumns < 1) day.recordingColumns = 3;
-  if (typeof day.locked !== "boolean") day.locked = false;
-  if (typeof day.lockedBy !== "string") day.lockedBy = "";
-  day.lockedAt = asNumber(day.lockedAt);
+  
+  // Ensure both shifts exist
+  ["shift1", "shift2"].forEach((shiftId) => {
+    if (!day[shiftId] || typeof day[shiftId] !== "object") {
+      day[shiftId] = {
+        recordingColumns: 3,
+        recording: {},
+        balance: {},
+        purchases: [],
+        locked: false,
+        lockedBy: "",
+        lockedAt: 0
+      };
+    }
+    const shift = day[shiftId];
+    if (!shift.recording || typeof shift.recording !== "object") shift.recording = {};
+    if (!shift.balance || typeof shift.balance !== "object") shift.balance = {};
+    if (!Array.isArray(shift.purchases)) shift.purchases = [];
+    if (!Number.isInteger(shift.recordingColumns) || shift.recordingColumns < 1) shift.recordingColumns = 3;
+    if (typeof shift.locked !== "boolean") shift.locked = false;
+    if (typeof shift.lockedBy !== "string") shift.lockedBy = "";
+    shift.lockedAt = asNumber(shift.lockedAt);
+  });
 
   return day;
 }
@@ -194,6 +221,22 @@ function setSelectedDate(date) {
   localStorage.setItem("twellium_selected_date", date);
 }
 
+function getSelectedShift() {
+  const shift = localStorage.getItem("twellium_selected_shift");
+  return shift === "shift2" ? "shift2" : "shift1";
+}
+
+function setSelectedShift(shift) {
+  const normalized = shift === "shift2" ? "shift2" : "shift1";
+  localStorage.setItem("twellium_selected_shift", normalized);
+}
+
+function getShiftStore(data, date, shift = null) {
+  const selectedShift = shift || getSelectedShift();
+  const day = ensureDayStore(data, date);
+  return day[selectedShift];
+}
+
 function getPreviousDateISO(date) {
   const targetDate = new Date(`${date}T00:00:00`);
   if (Number.isNaN(targetDate.getTime())) return "";
@@ -201,14 +244,15 @@ function getPreviousDateISO(date) {
   return targetDate.toISOString().slice(0, 10);
 }
 
-function getPreviousClosingStock(data, date, productId) {
+function getPreviousClosingStock(data, date, productId, shift = null) {
   const previousDate = getPreviousDateISO(date);
   if (!previousDate) return "";
 
+  const selectedShift = shift || getSelectedShift();
   const previousDay = data.daily[previousDate];
-  if (!previousDay?.balance) return "";
+  if (!previousDay?.[selectedShift]?.balance) return "";
 
-  const previousBalance = previousDay.balance[productId] || {};
+  const previousBalance = previousDay[selectedShift].balance[productId] || {};
   const closingStock = previousBalance.closing;
   if (closingStock === null || closingStock === undefined || closingStock === "") {
     return "";
@@ -297,11 +341,15 @@ function deleteProduct(productId) {
   }
 
   Object.values(data.daily).forEach((day) => {
-    if (day.recording) delete day.recording[productId];
-    if (day.balance) delete day.balance[productId];
-    if (Array.isArray(day.purchases)) {
-      day.purchases = day.purchases.filter((purchase) => purchase.productId !== productId);
-    }
+    ["shift1", "shift2"].forEach((shiftId) => {
+      const shift = day[shiftId];
+      if (!shift) return;
+      if (shift.recording) delete shift.recording[productId];
+      if (shift.balance) delete shift.balance[productId];
+      if (Array.isArray(shift.purchases)) {
+        shift.purchases = shift.purchases.filter((purchase) => purchase.productId !== productId);
+      }
+    });
   });
 
   saveData(data);

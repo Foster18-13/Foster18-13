@@ -8,7 +8,7 @@ function renderPurchaseTable() {
   const tbody = document.querySelector("#purchaseTable tbody");
   const data = loadData();
   const date = getSelectedDate();
-  const dayStore = ensureDayStore(data, date);
+  const dayStore = getShiftStore(data, date);
 
   if (!dayStore.purchases.length) {
     tbody.innerHTML = `<tr><td colspan="6">No purchase entries for this date.</td></tr>`;
@@ -53,7 +53,7 @@ function addPurchaseEntry(event) {
 
   const data = loadData();
   const date = getSelectedDate();
-  const dayStore = ensureDayStore(data, date);
+  const dayStore = getShiftStore(data, date);
 
   dayStore.purchases.push({
     id: generateId("purchase"),
@@ -76,7 +76,7 @@ function addPurchaseEntry(event) {
 function deletePurchase(id) {
   const data = loadData();
   const date = getSelectedDate();
-  const dayStore = ensureDayStore(data, date);
+  const dayStore = getShiftStore(data, date);
   dayStore.purchases = dayStore.purchases.filter((item) => item.id !== id);
   saveData(data);
   renderPurchaseTable();
@@ -84,6 +84,15 @@ function deletePurchase(id) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  const shiftSelector = document.getElementById("shiftSelector");
+  if (shiftSelector) {
+    shiftSelector.value = getSelectedShift();
+    shiftSelector.addEventListener("change", (e) => {
+      setSelectedShift(e.target.value);
+      location.reload();
+    });
+  }
+
   renderPurchaseProductOptions();
   renderPurchaseTable();
   const currentDate = getSelectedDate();

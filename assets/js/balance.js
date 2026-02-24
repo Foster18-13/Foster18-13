@@ -2,7 +2,7 @@ function renderBalanceTable() {
   const tbody = document.querySelector("#balanceTable tbody");
   const data = loadData();
   const date = getSelectedDate();
-  const dayStore = ensureDayStore(data, date);
+  const dayStore = getShiftStore(data, date);
 
   if (!data.products.length) {
     tbody.innerHTML = `<tr><td colspan="9">No products found. Add products from the Products page.</td></tr>`;
@@ -78,7 +78,7 @@ function attachBalanceCalculations() {
 function saveBalanceSheet() {
   const data = loadData();
   const date = getSelectedDate();
-  const dayStore = ensureDayStore(data, date);
+  const dayStore = getShiftStore(data, date);
   const warnings = [];
 
   document.querySelectorAll("#balanceTable tbody tr").forEach((row) => {
@@ -121,6 +121,15 @@ function saveBalanceSheet() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  const shiftSelector = document.getElementById("shiftSelector");
+  if (shiftSelector) {
+    shiftSelector.value = getSelectedShift();
+    shiftSelector.addEventListener("change", (e) => {
+      setSelectedShift(e.target.value);
+      location.reload();
+    });
+  }
+
   renderBalanceTable();
   const saveButton = document.getElementById("saveBalance");
   const exportButton = document.getElementById("exportBalance");

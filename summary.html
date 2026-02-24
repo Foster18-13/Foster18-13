@@ -42,6 +42,13 @@
       <section class="card">
         <h2 class="card-title">Summary Sheet (Stock Available)</h2>
         <p class="card-subtitle">Displays stock available for each product on the selected date.</p>
+        <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem; align-items: center;">
+          <label for="shiftSelector" style="font-weight: bold;">Select Shift:</label>
+          <select id="shiftSelector" class="input" style="width: auto;">
+            <option value="shift1">Shift 1</option>
+            <option value="shift2">Shift 2</option>
+          </select>
+        </div>
         <div class="toolbar">
           <button class="button" id="refreshSummary" type="button">Refresh</button>
           <button class="button" id="exportSummary" type="button">Export CSV</button>

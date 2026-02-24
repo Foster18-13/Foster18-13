@@ -2,7 +2,7 @@ function renderSummary() {
   const tbody = document.querySelector("#summaryTable tbody");
   const data = loadData();
   const date = getSelectedDate();
-  const dayStore = ensureDayStore(data, date);
+  const dayStore = getShiftStore(data, date);
 
   if (!data.products.length) {
     tbody.innerHTML = `<tr><td colspan="2">No products found. Add products from the Products page.</td></tr>`;
@@ -20,6 +20,15 @@ function renderSummary() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  const shiftSelector = document.getElementById("shiftSelector");
+  if (shiftSelector) {
+    shiftSelector.value = getSelectedShift();
+    shiftSelector.addEventListener("change", (e) => {
+      setSelectedShift(e.target.value);
+      location.reload();
+    });
+  }
+
   renderSummary();
   const refreshButton = document.getElementById("refreshSummary");
   const exportButton = document.getElementById("exportSummary");

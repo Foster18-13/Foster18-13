@@ -155,14 +155,14 @@ function initDateQuickNavigation() {
 function getCurrentDayLockedState() {
   const data = loadData();
   const date = getSelectedDate();
-  const dayStore = ensureDayStore(data, date);
+  const dayStore = getShiftStore(data, date);
   return !!dayStore.locked;
 }
 
 function getCurrentDayLockDetails() {
   const data = loadData();
   const date = getSelectedDate();
-  return ensureDayStore(data, date);
+  return getShiftStore(data, date);
 }
 
 function formatApprovalTimestamp(timestamp) {
@@ -245,7 +245,7 @@ function initDayLockControls() {
     toggleButton.addEventListener("click", () => {
       const data = loadData();
       const date = getSelectedDate();
-      const dayStore = ensureDayStore(data, date);
+      const dayStore = getShiftStore(data, date);
 
       if (dayStore.locked) {
         dayStore.locked = false;
