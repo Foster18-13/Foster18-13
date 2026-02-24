@@ -164,7 +164,7 @@ function saveData(data) {
 function ensureDayStore(data, date) {
   if (!data.daily[date]) {
     data.daily[date] = {
-      recordingColumns: 3,
+      recordingColumns: 6,
       recording: {},
       balance: {},
       purchases: [],
