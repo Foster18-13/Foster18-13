@@ -2,6 +2,7 @@ function renderBalanceTable() {
   const tbody = document.querySelector("#balanceTable tbody");
   const data = loadData();
   const date = getSelectedDate();
+  const selectedShift = getSelectedShift();
   const dayStore = getShiftStore(data, date);
 
   if (!data.products.length) {
@@ -14,7 +15,7 @@ function renderBalanceTable() {
       const existing = dayStore.balance[product.id] || {};
       const openingValue =
         existing.opening === null || existing.opening === undefined || existing.opening === ""
-          ? getPreviousClosingStock(data, date, product.id)
+          ? getPreviousClosingStock(data, date, product.id, selectedShift)
           : existing.opening;
       const loading = getLoadingForProduct(dayStore, product.id);
       const goodsReceived = getGoodsReceivedForProduct(dayStore, product.id);

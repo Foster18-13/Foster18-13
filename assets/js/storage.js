@@ -245,14 +245,29 @@ function getPreviousDateISO(date) {
 }
 
 function getPreviousClosingStock(data, date, productId, shift = null) {
+  const selectedShift = shift || getSelectedShift();
+  
+  // For night shift, get current day's day shift closing
+  if (selectedShift === "night") {
+    const currentDay = data.daily[date];
+    if (currentDay?.day?.balance) {
+      const dayBalance = currentDay.day.balance[productId] || {};
+      const closingStock = dayBalance.closing;
+      if (closingStock !== null && closingStock !== undefined && closingStock !== "") {
+        return closingStock;
+      }
+    }
+    return "";
+  }
+  
+  // For day shift, get previous day's night shift closing
   const previousDate = getPreviousDateISO(date);
   if (!previousDate) return "";
 
-  const selectedShift = shift || getSelectedShift();
   const previousDay = data.daily[previousDate];
-  if (!previousDay?.[selectedShift]?.balance) return "";
+  if (!previousDay?.night?.balance) return "";
 
-  const previousBalance = previousDay[selectedShift].balance[productId] || {};
+  const previousBalance = previousDay.night.balance[productId] || {};
   const closingStock = previousBalance.closing;
   if (closingStock === null || closingStock === undefined || closingStock === "") {
     return "";
