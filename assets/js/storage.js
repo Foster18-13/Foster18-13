@@ -164,7 +164,7 @@ function saveData(data) {
 function ensureDayStore(data, date) {
   if (!data.daily[date]) {
     data.daily[date] = {
-      shift1: {
+      day: {
         recordingColumns: 3,
         recording: {},
         balance: {},
@@ -173,7 +173,7 @@ function ensureDayStore(data, date) {
         lockedBy: "",
         lockedAt: 0
       },
-      shift2: {
+      night: {
         recordingColumns: 3,
         recording: {},
         balance: {},
@@ -188,7 +188,7 @@ function ensureDayStore(data, date) {
   const day = data.daily[date];
   
   // Ensure both shifts exist
-  ["shift1", "shift2"].forEach((shiftId) => {
+  ["day", "night"].forEach((shiftId) => {
     if (!day[shiftId] || typeof day[shiftId] !== "object") {
       day[shiftId] = {
         recordingColumns: 3,
@@ -223,11 +223,11 @@ function setSelectedDate(date) {
 
 function getSelectedShift() {
   const shift = localStorage.getItem("twellium_selected_shift");
-  return shift === "shift2" ? "shift2" : "shift1";
+  return shift === "night" ? "night" : "day";
 }
 
 function setSelectedShift(shift) {
-  const normalized = shift === "shift2" ? "shift2" : "shift1";
+  const normalized = shift === "night" ? "night" : "day";
   localStorage.setItem("twellium_selected_shift", normalized);
 }
 
@@ -341,7 +341,7 @@ function deleteProduct(productId) {
   }
 
   Object.values(data.daily).forEach((day) => {
-    ["shift1", "shift2"].forEach((shiftId) => {
+    ["day", "night"].forEach((shiftId) => {
       const shift = day[shiftId];
       if (!shift) return;
       if (shift.recording) delete shift.recording[productId];
