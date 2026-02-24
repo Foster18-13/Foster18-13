@@ -87,6 +87,19 @@ function initAuthAccessGuard() {
 function initSharedHeader() {
   markActiveNav();
 
+  // Set print date
+  const printDateElement = document.getElementById("printDate");
+  if (printDateElement) {
+    const date = getSelectedDate();
+    const formatted = new Date(`${date}T00:00:00`).toLocaleDateString("en-US", { 
+      weekday: "long", 
+      year: "numeric", 
+      month: "long", 
+      day: "numeric" 
+    });
+    printDateElement.textContent = formatted;
+  }
+
   const dateInput = document.getElementById("workingDate");
   if (!dateInput) return;
 
