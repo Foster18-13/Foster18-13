@@ -8,7 +8,7 @@ const REQUIRED_PRODUCTS = [
   "Verna Active Sport Water 500ml x 12",
   "Verna Jar 19L",
   "Slemfit Water 500ml x 16",
-  "Run Energy 350ml x 12",
+  "Run Energy 350ml x 16",
   "Run Energy 500ml x 12",
   "Rush Energy 350ml x 12",
   "Ch. Vim Energy 500ml x 12",

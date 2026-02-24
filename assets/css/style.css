@@ -80,12 +80,12 @@ textarea {
 .input,
 .select,
 .textarea {
-  padding: 6px 8px;
+  padding: 10px 12px;
   border-radius: 6px;
   border: 1px solid var(--border);
   background: #fff;
   color: var(--text);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .button {
@@ -221,29 +221,30 @@ table {
 th,
 td {
   border-bottom: 1px solid var(--border);
-  padding: 4px 3px;
+  padding: 8px 6px;
   text-align: left;
   vertical-align: top;
 }
 
 th {
   background: var(--surface-alt);
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 600;
   white-space: nowrap;
-  padding: 4px 3px;
+  padding: 8px 6px;
 }
 
 td:first-child {
   min-width: 250px;
-  padding: 4px 4px;
+  padding: 8px 6px;
 }
 
 td input,
 td select,
 td textarea {
   width: 100%;
-  padding: 4px 6px !important;
-  font-size: 12px;
+  padding: 6px 8px !important;
+  font-size: 13px;
 }
 
 .status {
