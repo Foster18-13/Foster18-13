@@ -50,7 +50,7 @@ body {
   margin: 0;
   font-family: "Georgia", serif;
   font-weight: 700;
-  background: #c41e3a;
+  background: #40a0c5;
   color: #ffffff;
   padding: 8px 12px;
   border-radius: 4px;
@@ -228,8 +228,8 @@ td {
 
 th {
   background: var(--surface-alt);
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
   white-space: nowrap;
   padding: 8px 6px;
 }
@@ -472,7 +472,8 @@ input[data-total] {
 
   th {
     background-color: #f0f0f0;
-    font-weight: bold;
+    font-weight: 700;
+    font-size: 11px;
   }
 
   button, .button, input[type="button"], input[type="submit"] {
