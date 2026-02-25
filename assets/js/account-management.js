@@ -1,0 +1,234 @@
+// Account Management Functions
+
+function showAccountMessage(message, type = 'ok') {
+  const errorDiv = document.getElementById('accountError');
+  const successDiv = document.getElementById('accountSuccess');
+  
+  if (type === 'error') {
+    errorDiv.textContent = message;
+    errorDiv.style.display = 'block';
+    successDiv.style.display = 'none';
+  } else if (type === 'ok') {
+    successDiv.textContent = message;
+    successDiv.style.display = 'block';
+    errorDiv.style.display = 'none';
+  }
+  
+  // Auto-hide after 5 seconds
+  setTimeout(() => {
+    if (type === 'error') {
+      errorDiv.style.display = 'none';
+    } else {
+      successDiv.style.display = 'none';
+    }
+  }, 5000);
+}
+
+async function updateUserProfile(displayName, email) {
+  try {
+    const user = firebase.auth().currentUser;
+    if (!user) {
+      showAccountMessage('User not authenticated', 'error');
+      return;
+    }
+
+    // Update display name
+    if (displayName && displayName !== user.displayName) {
+      await user.updateProfile({
+        displayName: displayName
+      });
+    }
+
+    // Update email if changed
+    if (email && email !== user.email) {
+      await user.updateEmail(email);
+    }
+
+    // Update Firestore
+    await firebase.firestore().collection('users').doc(user.uid).update({
+      username: displayName,
+      email: email,
+      updatedAt: new Date().toISOString()
+    });
+
+    // Update session storage
+    saveUserAuthState(user);
+
+    showAccountMessage('Profile updated successfully!', 'ok');
+  } catch (error) {
+    console.error('Profile update error:', error);
+    
+    if (error.code === 'auth/requires-recent-login') {
+      showAccountMessage('Please logout and login again before updating your email', 'error');
+    } else if (error.code === 'auth/email-already-in-use') {
+      showAccountMessage('Email is already in use by another account', 'error');
+    } else if (error.code === 'auth/invalid-email') {
+      showAccountMessage('Invalid email address', 'error');
+    } else {
+      showAccountMessage('Failed to update profile: ' + error.message, 'error');
+    }
+  }
+}
+
+async function changePassword(currentPassword, newPassword) {
+  try {
+    const user = firebase.auth().currentUser;
+    if (!user) {
+      showAccountMessage('User not authenticated', 'error');
+      return;
+    }
+
+    // Re-authenticate user
+    const credential = firebase.auth.EmailAuthProvider.credential(user.email, currentPassword);
+    await user.reauthenticateWithCredential(credential);
+
+    // Update password
+    await user.updatePassword(newPassword);
+
+    showAccountMessage('Password changed successfully!', 'ok');
+    
+    // Clear form
+    document.getElementById('changePasswordForm').reset();
+  } catch (error) {
+    console.error('Password change error:', error);
+    
+    if (error.code === 'auth/wrong-password') {
+      showAccountMessage('Current password is incorrect', 'error');
+    } else if (error.code === 'auth/weak-password') {
+      showAccountMessage('New password is too weak (minimum 6 characters)', 'error');
+    } else {
+      showAccountMessage('Failed to change password: ' + error.message, 'error');
+    }
+  }
+}
+
+async function deleteUserAccount() {
+  try {
+    const user = firebase.auth().currentUser;
+    if (!user) {
+      showAccountMessage('User not authenticated', 'error');
+      return;
+    }
+
+    // Delete user data from Firestore
+    await firebase.firestore().collection('users').doc(user.uid).delete();
+
+    // Delete user from Firebase Auth
+    await user.delete();
+
+    // Clear auth state
+    clearUserAuthState();
+
+    // Redirect to login
+    showAccountMessage('Account deleted successfully. Redirecting...', 'ok');
+    setTimeout(() => {
+      window.location.href = 'login.html';
+    }, 2000);
+  } catch (error) {
+    console.error('Account deletion error:', error);
+    
+    if (error.code === 'auth/requires-recent-login') {
+      showAccountMessage('Please logout and login again before deleting your account', 'error');
+    } else {
+      showAccountMessage('Failed to delete account: ' + error.message, 'error');
+    }
+  }
+}
+
+function setupAccountManagement() {
+  const user = firebase.auth().currentUser;
+  
+  if (!user) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  // Populate current user info
+  document.getElementById('displayName').value = user.displayName || '';
+  document.getElementById('email').value = user.email || '';
+
+  // Setup form handlers
+  const updateProfileForm = document.getElementById('updateProfileForm');
+  if (updateProfileForm) {
+    updateProfileForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const displayName = document.getElementById('displayName').value.trim();
+      const email = document.getElementById('email').value.trim();
+
+      if (!displayName || !email) {
+        showAccountMessage('Please fill in all fields', 'error');
+        return;
+      }
+
+      await updateUserProfile(displayName, email);
+    });
+  }
+
+  const changePasswordForm = document.getElementById('changePasswordForm');
+  if (changePasswordForm) {
+    changePasswordForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const currentPassword = document.getElementById('currentPassword').value;
+      const newPassword = document.getElementById('newPassword').value;
+      const confirmPassword = document.getElementById('confirmNewPassword').value;
+
+      if (!currentPassword || !newPassword || !confirmPassword) {
+        showAccountMessage('Please fill in all password fields', 'error');
+        return;
+      }
+
+      if (newPassword.length < 6) {
+        showAccountMessage('New password must be at least 6 characters', 'error');
+        return;
+      }
+
+      if (newPassword !== confirmPassword) {
+        showAccountMessage('New passwords do not match', 'error');
+        return;
+      }
+
+      await changePassword(currentPassword, newPassword);
+    });
+  }
+
+  // Setup delete account modal
+  const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+  const deleteConfirmModal = document.getElementById('deleteConfirmModal');
+  const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+  const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+
+  if (deleteAccountBtn) {
+    deleteAccountBtn.addEventListener('click', () => {
+      deleteConfirmModal.style.display = 'flex';
+    });
+  }
+
+  if (cancelDeleteBtn) {
+    cancelDeleteBtn.addEventListener('click', () => {
+      deleteConfirmModal.style.display = 'none';
+    });
+  }
+
+  if (confirmDeleteBtn) {
+    confirmDeleteBtn.addEventListener('click', async () => {
+      deleteConfirmModal.style.display = 'none';
+      confirmDeleteBtn.disabled = true;
+      confirmDeleteBtn.textContent = 'Deleting account...';
+      await deleteUserAccount();
+    });
+  }
+
+  // Close modal when clicking outside
+  deleteConfirmModal.addEventListener('click', (e) => {
+    if (e.target === deleteConfirmModal) {
+      deleteConfirmModal.style.display = 'none';
+    }
+  });
+}
+
+// Initialize on page load
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', setupAccountManagement);
+} else {
+  setTimeout(setupAccountManagement, 200);
+}

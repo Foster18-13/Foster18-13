@@ -35,6 +35,7 @@
         <a href="summary.html">Summary Sheet</a>
         <a href="purchase.html">Purchase Sheet</a>
         <a href="products.html">Products</a>
+        <a href="account.html">Account</a>
       </nav>
     </aside>
 
@@ -81,6 +82,7 @@
       if (user) {
         userControls.innerHTML = `
           <span style="font-size: 14px;">Welcome, <strong>${user.displayName || user.email}</strong></span>
+          <a class="button" href="account.html" style="padding: 0.5rem 1rem; text-decoration: none; display: inline-block;">Account</a>
           <button class="button" onclick="logoutUser()">Logout</button>
         `;
       }

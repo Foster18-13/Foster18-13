@@ -162,9 +162,13 @@ function logoutUser() {
   });
 }
 
-// Expose to global scope for onclick handlers
+// Expose to global scope for onclick handlers and other scripts
 window.logoutUser = logoutUser;
+window.saveUserAuthState = saveUserAuthState;
+window.clearUserAuthState = clearUserAuthState;
 globalThis.logoutUser = logoutUser;
+globalThis.saveUserAuthState = saveUserAuthState;
+globalThis.clearUserAuthState = clearUserAuthState;
 
 function protectPortalPageWithAuth() {
   // Don't protect auth pages

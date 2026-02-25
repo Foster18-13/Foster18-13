@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, orientation=landscape" />
+  <title>Account Management | Twellium Warehouse Portal</title>
+  <link rel="stylesheet" href="assets/css/style.css?v=20260224_v2" />
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <h1>Twellium Industrial Company Limited</h1>
+        <p>Warehouse Daily Recording Portal</p>
+      </div>
+      <div class="topbar-controls">
+        <div id="userControls" style="display: flex; gap: 1rem; align-items: center;"></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <nav class="main-nav">
+        <a href="home.html">Home</a>
+        <a href="balance.html">Balance Sheet</a>
+        <a href="recording.html">Recording Sheet</a>
+        <a href="summary.html">Summary Sheet</a>
+        <a href="purchase.html">Purchase Sheet</a>
+        <a href="products.html">Products</a>
+        <a href="account.html">Account</a>
+      </nav>
+    </aside>
+
+    <main class="page">
+      <section class="card">
+        <h2 class="card-title">Account Management</h2>
+
+        <div id="accountError" class="status error" style="display: none; margin-bottom: 1rem;"></div>
+        <div id="accountSuccess" class="status ok" style="display: none; margin-bottom: 1rem;"></div>
+
+        <!-- Update Profile Section -->
+        <div style="margin-bottom: 2rem;">
+          <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 1rem;">Update Profile</h3>
+          <form id="updateProfileForm">
+            <div style="margin-bottom: 1rem;">
+              <label for="displayName" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Display
+                Name</label>
+              <input class="input" type="text" id="displayName" placeholder="Your name" required />
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+              <label for="email" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Email</label>
+              <input class="input" type="email" id="email" placeholder="your@email.com" required />
+            </div>
+
+            <button class="button button-primary" type="submit">Update Profile</button>
+          </form>
+        </div>
+
+        <!-- Change Password Section -->
+        <div style="margin-bottom: 2rem; border-top: 1px solid #e0e0e0; padding-top: 2rem;">
+          <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 1rem;">Change Password</h3>
+          <form id="changePasswordForm">
+            <div style="margin-bottom: 1rem;">
+              <label for="currentPassword" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Current
+                Password</label>
+              <input class="input" type="password" id="currentPassword" placeholder="Enter current password" required />
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+              <label for="newPassword" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">New
+                Password</label>
+              <input class="input" type="password" id="newPassword" placeholder="Enter new password (min. 6 characters)"
+                required />
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+              <label for="confirmNewPassword" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Confirm
+                New Password</label>
+              <input class="input" type="password" id="confirmNewPassword" placeholder="Confirm new password"
+                required />
+            </div>
+
+            <button class="button button-primary" type="submit">Change Password</button>
+          </form>
+        </div>
+
+        <!-- Delete Account Section -->
+        <div style="border-top: 1px solid #e0e0e0; padding-top: 2rem;">
+          <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 1rem; color: #d32f2f;">Delete Account</h3>
+          <p style="color: #666; margin-bottom: 1rem;">Once you delete your account, there is no going back. Please be
+            certain.</p>
+          <button class="button" id="deleteAccountBtn" type="button"
+            style="background-color: #d32f2f; color: white; border-color: #d32f2f;">Delete Account</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div id="deleteConfirmModal"
+    style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+    <div
+      style="background: white; padding: 2rem; border-radius: 8px; max-width: 400px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+      <h3 style="margin-top: 0; color: #d32f2f;">Confirm Account Deletion</h3>
+      <p style="color: #666;">Are you absolutely sure you want to delete your account? This action cannot be undone. All
+        your data will be permanently removed.</p>
+      <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+        <button class="button" id="confirmDeleteBtn" type="button"
+          style="flex: 1; background-color: #d32f2f; color: white; border-color: #d32f2f;">Delete My Account</button>
+        <button class="button" id="cancelDeleteBtn" type="button" style="flex: 1;">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="assets/js/firebase-config.js"></script>
+  <script src="assets/js/user-auth.js"></script>
+  <script src="assets/js/storage.js"></script>
+  <script src="assets/js/common.js"></script>
+  <script src="assets/js/cloud-sync.js"></script>
+  <script src="assets/js/account-management.js"></script>
+  <script>
+    // Setup user controls in header
+    firebase.auth().onAuthStateChanged((user) => {
+      const userControls = document.getElementById('userControls');
+      if (user) {
+        userControls.innerHTML = `
+          <span style="font-size: 14px;">Welcome, <strong>${user.displayName || user.email}</strong></span>
+          <button class="button" onclick="logoutUser()">Logout</button>
+        `;
+      }
+    });
+  </script>
+</body>
+
+</html>
