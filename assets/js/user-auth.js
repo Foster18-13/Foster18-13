@@ -80,10 +80,13 @@ function setupRegistrationForm() {
         uid: userCredential.user.uid
       });
 
+      // Save auth state
+      saveUserAuthState(userCredential.user);
+
       // Show success and redirect
       const successMsg = document.createElement('div');
       successMsg.className = 'auth-success';
-      successMsg.textContent = 'Account created successfully! Redirecting to login...';
+      successMsg.textContent = 'Account created successfully! Redirecting to home...';
       successMsg.style.display = 'block';
       successMsg.style.color = '#155724';
       successMsg.style.background = '#d4edda';
@@ -92,10 +95,10 @@ function setupRegistrationForm() {
       successMsg.style.marginBottom = '1rem';
       form.parentElement.insertBefore(successMsg, form);
 
-      // Redirect after 2 seconds
+      // Redirect to home after 1 second
       setTimeout(() => {
-        window.location.href = 'login.html';
-      }, 2000);
+        window.location.href = 'home.html';
+      }, 1000);
 
     } catch (error) {
       submitBtn.disabled = false;
