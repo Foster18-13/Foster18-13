@@ -136,16 +136,16 @@ async function deleteUserAccount() {
 }
 
 function setupAccountManagement() {
-  const user = firebase.auth().currentUser;
-  
-  if (!user) {
-    window.location.href = 'login.html';
-    return;
-  }
+  // Wait for Firebase auth to be ready
+  firebase.auth().onAuthStateChanged((user) => {
+    if (!user) {
+      window.location.href = 'login.html';
+      return;
+    }
 
-  // Populate current user info
-  document.getElementById('displayName').value = user.displayName || '';
-  document.getElementById('email').value = user.email || '';
+    // Populate current user info
+    document.getElementById('displayName').value = user.displayName || '';
+    document.getElementById('email').value = user.email || '';
 
   // Setup form handlers
   const updateProfileForm = document.getElementById('updateProfileForm');
@@ -224,6 +224,7 @@ function setupAccountManagement() {
       deleteConfirmModal.style.display = 'none';
     }
   });
+  }); // Close onAuthStateChanged callback
 }
 
 // Initialize on page load
