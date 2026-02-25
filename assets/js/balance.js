@@ -10,7 +10,12 @@ function renderBalanceTable() {
     return;
   }
 
-  tbody.innerHTML = data.products
+  // Sort products alphabetically by name
+  const sortedProducts = [...data.products].sort((a, b) => {
+    return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+  });
+
+  tbody.innerHTML = sortedProducts
     .map((product) => {
       const existing = dayStore.balance[product.id] || {};
       const openingValue =

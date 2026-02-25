@@ -28,7 +28,12 @@ function renderRecordingTable() {
 
   tableHead.innerHTML = `<tr>${headers.map((header) => `<th>${header}</th>`).join("")}</tr>`;
 
-  tbody.innerHTML = data.products
+  // Sort products alphabetically by name
+  const sortedProducts = [...data.products].sort((a, b) => {
+    return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+  });
+
+  tbody.innerHTML = sortedProducts
     .map((product) => {
       const record = dayStore.recording[product.id] || { entries: [] };
       const entries = [];

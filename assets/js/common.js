@@ -297,7 +297,13 @@ function setStatus(message, type = "") {
 
 function createProductOptions(products, selected = "") {
   const options = [`<option value="">Select product</option>`];
-  products.forEach((product) => {
+  
+  // Sort products alphabetically by name
+  const sortedProducts = [...products].sort((a, b) => {
+    return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+  });
+  
+  sortedProducts.forEach((product) => {
     const isSelected = selected === product.id ? "selected" : "";
     options.push(`<option value="${product.id}" ${isSelected}>${product.name}</option>`);
   });
