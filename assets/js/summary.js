@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
     shiftSelector.value = getSelectedShift();
     shiftSelector.addEventListener("change", (e) => {
       setSelectedShift(e.target.value);
-      location.reload();
+      renderSummary();
     });
   }
 
