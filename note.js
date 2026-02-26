@@ -73,7 +73,6 @@ async function loadNoteRecord() {
 }
 
 async function initNotePage() {
-  renderNav(location.pathname);
   const dateInput = document.getElementById("note-date");
   if (dateInput) {
     dateInput.value = todayIsoDate();

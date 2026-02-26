@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, orientation=landscape" />
-  <title>Balance Sheet | Twellium Warehouse Portal</title>
+  <title>Notebook | Twellium Warehouse Portal</title>
   <link rel="stylesheet" href="assets/css/style.css?v=20260224_v2" />
 </head>
 
@@ -20,7 +20,7 @@
         <label for="workingDate">Working Date</label>
         <input class="input" type="date" id="workingDate" />
         <button class="button" id="jumpToday" type="button">Today</button>
-        <input class="input search-input" id="globalSearchInput" placeholder="Search item" />
+        <input class="input search-input" id="globalSearchInput" placeholder="Search notes" />
         <button class="button" id="globalSearchBtn" type="button">Search</button>
         <div id="userControls" style="display: flex; gap: 1rem; align-items: center;"></div>
       </div>
@@ -44,49 +44,25 @@
 
     <main class="page">
       <section class="card">
-        <h2 class="card-title">Daily Balance Sheet</h2>
-        <p class="card-subtitle" style="display: none;">Formula: Balance = Opening Stock + Goods Returned + Goods
-          Received - Goods Loaded -
-          Damages.
-          Opening
-          stock auto-carries from previous day closing when empty, and closing stock is entered manually.</p>
-        <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem; align-items: center;">
-          <label for="shiftSelector" style="font-weight: bold;">Select Shift:</label>
-          <select id="shiftSelector" class="input" style="width: auto;">
-            <option value="day">Day</option>
-            <option value="night">Night</option>
-          </select>
+        <h2 class="card-title">Daily Notebook</h2>
+        <p class="card-subtitle">Capture notes for each workday. Notes are saved per date.</p>
+
+        <div class="toolbar" style="gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+          <label for="note-date" style="font-weight: bold;">Note Date</label>
+          <input class="input" id="note-date" type="date" />
+          <button class="button button-primary" id="save-note-btn" type="button">Save Note</button>
+          <button class="button" id="load-note-btn" type="button">Load Note</button>
+          <span id="note-save-status" class="status"></span>
         </div>
-        <div class="toolbar">
-          <button class="button button-primary" id="saveBalance" type="button">Save Balance Sheet</button>
-          <button class="button" id="exportBalance" type="button">Export CSV</button>
-          <button class="button" id="exportBalancePdf" type="button">Export PDF</button>
-          <span id="status" class="status"></span>
-        </div>
-        <div class="table-wrap">
-          <table id="balanceTable">
-            <thead>
-              <tr>
-                <th>Product Name</th>
-                <th>Opening Stock</th>
-                <th>Goods Returned</th>
-                <th>Goods Received</th>
-                <th>Goods Damaged</th>
-                <th>Goods Loaded</th>
-                <th>Outstanding/BAL</th>
-                <th>Closing Stock</th>
-                <th>Remark</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
+
+        <div style="margin-top: 1rem;">
+          <label for="note-area" style="font-weight: bold;">Daily Record</label>
+          <textarea class="textarea" id="note-area" rows="12" placeholder="Enter daily notes here..."></textarea>
         </div>
       </section>
     </main>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
@@ -95,7 +71,7 @@
   <script src="assets/js/storage.js"></script>
   <script src="assets/js/common.js"></script>
   <script src="assets/js/cloud-sync.js"></script>
-  <script src="assets/js/balance.js"></script>
+  <script src="note.js"></script>
   <script>
     // Setup user controls in header
     firebase.auth().onAuthStateChanged((user) => {
