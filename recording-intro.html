@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Balance Sheet | Twellium Warehouse Portal</title>
+  <title>Recording Sheet | Twellium Warehouse Portal</title>
   <style>
     * {
       margin: 0;
@@ -68,7 +68,7 @@
 <body>
   <div class="video-container">
     <video id="introVideo" autoplay muted>
-      <source src="assets/videos/balance-intro.mp4" type="video/mp4">
+      <source src="assets/videos/recording-intro.mp4" type="video/mp4">
       Your browser does not support the video tag.
     </video>
     <button class="skip-button" onclick="skipIntro()">Skip</button>
@@ -84,19 +84,19 @@
       loadingMsg.style.display = 'none';
     });
 
-    // Redirect to balance sheet when video ends
+    // Redirect to recording sheet when video ends
     video.addEventListener('ended', function () {
-      window.location.href = 'balance.html';
+      window.location.href = 'recording.html';
     });
 
     // Handle video loading errors
     video.addEventListener('error', function () {
-      console.error('Video failed to load. Redirecting to balance sheet...');
-      window.location.href = 'balance.html';
+      console.error('Video failed to load. Redirecting to recording sheet...');
+      window.location.href = 'recording.html';
     });
 
     function skipIntro() {
-      window.location.href = 'balance.html';
+      window.location.href = 'recording.html';
     }
   </script>
 </body>
