@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, orientation=landscape" />
+  <title>Customers Entry | Twellium Warehouse Portal</title>
+  <link rel="stylesheet" href="assets/css/style.css?v=20260224_v2" />
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <h1>Twellium Industrial Company Limited</h1>
+        <p>Warehouse Daily Recording Portal</p>
+        <p id="printDate" style="display: none; margin: 5px 0 0 0; font-size: 14px;"></p>
+      </div>
+      <div class="topbar-controls">
+        <label for="workingDate">Working Date</label>
+        <input class="input" type="date" id="workingDate" />
+        <button class="button" id="jumpToday" type="button">Today</button>
+        <input class="input search-input" id="globalSearchInput" placeholder="Search customer or item" />
+        <button class="button" id="globalSearchBtn" type="button">Search</button>
+        <div id="userControls" style="display: flex; gap: 1rem; align-items: center;"></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <nav class="main-nav">
+        <a href="home.html">Home</a>
+        <a href="balance-intro.html">Balance Sheet</a>
+        <a href="recording-intro.html">Recording Sheet</a>
+        <a href="summary.html">Summary Sheet</a>
+        <a href="purchase.html">Purchase Sheet</a>
+        <a href="customers.html">Customers Entry</a>
+        <a href="products.html">Products</a>
+        <a href="account.html">Account</a>
+      </nav>
+    </aside>
+
+    <main class="page">
+      <section class="card">
+        <h2 class="card-title">Customers Entry Sheet</h2>
+        <p class="card-subtitle">Record customer orders and deliveries for the selected date.</p>
+        <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem; align-items: center;">
+          <label for="shiftSelector" style="font-weight: bold;">Select Shift:</label>
+          <select id="shiftSelector" class="input" style="width: auto;">
+            <option value="day">Day</option>
+            <option value="night">Night</option>
+          </select>
+        </div>
+
+        <form id="customerForm" class="grid-2">
+          <div>
+            <label for="customerName">Customer Name</label>
+            <input class="input" id="customerName" required />
+          </div>
+          <div>
+            <label for="waybillNumber">Waybill Number</label>
+            <input class="input" id="waybillNumber" required />
+          </div>
+          <div>
+            <label for="productId">Product Name</label>
+            <select class="select" id="productId" required></select>
+          </div>
+          <div>
+            <label for="quantity">Quantity</label>
+            <input class="input" id="quantity" type="number" min="0" step="any" required />
+          </div>
+          <div>
+            <label for="dateDelivered">Date Delivered</label>
+            <input class="input" id="dateDelivered" type="date" required />
+          </div>
+          <div class="align-end-row">
+            <button class="button button-primary" type="submit">Add Customer Entry</button>
+          </div>
+        </form>
+
+        <div class="toolbar mt-12">
+          <button class="button" id="exportCustomers" type="button">Export CSV</button>
+          <button class="button" id="exportCustomersPdf" type="button">Export PDF</button>
+          <span id="status" class="status"></span>
+        </div>
+
+        <div class="table-wrap">
+          <table id="customersTable">
+            <thead>
+              <tr>
+                <th>Customer Name</th>
+                <th>Waybill Number</th>
+                <th>Product Name</th>
+                <th>Quantity</th>
+                <th>Date Delivered</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="assets/js/firebase-config.js"></script>
+  <script src="assets/js/user-auth.js"></script>
+  <script src="assets/js/storage.js"></script>
+  <script src="assets/js/common.js"></script>
+  <script src="assets/js/cloud-sync.js"></script>
+  <script src="assets/js/customers.js"></script>
+  <script>
+    // Setup user controls in header
+    firebase.auth().onAuthStateChanged((user) => {
+      const userControls = document.getElementById('userControls');
+      if (user) {
+        userControls.innerHTML = `
+          <span style="font-size: 14px;">Welcome, <strong>${user.displayName || user.email}</strong></span>
+          <button class="button" onclick="logoutUser()">Logout</button>
+        `;
+      }
+    });
+  </script>
+</body>
+
+</html>
