@@ -1,5 +1,5 @@
 :root {
-  --bg: #f5f7fb;
+  --bg: #ffffff;
   --surface: #ffffff;
   --surface-alt: #f0f4fb;
   --text: #1f2a37;
@@ -19,11 +19,6 @@ body {
   margin: 0;
   font-family: "Segoe UI", Arial, sans-serif;
   background-color: var(--bg);
-  background-image: url("../images/background.jpg");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
   color: var(--text);
 }
 
