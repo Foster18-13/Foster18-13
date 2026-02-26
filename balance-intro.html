@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Balance Sheet | Twellium Warehouse Portal</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #000;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .video-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #introVideo {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .skip-button {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: 2px solid white;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      transition: background 0.3s ease;
+      z-index: 10;
+    }
+
+    .skip-button:hover {
+      background: rgba(255, 255, 255, 0.4);
+    }
+
+    .loading-message {
+      position: absolute;
+      color: white;
+      font-size: 18px;
+      font-family: Arial, sans-serif;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="video-container">
+    <video id="introVideo" autoplay muted>
+      <source src="assets/videos/balance-intro.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
+    <button class="skip-button" onclick="skipIntro()">Skip</button>
+    <div class="loading-message" id="loadingMsg">Loading...</div>
+  </div>
+
+  <script>
+    const video = document.getElementById('introVideo');
+    const loadingMsg = document.getElementById('loadingMsg');
+
+    // Hide loading message when video starts playing
+    video.addEventListener('loadeddata', function () {
+      loadingMsg.style.display = 'none';
+    });
+
+    // Redirect to balance sheet when video ends
+    video.addEventListener('ended', function () {
+      window.location.href = 'balance.html';
+    });
+
+    // Handle video loading errors
+    video.addEventListener('error', function () {
+      console.error('Video failed to load. Redirecting to balance sheet...');
+      window.location.href = 'balance.html';
+    });
+
+    function skipIntro() {
+      window.location.href = 'balance.html';
+    }
+  </script>
+</body>
+
+</html>
