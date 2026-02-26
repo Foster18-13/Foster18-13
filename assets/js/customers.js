@@ -74,11 +74,43 @@ function addCustomerEntry(event) {
     dateDelivered
   });
 
+  // Also add to recording sheet
+  if (!dayStore.recording[productId]) {
+    dayStore.recording[productId] = { entries: [] };
+  }
+
+  // Find the next empty slot or add to the end
+  const entries = dayStore.recording[productId].entries;
+  let added = false;
+  
+  for (let i = 0; i < dayStore.recordingColumns; i++) {
+    if (!entries[i] || (!entries[i].waybill && !entries[i].qty)) {
+      entries[i] = {
+        waybill: waybillNumber,
+        qty: quantity
+      };
+      added = true;
+      break;
+    }
+  }
+
+  // If no empty slot found, add a new column
+  if (!added) {
+    entries.push({
+      waybill: waybillNumber,
+      qty: quantity
+    });
+    // Increase column count if needed
+    if (entries.length > dayStore.recordingColumns) {
+      dayStore.recordingColumns = entries.length;
+    }
+  }
+
   saveData(data);
   event.target.reset();
   document.getElementById("dateDelivered").value = date;
   renderCustomersTable();
-  setStatus("Customer entry added.", "ok");
+  setStatus("Customer entry added and recorded in Recording Sheet.", "ok");
 }
 
 function deleteCustomerEntry(id) {
@@ -87,10 +119,30 @@ function deleteCustomerEntry(id) {
   const dayStore = getShiftStore(data, date);
   
   if (dayStore.customers) {
-    dayStore.customers = dayStore.customers.filter((item) => item.id !== id);
-    saveData(data);
-    renderCustomersTable();
-    setStatus("Customer entry deleted.", "ok");
+    // Find the customer entry before deleting
+    const customerEntry = dayStore.customers.find(item => item.id === id);
+    
+    if (customerEntry) {
+      // Remove from customers array
+      dayStore.customers = dayStore.customers.filter((item) => item.id !== id);
+      
+      // Also remove from recording sheet
+      if (dayStore.recording[customerEntry.productId]) {
+        const entries = dayStore.recording[customerEntry.productId].entries;
+        
+        // Find and remove the matching entry by waybill number
+        for (let i = 0; i < entries.length; i++) {
+          if (entries[i] && entries[i].waybill === customerEntry.waybillNumber) {
+            entries[i] = { waybill: "", qty: "" };
+            break;
+          }
+        }
+      }
+      
+      saveData(data);
+      renderCustomersTable();
+      setStatus("Customer entry deleted and removed from Recording Sheet.", "ok");
+    }
   }
 }
 
