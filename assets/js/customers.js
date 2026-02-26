@@ -65,42 +65,51 @@ function addCustomerEntry(event) {
     dayStore.customers = [];
   }
 
+  const quantityNum = parseFloat(quantity);
+
   dayStore.customers.push({
     id: generateId("customer"),
     customerName,
     waybillNumber,
     productId,
-    quantity: asNumber(quantity),
+    quantity: quantityNum,
     dateDelivered
   });
 
-  // Also add to recording sheet
+  // Initialize recording for this product if it doesn't exist
   if (!dayStore.recording[productId]) {
     dayStore.recording[productId] = { entries: [] };
+  }
+
+  // Ensure entries array exists
+  if (!dayStore.recording[productId].entries) {
+    dayStore.recording[productId].entries = [];
   }
 
   // Find the next empty slot or add to the end
   const entries = dayStore.recording[productId].entries;
   let added = false;
   
-  for (let i = 0; i < dayStore.recordingColumns; i++) {
-    if (!entries[i] || (!entries[i].waybill && !entries[i].qty)) {
+  // Look for an empty slot
+  for (let i = 0; i < entries.length; i++) {
+    if (!entries[i] || (typeof entries[i] === 'object' && !entries[i].waybill && !entries[i].qty)) {
       entries[i] = {
         waybill: waybillNumber,
-        qty: quantity
+        qty: String(quantityNum)
       };
       added = true;
       break;
     }
   }
 
-  // If no empty slot found, add a new column
+  // If no empty slot found, add a new entry
   if (!added) {
     entries.push({
       waybill: waybillNumber,
-      qty: quantity
+      qty: String(quantityNum)
     });
-    // Increase column count if needed
+    
+    // Update column count if we've added beyond current columns
     if (entries.length > dayStore.recordingColumns) {
       dayStore.recordingColumns = entries.length;
     }
@@ -110,7 +119,7 @@ function addCustomerEntry(event) {
   event.target.reset();
   document.getElementById("dateDelivered").value = date;
   renderCustomersTable();
-  setStatus("Customer entry added and recorded in Recording Sheet.", "ok");
+  setStatus("Customer entry added and synced to Recording Sheet!", "ok");
 }
 
 function deleteCustomerEntry(id) {
@@ -146,6 +155,86 @@ function deleteCustomerEntry(id) {
   }
 }
 
+function syncAllToRecording() {
+  const data = loadData();
+  const date = getSelectedDate();
+  const dayStore = getShiftStore(data, date);
+
+  if (!dayStore.customers || dayStore.customers.length === 0) {
+    setStatus("No customer entries to sync.", "error");
+    return;
+  }
+
+  // Clear existing recording entries that match customer waybills
+  // This prevents duplicates
+  const customerWaybills = new Set(dayStore.customers.map(c => c.waybillNumber));
+  
+  // Group customers by product
+  const customersByProduct = {};
+  dayStore.customers.forEach(customer => {
+    if (!customersByProduct[customer.productId]) {
+      customersByProduct[customer.productId] = [];
+    }
+    customersByProduct[customer.productId].push(customer);
+  });
+
+  // For each product with customer orders
+  Object.keys(customersByProduct).forEach(productId => {
+    const customers = customersByProduct[productId];
+    
+    // Initialize recording for this product
+    if (!dayStore.recording[productId]) {
+      dayStore.recording[productId] = { entries: [] };
+    }
+    
+    if (!dayStore.recording[productId].entries) {
+      dayStore.recording[productId].entries = [];
+    }
+
+    const entries = dayStore.recording[productId].entries;
+    
+    // Clear entries that match customer waybills (avoid duplicates)
+    for (let i = 0; i < entries.length; i++) {
+      if (entries[i] && customerWaybills.has(entries[i].waybill)) {
+        entries[i] = { waybill: "", qty: "" };
+      }
+    }
+
+    // Add each customer entry
+    customers.forEach(customer => {
+      let added = false;
+      
+      // Find an empty slot
+      for (let i = 0; i < entries.length; i++) {
+        if (!entries[i] || (typeof entries[i] === 'object' && !entries[i].waybill && !entries[i].qty)) {
+          entries[i] = {
+            waybill: customer.waybillNumber,
+            qty: String(customer.quantity)
+          };
+          added = true;
+          break;
+        }
+      }
+      
+      // If no empty slot, add new entry
+      if (!added) {
+        entries.push({
+          waybill: customer.waybillNumber,
+          qty: String(customer.quantity)
+        });
+      }
+    });
+
+    // Update column count if needed
+    if (entries.length > dayStore.recordingColumns) {
+      dayStore.recordingColumns = entries.length;
+    }
+  });
+
+  saveData(data);
+  setStatus(`Synced ${dayStore.customers.length} customer entries to Recording Sheet!`, "ok");
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const shiftSelector = document.getElementById("shiftSelector");
   if (shiftSelector) {
@@ -164,8 +253,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("customerForm");
   const exportButton = document.getElementById("exportCustomers");
   const exportPdfButton = document.getElementById("exportCustomersPdf");
+  const syncButton = document.getElementById("syncToRecording");
   
   form.addEventListener("submit", addCustomerEntry);
+  
+  if (syncButton) {
+    syncButton.addEventListener("click", syncAllToRecording);
+  }
   
   if (exportButton) {
     exportButton.addEventListener("click", () => {
