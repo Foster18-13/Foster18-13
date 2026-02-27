@@ -535,3 +535,62 @@ input[data-total] {
     display: none;
   }
 }
+
+/* Dark Theme */
+[data-theme="dark"] {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface-alt: #1c2128;
+  --text: #e6edf3;
+  --text-muted: #8b949e;
+  --border: #30363d;
+  --primary: #58a6ff;
+  --primary-soft: #1f2937;
+  --danger: #f85149;
+  --success: #3fb950;
+}
+
+[data-theme="dark"] .input,
+[data-theme="dark"] .select,
+[data-theme="dark"] .textarea {
+  background: #0d1117;
+  color: var(--text);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .button {
+  background: #21262d;
+  color: var(--text);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .button:hover {
+  background: #2d333b;
+}
+
+[data-theme="dark"] table {
+  border-color: var(--border);
+}
+
+[data-theme="dark"] thead {
+  background: var(--surface-alt);
+}
+
+[data-theme="dark"] th,
+[data-theme="dark"] td {
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .brand h1 {
+  background: #247ba0;
+}
+
+/* Theme Toggle Button Styles */
+#themeToggle {
+  font-size: 10px;
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+}

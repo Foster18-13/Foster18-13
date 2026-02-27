@@ -19,6 +19,7 @@
         <label for="workingDate">Working Date</label>
         <input class="input" type="date" id="workingDate" />
         <button class="button" id="jumpToday" type="button">Today</button>
+        <button class="button" id="themeToggle" type="button">🌙 Dark</button>
         <div id="userControls" style="display: flex; gap: 1rem; align-items: center;"></div>
       </div>
     </div>
@@ -118,6 +119,7 @@
   <script src="assets/js/cloud-sync.js"></script>
   <script src="assets/js/damages.js"></script>
   <script src="assets/js/keyboard-shortcuts.js"></script>
+  <script src="assets/js/theme-toggle.js"></script>
   <script>
     firebase.auth().onAuthStateChanged((user) => {
       const userControls = document.getElementById('userControls');

@@ -16,6 +16,7 @@
         <p>Warehouse Daily Recording Portal</p>
       </div>
       <div class="topbar-controls">
+        <button class="button" id="themeToggle" type="button">🌙 Dark</button>
         <div id="userControls" style="display: flex; gap: 1rem; align-items: center;"></div>
       </div>
     </div>
@@ -78,6 +79,7 @@
   <script src="assets/js/common.js"></script>
   <script src="assets/js/cloud-sync.js"></script>
   <script src="assets/js/reports.js"></script>
+  <script src="assets/js/theme-toggle.js"></script>
   <script>
     firebase.auth().onAuthStateChanged((user) => {
       const userControls = document.getElementById('userControls');
