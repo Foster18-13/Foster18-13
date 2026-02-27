@@ -6,8 +6,8 @@
 // Ctrl+H: Home
 
 const shortcutMap = {
-  'b': 'balance-intro.html',
-  'r': 'recording-intro.html',
+  'b': 'balance.html',
+  'r': 'recording.html',
   'd': 'dashboard.html',
   'h': 'home.html',
   'p': 'products.html',

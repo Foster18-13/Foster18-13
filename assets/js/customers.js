@@ -13,21 +13,20 @@ function populateCustomerNameSuggestions() {
     const dayStore = data.dailyStores[date];
     
     ['day', 'night'].forEach(shift => {
-      if (dayStore[shift] && dayStore[shift].customers) {
-        dayStore[shift].customers.forEach(customer => {
+      dayStore[shift]?.customers?.forEach(customer => {
           if (customer.customerName) {
             customerNames.add(customer.customerName);
           }
         });
       }
-    });
+    );
   });
 
   // Populate datalist
   const datalist = document.getElementById('customerNameList');
   if (datalist) {
     datalist.innerHTML = Array.from(customerNames)
-      .sort()
+      .sort((a, b) => a.localeCompare(b))
       .map(name => `<option value="${name}"></option>`)
       .join('');
   }

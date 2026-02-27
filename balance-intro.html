@@ -41,7 +41,7 @@
       top: 20px;
       right: 20px;
       background: rgba(255, 255, 255, 0.2);
-      color: white;
+      color: #000;
       border: 2px solid white;
       padding: 10px 20px;
       border-radius: 5px;
@@ -69,6 +69,7 @@
   <div class="video-container">
     <video id="introVideo" autoplay muted>
       <source src="assets/videos/balance-intro.mp4" type="video/mp4">
+      <track kind="subtitles" src="assets/videos/balance-intro.vtt" srclang="en" label="English">
       Your browser does not support the video tag.
     </video>
     <button class="skip-button" onclick="skipIntro()">Skip</button>

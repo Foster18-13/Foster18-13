@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, orientation=landscape" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Summary Sheet | Twellium Warehouse Portal</title>
   <link rel="stylesheet" href="assets/css/style.css?v=20260224_v2" />
 </head>
@@ -14,7 +14,7 @@
       <div class="brand">
         <h1>Twellium Industrial Company Limited</h1>
         <p>Warehouse Daily Recording Portal</p>
-        <p id="printDate" style="display: none; margin: 5px 0 0 0; font-size: 14px;"></p>
+        <p id="printDate" class="print-date"></p>
       </div>
       <div class="topbar-controls">
         <label for="workingDate">Working Date</label>
@@ -22,7 +22,7 @@
         <button class="button" id="jumpToday" type="button">Today</button>
         <input class="input search-input" id="globalSearchInput" placeholder="Search item" />
         <button class="button" id="globalSearchBtn" type="button">Search</button>
-        <div id="userControls" style="display: flex; gap: 1rem; align-items: center;"></div>
+        <div id="userControls" class="user-controls"></div>
       </div>
     </div>
   </header>
@@ -32,8 +32,8 @@
       <nav class="main-nav">
         <a href="home.html">Home</a>
         <a href="dashboard.html">Dashboard</a>
-        <a href="balance-intro.html">Balance Sheet</a>
-        <a href="recording-intro.html">Recording Sheet</a>
+        <a href="balance.html">Balance Sheet</a>
+        <a href="recording.html">Recording Sheet</a>
         <a href="summary.html">Summary Sheet</a>
         <a href="purchase.html">Purchase Sheet</a>
         <a href="customers.html">Customers Entry</a>
@@ -47,9 +47,9 @@
       <section class="card">
         <h2 class="card-title">Summary Sheet (Stock Available)</h2>
         <p class="card-subtitle">Displays stock available for each product on the selected date.</p>
-        <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem; align-items: center;">
-          <label for="shiftSelector" style="font-weight: bold;">Select Shift:</label>
-          <select id="shiftSelector" class="input" style="width: auto;">
+        <div class="shift-selector-wrapper">
+          <label for="shiftSelector" class="shift-selector-label">Select Shift:</label>
+          <select id="shiftSelector" class="input shift-selector-select">
             <option value="day">Day</option>
             <option value="night">Night</option>
           </select>

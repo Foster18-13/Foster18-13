@@ -21,7 +21,7 @@
         <button class="button" id="jumpToday" type="button">Today</button>
         <input class="input search-input" id="globalSearchInput" placeholder="Search item" />
         <button class="button" id="globalSearchBtn" type="button">Search</button>
-        <div id="userControls" style="display: flex; gap: 1rem; align-items: center;"></div>
+        <div id="userControls" class="user-controls"></div>
       </div>
     </div>
   </header>
@@ -44,14 +44,51 @@
 
     <main class="page">
       <section class="card">
-        <h2 class="card-title">Welcome to the Twellium Warehouse Portal</h2>
-        <p class="card-subtitle">Use this portal to manage daily warehouse operations, monitor stock balances, and keep
-          all sheet records up to date.</p>
-        <p id="loginGateStatus" class="status"></p>
-        <div id="homeCloudAuthMount" class="toolbar"></div>
-        <div class="toolbar">
-          <a class="button button-primary" data-requires-auth="true" href="balance-intro.html">Open Balance Sheet</a>
-          <a class="button" data-requires-auth="true" href="recording-intro.html">Open Recording Sheet</a>
+        <h2 class="card-title">Tutorial Videos</h2>
+        <p class="card-subtitle">Watch these videos before getting started</p>
+        <div
+          style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin: 16px 0;">
+          <div style="background: #f8f9fa; border-radius: 8px; overflow: hidden;">
+            <video width="100%" height="200" controls style="background: #000;">
+              <source src="assets/videos/intro-video.mp4" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+            <div style="padding: 12px;">
+              <h4 style="margin: 0 0 4px 0; font-size: 13px;">Portal Introduction</h4>
+              <p style="margin: 0; font-size: 11px; color: #6c757d;">Overview of the warehouse management system</p>
+            </div>
+          </div>
+
+          <div style="background: #f8f9fa; border-radius: 8px; overflow: hidden;">
+            <video width="100%" height="200" controls style="background: #000;">
+              <source src="assets/videos/balance-intro.mp4" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+            <div style="padding: 12px;">
+              <h4 style="margin: 0 0 4px 0; font-size: 13px;">Balance Sheet Guide</h4>
+              <p style="margin: 0; font-size: 11px; color: #6c757d;">How to use the daily balance sheet</p>
+            </div>
+          </div>
+
+          <div style="background: #f8f9fa; border-radius: 8px; overflow: hidden;">
+            <video width="100%" height="200" controls style="background: #000;">
+              <source src="assets/videos/recording-intro.mp4" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+            <div style="padding: 12px;">
+              <h4 style="margin: 0 0 4px 0; font-size: 13px;">Recording Sheet Guide</h4>
+              <p style="margin: 0; font-size: 11px; color: #6c757d;">How to record goods loaded/dispatch</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title">Quick Access</h2>
+        <p class="card-subtitle">Jump directly to any worksheet</p>
+        <div class="toolbar" style="flex-wrap: wrap;">
+          <a class="button button-primary" data-requires-auth="true" href="balance.html">Open Balance Sheet</a>
+          <a class="button" data-requires-auth="true" href="recording.html">Open Recording Sheet</a>
           <a class="button" data-requires-auth="true" href="summary.html">Open Summary Sheet</a>
           <a class="button" data-requires-auth="true" href="purchase.html">Open Purchase Sheet</a>
           <a class="button" data-requires-auth="true" href="customers.html">Open Customers Entry</a>
@@ -59,15 +96,22 @@
       </section>
 
       <section class="card">
-        <h2 class="card-title">Daily Workflow</h2>
-        <p class="card-subtitle">Recommended order for accurate day-end reporting.</p>
-        <ol>
-          <li>Record incoming stock in the Purchase Sheet.</li>
-          <li>Capture dispatch/load quantities in the Recording Sheet.</li>
-          <li>Review opening, goods loaded, goods damaged, outstanding/BAL and closing in the Balance Sheet.</li>
-          <li>Confirm available stock in the Summary Sheet.</li>
-        </ol>
-      </section>
+        <h2 class="card-title">Welcome to the Twellium Warehouse Portal</h2>
+        <p class="card-subtitle">Use this portal to manage daily warehouse operations, monitor stock balances, and keep
+          all sheet records up to date.</p>
+        <p id="loginGateStatus" class="status"></p>
+        <div id="homeCloudAuthMount" class="toolbar"></div>
+
+        <section class="card">
+          <h2 class="card-title">Daily Workflow</h2>
+          <p class="card-subtitle">Recommended order for accurate day-end reporting.</p>
+          <ol>
+            <li>Record incoming stock in the Purchase Sheet.</li>
+            <li>Capture dispatch/load quantities in the Recording Sheet.</li>
+            <li>Review opening, goods loaded, goods damaged, outstanding/BAL and closing in the Balance Sheet.</li>
+            <li>Confirm available stock in the Summary Sheet.</li>
+          </ol>
+        </section>
     </main>
   </div>
 

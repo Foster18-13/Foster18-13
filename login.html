@@ -99,7 +99,7 @@
       width: 100%;
       padding: 0.75rem;
       margin-top: 0.5rem;
-      background-color: #007bff;
+      background-color: #0056b3;
       color: white;
       border: none;
       border-radius: 4px;
@@ -115,6 +115,20 @@
     button[type="submit"]:disabled {
       background-color: #6c757d;
       cursor: not-allowed;
+    }
+
+    .troubleshooting-section {
+      margin-top: 2rem;
+      padding-top: 1rem;
+      border-top: 1px solid #ddd;
+      font-size: 12px;
+      color: #666;
+      text-align: center;
+    }
+
+    .troubleshooting-section ol {
+      text-align: left;
+      display: inline-block;
     }
   </style>
 </head>
@@ -140,10 +154,9 @@
       <div class="auth-links">
         <p>Don't have an account? <a href="register.html">Create one here</a></p>
       </div>
-      <div
-        style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ddd; font-size: 12px; color: #666; text-align: center;">
+      <div class="troubleshooting-section">
         <p><strong>Troubleshooting:</strong> If you see an "invalid credential" error:</p>
-        <ol style="text-align: left; display: inline-block;">
+        <ol>
           <li>Check that Email/Password auth is enabled in Firebase Console</li>
           <li>Verify your email is correct and account exists</li>
           <li>Check that your password is correct</li>
@@ -166,7 +179,7 @@
     // Redirect if already logged in
     firebase.auth().onAuthStateChanged((user) => {
       if (user) {
-        window.location.href = 'home.html';
+        globalThis.location.href = 'home.html';
       }
     });
 
@@ -205,7 +218,7 @@
 
         // Redirect to home after 1 second
         setTimeout(() => {
-          window.location.href = 'home.html';
+          globalThis.location.href = 'home.html';
         }, 1000);
       } catch (error) {
         submitBtn.disabled = false;

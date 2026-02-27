@@ -19,7 +19,7 @@
         <label for="workingDate">Working Date</label>
         <input class="input" type="date" id="workingDate" />
         <button class="button" id="jumpToday" type="button">Today</button>
-        <div id="userControls" style="display: flex; gap: 1rem; align-items: center;"></div>
+        <div id="userControls" class="user-controls"></div>
       </div>
     </div>
   </header>
@@ -29,8 +29,8 @@
       <nav class="main-nav">
         <a href="home.html">Home</a>
         <a href="dashboard.html">Dashboard</a>
-        <a href="balance-intro.html">Balance Sheet</a>
-        <a href="recording-intro.html">Recording Sheet</a>
+        <a href="balance.html">Balance Sheet</a>
+        <a href="recording.html">Recording Sheet</a>
         <a href="summary.html">Summary Sheet</a>
         <a href="purchase.html">Purchase Sheet</a>
         <a href="customers.html">Customers Entry</a>
@@ -46,8 +46,8 @@
         <h2 class="card-title">Vehicle Tracking</h2>
         <p class="card-subtitle">Track vehicles and their delivery assignments</p>
 
-        <form id="vehicleForm" style="margin-bottom: 20px; padding: 16px; background: #f8f9fa; border-radius: 8px;">
-          <h3 style="font-size: 14px; margin: 0 0 12px 0;">Add Vehicle Assignment</h3>
+        <form id="vehicleForm" class="vehicle-form">
+          <h3 class="vehicle-form-title">Add Vehicle Assignment</h3>
           <div class="grid-2">
             <div>
               <label for="vehicleNumber">Vehicle Number:</label>
@@ -79,7 +79,7 @@
               </select>
             </div>
           </div>
-          <div style="margin-top: 12px;">
+          <div class="vehicle-form-actions">
             <button class="button button-primary" type="submit">Add Vehicle</button>
           </div>
         </form>
@@ -123,7 +123,7 @@
       const userControls = document.getElementById('userControls');
       if (user) {
         userControls.innerHTML = `
-          <span style="font-size: 14px;">Welcome, <strong>${user.displayName || user.email}</strong></span>
+          <span class="welcome-text">Welcome, <strong>${user.displayName || user.email}</strong></span>
           <button class="button" onclick="logoutUser()">Logout</button>
         `;
       }

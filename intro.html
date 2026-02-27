@@ -40,7 +40,7 @@
       position: absolute;
       top: 20px;
       right: 20px;
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(0, 0, 0, 0.6);
       color: white;
       border: 2px solid white;
       padding: 10px 20px;
@@ -69,6 +69,7 @@
   <div class="video-container">
     <video id="introVideo" autoplay muted>
       <source src="assets/videos/intro-video.mp4" type="video/mp4">
+      <track kind="subtitles" src="assets/videos/intro-video.vtt" srclang="en" label="English">
       Your browser does not support the video tag.
     </video>
     <button class="skip-button" onclick="skipIntro()">Skip</button>
@@ -86,17 +87,17 @@
 
     // Redirect to home page when video ends
     video.addEventListener('ended', function () {
-      window.location.href = 'home.html';
+      globalThis.location.href = 'home.html';
     });
 
     // Handle video loading errors
     video.addEventListener('error', function () {
       console.error('Video failed to load. Redirecting to home page...');
-      window.location.href = 'home.html';
+      globalThis.location.href = 'home.html';
     });
 
     function skipIntro() {
-      window.location.href = 'home.html';
+      globalThis.location.href = 'home.html';
     }
   </script>
 </body>

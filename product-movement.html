@@ -16,7 +16,7 @@
         <p>Warehouse Daily Recording Portal</p>
       </div>
       <div class="topbar-controls">
-        <div id="userControls" style="display: flex; gap: 1rem; align-items: center;"></div>
+        <div id="userControls" class="user-controls"></div>
       </div>
     </div>
   </header>
@@ -26,8 +26,8 @@
       <nav class="main-nav">
         <a href="home.html">Home</a>
         <a href="dashboard.html">Dashboard</a>
-        <a href="balance-intro.html">Balance Sheet</a>
-        <a href="recording-intro.html">Recording Sheet</a>
+        <a href="balance.html">Balance Sheet</a>
+        <a href="recording.html">Recording Sheet</a>
         <a href="summary.html">Summary Sheet</a>
         <a href="purchase.html">Purchase Sheet</a>
         <a href="customers.html">Customers Entry</a>
@@ -44,7 +44,7 @@
         <h2 class="card-title">Product Movement Timeline</h2>
         <p class="card-subtitle">View product stock movement across all dates</p>
 
-        <div style="margin-bottom: 16px;">
+        <div class="product-select-container">
           <label for="productSelect">Select Product:</label>
           <select class="input" id="productSelect">
             <option value="">-- Select a product --</option>
@@ -53,7 +53,7 @@
         </div>
 
         <div id="movementResults">
-          <p style="color: #6c757d; font-size: 13px;">Select a product to view its movement history.</p>
+          <p class="movement-placeholder">Select a product to view its movement history.</p>
         </div>
       </section>
     </main>
@@ -73,7 +73,7 @@
       const userControls = document.getElementById('userControls');
       if (user) {
         userControls.innerHTML = `
-          <span style="font-size: 14px;">Welcome, <strong>${user.displayName || user.email}</strong></span>
+          <span class="welcome-text">Welcome, <strong>${user.displayName || user.email}</strong></span>
           <button class="button" onclick="logoutUser()">Logout</button>
         `;
       }
