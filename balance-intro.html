@@ -86,17 +86,17 @@
 
     // Redirect to balance sheet when video ends
     video.addEventListener('ended', function () {
-      window.location.href = 'balance.html';
+      globalThis.location.href = 'balance.html';
     });
 
     // Handle video loading errors
     video.addEventListener('error', function () {
       console.error('Video failed to load. Redirecting to balance sheet...');
-      window.location.href = 'balance.html';
+      globalThis.location.href = 'balance.html';
     });
 
     function skipIntro() {
-      window.location.href = 'balance.html';
+      globalThis.location.href = 'balance.html';
     }
   </script>
 </body>

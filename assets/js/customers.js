@@ -4,6 +4,35 @@ function renderCustomerProductOptions() {
   productSelect.innerHTML = createProductOptions(data.products);
 }
 
+function populateCustomerNameSuggestions() {
+  const data = loadData();
+  const customerNames = new Set();
+
+  // Collect all unique customer names from all dates
+  Object.keys(data.dailyStores || {}).forEach(date => {
+    const dayStore = data.dailyStores[date];
+    
+    ['day', 'night'].forEach(shift => {
+      if (dayStore[shift] && dayStore[shift].customers) {
+        dayStore[shift].customers.forEach(customer => {
+          if (customer.customerName) {
+            customerNames.add(customer.customerName);
+          }
+        });
+      }
+    });
+  });
+
+  // Populate datalist
+  const datalist = document.getElementById('customerNameList');
+  if (datalist) {
+    datalist.innerHTML = Array.from(customerNames)
+      .sort()
+      .map(name => `<option value="${name}"></option>`)
+      .join('');
+  }
+}
+
 function renderCustomersTable() {
   const tbody = document.querySelector("#customersTable tbody");
   const data = loadData();
@@ -73,7 +102,7 @@ function addCustomerEntry(event) {
   }
 
   // Validate quantity is positive
-  const quantityNum = parseFloat(quantity);
+  const quantityNum = Number.parseFloat(quantity);
   if (quantityNum <= 0) {
     setStatus("Quantity must be greater than zero.", "error");
     return;
@@ -131,7 +160,20 @@ function addCustomerEntry(event) {
   event.target.reset();
   document.getElementById("dateDelivered").value = date;
   renderCustomersTable();
+  populateCustomerNameSuggestions();
   setStatus("Customer entry added and synced to Recording Sheet!", "ok");
+}
+
+function removeFromRecording(dayStore, productId, waybillNumber) {
+  if (dayStore.recording[productId]) {
+    const entries = dayStore.recording[productId].entries;
+    for (let i = 0; i < entries.length; i++) {
+      if (entries[i] && entries[i].waybill === waybillNumber) {
+        entries[i] = { waybill: "", qty: "" };
+        break;
+      }
+    }
+  }
 }
 
 function deleteCustomerEntry(id) {
@@ -139,32 +181,22 @@ function deleteCustomerEntry(id) {
   const date = getSelectedDate();
   const dayStore = getShiftStore(data, date);
   
-  if (dayStore.customers) {
-    // Find the customer entry before deleting
-    const customerEntry = dayStore.customers.find(item => item.id === id);
-    
-    if (customerEntry) {
-      // Remove from customers array
-      dayStore.customers = dayStore.customers.filter((item) => item.id !== id);
-      
-      // Also remove from recording sheet
-      if (dayStore.recording[customerEntry.productId]) {
-        const entries = dayStore.recording[customerEntry.productId].entries;
-        
-        // Find and remove the matching entry by waybill number
-        for (let i = 0; i < entries.length; i++) {
-          if (entries[i] && entries[i].waybill === customerEntry.waybillNumber) {
-            entries[i] = { waybill: "", qty: "" };
-            break;
-          }
-        }
-      }
-      
-      saveData(data);
-      renderCustomersTable();
-      setStatus("Customer entry deleted and removed from Recording Sheet.", "ok");
-    }
+  if (!dayStore.customers) {
+    return;
   }
+  
+  const customerEntry = dayStore.customers.find(item => item.id === id);
+  
+  if (!customerEntry) {
+    return;
+  }
+  
+  dayStore.customers = dayStore.customers.filter((item) => item.id !== id);
+  removeFromRecording(dayStore, customerEntry.productId, customerEntry.waybillNumber);
+  
+  saveData(data);
+  renderCustomersTable();
+  setStatus("Customer entry deleted and removed from Recording Sheet.", "ok");
 }
 
 function syncAllToRecording() {
@@ -258,6 +290,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   renderCustomerProductOptions();
+  populateCustomerNameSuggestions();
   renderCustomersTable();
   const currentDate = getSelectedDate();
   document.getElementById("dateDelivered").value = currentDate;

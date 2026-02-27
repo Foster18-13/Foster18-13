@@ -16,7 +16,7 @@
         <p>Warehouse Daily Recording Portal</p>
       </div>
       <div class="topbar-controls">
-        <div id="userControls" style="display: flex; gap: 1rem; align-instruments: center;"></div>
+        <div id="userControls" class="user-controls"></div>
       </div>
     </div>
   </header>
@@ -43,7 +43,7 @@
         <h2 class="card-title">Customer History</h2>
         <p class="card-subtitle">Search customer orders across all dates</p>
 
-        <div style="margin-bottom: 16px;">
+        <div class="search-controls">
           <label for="searchCustomer">Search Customer Name:</label>
           <input class="input" type="text" id="searchCustomer" placeholder="Enter customer name..." />
           <button class="button" id="searchButton" type="button">Search</button>
@@ -51,7 +51,7 @@
         </div>
 
         <div id="historyResults">
-          <p style="color: #6c757d; font-size: 13px;">Enter a customer name to view their order history.</p>
+          <p class="empty-state-text">Enter a customer name to view their order history.</p>
         </div>
       </section>
     </main>
@@ -71,7 +71,7 @@
       const userControls = document.getElementById('userControls');
       if (user) {
         userControls.innerHTML = `
-          <span style="font-size: 14px;">Welcome, <strong>${user.displayName || user.email}</strong></span>
+          <span class="welcome-text">Welcome, <strong>${user.displayName || user.email}</strong></span>
           <button class="button" onclick="logoutUser()">Logout</button>
         `;
       }

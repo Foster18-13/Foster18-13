@@ -68,20 +68,28 @@ function renderRecordingTable() {
   attachRecordingCalculations();
 }
 
+function resetBorderColor(element) {
+  element.style.borderColor = '';
+}
+
+function handleQtyInput(e, totalInput, row) {
+  // Prevent negative quantities
+  if (asNumber(e.target.value) < 0) {
+    e.target.value = 0;
+    e.target.style.borderColor = '#dc3545';
+    setTimeout(() => {
+      resetBorderColor(e.target);
+    }, 1500);
+  }
+  totalInput.value = getRowTotal(row);
+}
+
 function attachRecordingCalculations() {
   document.querySelectorAll("#recordingTable tbody tr").forEach((row) => {
     const totalInput = row.querySelector("input[data-total]");
     row.querySelectorAll("input[data-qty-index]").forEach((input) => {
       input.addEventListener("input", (e) => {
-        // Prevent negative quantities
-        if (asNumber(e.target.value) < 0) {
-          e.target.value = 0;
-          e.target.style.borderColor = '#dc3545';
-          setTimeout(() => {
-            e.target.style.borderColor = '';
-          }, 1500);
-        }
-        totalInput.value = getRowTotal(row);
+        handleQtyInput(e, totalInput, row);
       });
     });
   });

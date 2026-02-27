@@ -5,69 +5,48 @@
 // Ctrl+D: Dashboard
 // Ctrl+H: Home
 
-document.addEventListener('keydown', (e) => {
+const shortcutMap = {
+  'b': 'balance-intro.html',
+  'r': 'recording-intro.html',
+  'd': 'dashboard.html',
+  'h': 'home.html',
+  'p': 'products.html',
+  'n': 'notebook.html',
+  'c': 'customers.html',
+};
+
+const saveButtonIds = ['saveBalance', 'saveRecording', 'saveSummary', 'savePurchase'];
+
+function handleKeyboardShortcut(e) {
   // Don't trigger shortcuts when typing in inputs
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
     return;
   }
 
-  // Ctrl+B: Balance Sheet
-  if (e.ctrlKey && e.key === 'b') {
-    e.preventDefault();
-    window.location.href = 'balance-intro.html';
+  if (!e.ctrlKey) {
+    return;
   }
 
-  // Ctrl+R: Recording Sheet
-  if (e.ctrlKey && e.key === 'r') {
+  const key = e.key.toLowerCase();
+
+  // Handle navigation shortcuts
+  if (shortcutMap[key]) {
     e.preventDefault();
-    window.location.href = 'recording-intro.html';
+    globalThis.location.href = shortcutMap[key];
+    return;
   }
 
-  // Ctrl+D: Dashboard
-  if (e.ctrlKey && e.key === 'd') {
+  // Handle save shortcut
+  if (key === 's') {
     e.preventDefault();
-    window.location.href = 'dashboard.html';
-  }
-
-  // Ctrl+H: Home
-  if (e.ctrlKey && e.key === 'h') {
-    e.preventDefault();
-    window.location.href = 'home.html';
-  }
-
-  // Ctrl+S: Save (if on sheets with save buttons)
-  if (e.ctrlKey && e.key === 's') {
-    e.preventDefault();
-    
-    // Try to find and click save button
-    const saveButton = document.getElementById('saveBalance') || 
-                      document.getElementById('saveRecording') || 
-                      document.getElementById('saveSummary') ||
-                      document.getElementById('savePurchase');
-    
+    const saveButton = saveButtonIds.reduce((button, id) => button || document.getElementById(id), null);
     if (saveButton) {
       saveButton.click();
     }
   }
+}
 
-  // Ctrl+P: Products
-  if (e.ctrlKey && e.key === 'p') {
-    e.preventDefault();
-    window.location.href = 'products.html';
-  }
-
-  // Ctrl+N: Notebook
-  if (e.ctrlKey && e.key === 'n') {
-    e.preventDefault();
-    window.location.href = 'notebook.html';
-  }
-
-  // Ctrl+C: Customers
-  if (e.ctrlKey && e.key === 'c') {
-    e.preventDefault();
-    window.location.href = 'customers.html';
-  }
-});
+document.addEventListener('keydown', handleKeyboardShortcut);
 
 // Show shortcuts help on Ctrl+/
 document.addEventListener('keydown', (e) => {

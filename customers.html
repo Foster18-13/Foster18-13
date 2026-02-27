@@ -59,7 +59,8 @@
         <form id="customerForm" class="grid-2">
           <div>
             <label for="customerName">Customer Name</label>
-            <input class="input" id="customerName" required />
+            <input class="input" id="customerName" list="customerNameList" autocomplete="off" required />
+            <datalist id="customerNameList"></datalist>
           </div>
           <div>
             <label for="waybillNumber">Waybill Number</label>

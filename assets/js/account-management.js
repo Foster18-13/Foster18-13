@@ -122,7 +122,7 @@ async function deleteUserAccount() {
     // Redirect to login
     showAccountMessage('Account deleted successfully. Redirecting...', 'ok');
     setTimeout(() => {
-      window.location.href = 'login.html';
+      globalThis.location.href = 'login.html';
     }, 2000);
   } catch (error) {
     console.error('Account deletion error:', error);
@@ -139,7 +139,7 @@ function setupAccountManagement() {
   // Wait for Firebase auth to be ready
   firebase.auth().onAuthStateChanged((user) => {
     if (!user) {
-      window.location.href = 'login.html';
+      globalThis.location.href = 'login.html';
       return;
     }
 
@@ -218,34 +218,31 @@ function setupAccountManagement() {
   }
 
   if (restoreFileInput) {
-    restoreFileInput.addEventListener('change', (e) => {
+    restoreFileInput.addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (!file) return;
 
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        try {
-          const importedData = JSON.parse(event.target.result);
-          
-          // Validate structure
-          if (!importedData.products || !Array.isArray(importedData.products)) {
-            showAccountMessage('Invalid backup file format', 'error');
-            return;
-          }
-
-          // Confirm restore
-          if (confirm('This will replace all current data with the backup. Are you sure?')) {
-            saveData(importedData);
-            showAccountMessage('Data restored successfully! Reload the page to see changes.', 'ok');
-            setTimeout(() => {
-              window.location.reload();
-            }, 2000);
-          }
-        } catch (error) {
-          showAccountMessage('Failed to restore backup: ' + error.message, 'error');
+      try {
+        const fileContent = await file.text();
+        const importedData = JSON.parse(fileContent);
+        
+        // Validate structure
+        if (!importedData.products || !Array.isArray(importedData.products)) {
+          showAccountMessage('Invalid backup file format', 'error');
+          return;
         }
-      };
-      reader.readAsText(file);
+
+        // Confirm restore
+        if (confirm('This will replace all current data with the backup. Are you sure?')) {
+          saveData(importedData);
+          showAccountMessage('Data restored successfully! Reload the page to see changes.', 'ok');
+          setTimeout(() => {
+            globalThis.location.reload();
+          }, 2000);
+        }
+      } catch (error) {
+        showAccountMessage('Failed to restore backup: ' + error.message, 'error');
+      }
       e.target.value = ''; // Reset input
     });
   }

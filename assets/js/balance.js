@@ -180,13 +180,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const prevDayStore = getShiftStore(data, prevDateStr);
       
       // Copy balance data
-      currentDayStore.balance = JSON.parse(JSON.stringify(prevDayStore.balance));
+      currentDayStore.balance = structuredClone(prevDayStore.balance);
       // Copy recording data
-      currentDayStore.recording = JSON.parse(JSON.stringify(prevDayStore.recording));
+      currentDayStore.recording = structuredClone(prevDayStore.recording);
       // Copy recording columns
       currentDayStore.recordingColumns = prevDayStore.recordingColumns;
       // Copy purchases
-      currentDayStore.purchases = JSON.parse(JSON.stringify(prevDayStore.purchases || []));
+      currentDayStore.purchases = structuredClone(prevDayStore.purchases || []);
       
       saveData(data);
       renderBalanceTable();
