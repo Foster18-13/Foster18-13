@@ -3,8 +3,8 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, orientation=landscape" />
-  <title>Notebook | Twellium Warehouse Portal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reports | Twellium Warehouse Portal</title>
   <link rel="stylesheet" href="assets/css/style.css?v=20260224_v2" />
 </head>
 
@@ -14,14 +14,8 @@
       <div class="brand">
         <h1>Twellium Industrial Company Limited</h1>
         <p>Warehouse Daily Recording Portal</p>
-        <p id="printDate" style="display: none; margin: 5px 0 0 0; font-size: 14px;"></p>
       </div>
       <div class="topbar-controls">
-        <label for="workingDate">Working Date</label>
-        <input class="input" type="date" id="workingDate" />
-        <button class="button" id="jumpToday" type="button">Today</button>
-        <input class="input search-input" id="globalSearchInput" placeholder="Search notes" />
-        <button class="button" id="globalSearchBtn" type="button">Search</button>
         <div id="userControls" style="display: flex; gap: 1rem; align-items: center;"></div>
       </div>
     </div>
@@ -37,6 +31,9 @@
         <a href="summary.html">Summary Sheet</a>
         <a href="purchase.html">Purchase Sheet</a>
         <a href="customers.html">Customers Entry</a>
+        <a href="customer-history.html">Customer History</a>
+        <a href="product-movement.html">Product Movement</a>
+        <a href="reports.html">Reports</a>
         <a href="notebook.html">Notebook</a>
         <a href="products.html">Products</a>
         <a href="account.html">Account</a>
@@ -45,20 +42,28 @@
 
     <main class="page">
       <section class="card">
-        <h2 class="card-title">Daily Notebook</h2>
-        <p class="card-subtitle">Capture notes for each workday. Notes are saved per date.</p>
+        <h2 class="card-title">Date Range Reports</h2>
+        <p class="card-subtitle">Generate reports for specific date ranges</p>
 
-        <div class="toolbar" style="gap: 0.75rem; flex-wrap: wrap; align-items: center;">
-          <label for="note-date" style="font-weight: bold;">Note Date</label>
-          <input class="input" id="note-date" type="date" />
-          <button class="button button-primary" id="save-note-btn" type="button">Save Note</button>
-          <button class="button" id="load-note-btn" type="button">Load Note</button>
-          <span id="note-save-status" class="status"></span>
+        <div style="margin-bottom: 16px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+          <div>
+            <label for="startDate">Start Date:</label>
+            <input class="input" type="date" id="startDate" />
+          </div>
+          <div>
+            <label for="endDate">End Date:</label>
+            <input class="input" type="date" id="endDate" />
+          </div>
         </div>
 
-        <div style="margin-top: 1rem;">
-          <label for="note-area" style="font-weight: bold;">Daily Record</label>
-          <textarea class="textarea" id="note-area" rows="12" placeholder="Enter daily notes here..."></textarea>
+        <div style="margin-bottom: 16px;">
+          <button class="button" id="generateReportButton" type="button">Generate Report</button>
+          <button class="button" id="quickWeek" type="button">Last 7 Days</button>
+          <button class="button" id="quickMonth" type="button">Last 30 Days</button>
+        </div>
+
+        <div id="reportResults">
+          <p style="color: #6c757d; font-size: 13px;">Select a date range to generate a report.</p>
         </div>
       </section>
     </main>
@@ -72,9 +77,8 @@
   <script src="assets/js/storage.js"></script>
   <script src="assets/js/common.js"></script>
   <script src="assets/js/cloud-sync.js"></script>
-  <script src="note.js"></script>
+  <script src="assets/js/reports.js"></script>
   <script>
-    // Setup user controls in header
     firebase.auth().onAuthStateChanged((user) => {
       const userControls = document.getElementById('userControls');
       if (user) {

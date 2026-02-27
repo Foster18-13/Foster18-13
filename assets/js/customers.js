@@ -65,7 +65,19 @@ function addCustomerEntry(event) {
     dayStore.customers = [];
   }
 
+  // Check for duplicate waybill number
+  const duplicateWaybill = dayStore.customers.find(c => c.waybillNumber === waybillNumber);
+  if (duplicateWaybill) {
+    setStatus(`Waybill number "${waybillNumber}" already exists for ${duplicateWaybill.customerName}.`, "error");
+    return;
+  }
+
+  // Validate quantity is positive
   const quantityNum = parseFloat(quantity);
+  if (quantityNum <= 0) {
+    setStatus("Quantity must be greater than zero.", "error");
+    return;
+  }
 
   dayStore.customers.push({
     id: generateId("customer"),

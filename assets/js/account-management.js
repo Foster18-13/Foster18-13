@@ -191,6 +191,65 @@ function setupAccountManagement() {
     });
   }
 
+  // Setup backup/restore
+  const backupDataBtn = document.getElementById('backupDataBtn');
+  const restoreDataBtn = document.getElementById('restoreDataBtn');
+  const restoreFileInput = document.getElementById('restoreFileInput');
+
+  if (backupDataBtn) {
+    backupDataBtn.addEventListener('click', () => {
+      const data = loadData();
+      const dataStr = JSON.stringify(data, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `warehouse-backup-${new Date().toISOString().split('T')[0]}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+      showAccountMessage('Backup exported successfully!', 'ok');
+    });
+  }
+
+  if (restoreDataBtn) {
+    restoreDataBtn.addEventListener('click', () => {
+      restoreFileInput.click();
+    });
+  }
+
+  if (restoreFileInput) {
+    restoreFileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const importedData = JSON.parse(event.target.result);
+          
+          // Validate structure
+          if (!importedData.products || !Array.isArray(importedData.products)) {
+            showAccountMessage('Invalid backup file format', 'error');
+            return;
+          }
+
+          // Confirm restore
+          if (confirm('This will replace all current data with the backup. Are you sure?')) {
+            saveData(importedData);
+            showAccountMessage('Data restored successfully! Reload the page to see changes.', 'ok');
+            setTimeout(() => {
+              window.location.reload();
+            }, 2000);
+          }
+        } catch (error) {
+          showAccountMessage('Failed to restore backup: ' + error.message, 'error');
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = ''; // Reset input
+    });
+  }
+
   // Setup delete account modal
   const deleteAccountBtn = document.getElementById('deleteAccountBtn');
   const deleteConfirmModal = document.getElementById('deleteConfirmModal');

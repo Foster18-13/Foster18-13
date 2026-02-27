@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard | Twellium Warehouse Portal</title>
+  <link rel="stylesheet" href="assets/css/style.css?v=20260224_v2" />
+  <style>
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .stat-card h3 {
+      margin: 0;
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .alert-box {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .alert-box h3 {
+      margin: 0 0 8px 0;
+      font-size: 12px;
+      color: #856404;
+    }
+
+    .alert-item {
+      padding: 6px 0;
+      border-bottom: 1px solid #ffeaa7;
+      font-size: 11px;
+    }
+
+    .alert-item:last-child {
+      border-bottom: none;
+    }
+  </style>
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <h1>Twellium Industrial Company Limited</h1>
+        <p>Warehouse Daily Recording Portal</p>
+      </div>
+      <div class="topbar-controls">
+        <label for="workingDate">Working Date</label>
+        <input class="input" type="date" id="workingDate" />
+        <button class="button" id="jumpToday" type="button">Today</button>
+        <div id="userControls" style="display: flex; gap: 1rem; align-items: center;"></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <nav class="main-nav">
+        <a href="home.html">Home</a>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="balance-intro.html">Balance Sheet</a>
+        <a href="recording-intro.html">Recording Sheet</a>
+        <a href="summary.html">Summary Sheet</a>
+        <a href="purchase.html">Purchase Sheet</a>
+        <a href="customers.html">Customers Entry</a>
+        <a href="notebook.html">Notebook</a>
+        <a href="products.html">Products</a>
+        <a href="account.html">Account</a>
+      </nav>
+    </aside>
+
+    <main class="page">
+      <section class="card">
+        <h2 class="card-title">Dashboard & Analytics</h2>
+        <p class="card-subtitle">Overview of warehouse operations for the selected date.</p>
+
+        <div id="lowStockAlerts"></div>
+
+        <div class="dashboard-grid">
+          <div class="stat-card">
+            <h3>Total Products</h3>
+            <div class="stat-value" id="totalProducts">0</div>
+            <div class="stat-label">Active products</div>
+          </div>
+
+          <div class="stat-card">
+            <h3>Total Stock</h3>
+            <div class="stat-value" id="totalStock">0</div>
+            <div class="stat-label">Current inventory</div>
+          </div>
+
+          <div class="stat-card">
+            <h3>Goods Loaded</h3>
+            <div class="stat-value" id="totalLoaded">0</div>
+            <div class="stat-label">Today's dispatches</div>
+          </div>
+
+          <div class="stat-card">
+            <h3>Goods Received</h3>
+            <div class="stat-value" id="totalReceived">0</div>
+            <div class="stat-label">Today's purchases</div>
+          </div>
+
+          <div class="stat-card">
+            <h3>Damaged Goods</h3>
+            <div class="stat-value" id="totalDamaged">0</div>
+            <div class="stat-label">Today's damages</div>
+          </div>
+
+          <div class="stat-card">
+            <h3>Customer Orders</h3>
+            <div class="stat-value" id="totalCustomers">0</div>
+            <div class="stat-label">Today's orders</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title">Top Products by Movement</h2>
+        <div class="table-wrap">
+          <table id="topProductsTable">
+            <thead>
+              <tr>
+                <th>Product Name</th>
+                <th>Loaded</th>
+                <th>Received</th>
+                <th>Current Stock</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title">Top Customers</h2>
+        <div class="table-wrap">
+          <table id="topCustomersTable">
+            <thead>
+              <tr>
+                <th>Customer Name</th>
+                <th>Orders</th>
+                <th>Total Quantity</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="assets/js/firebase-config.js"></script>
+  <script src="assets/js/user-auth.js"></script>
+  <script src="assets/js/storage.js"></script>
+  <script src="assets/js/common.js"></script>
+  <script src="assets/js/cloud-sync.js"></script>
+  <script src="assets/js/dashboard.js"></script>
+  <script src="assets/js/keyboard-shortcuts.js"></script>
+  <script>
+    firebase.auth().onAuthStateChanged((user) => {
+      const userControls = document.getElementById('userControls');
+      if (user) {
+        userControls.innerHTML = `
+          <span style="font-size: 14px;">Welcome, <strong>${user.displayName || user.email}</strong></span>
+          <button class="button" onclick="logoutUser()">Logout</button>
+        `;
+      }
+    });
+  </script>
+</body>
+
+</html>

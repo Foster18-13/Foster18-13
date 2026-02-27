@@ -360,7 +360,34 @@ input[data-total] {
     flex-wrap: wrap;
   }
 
+  .main-nav a {
+    font-size: 11px;
+    padding: 8px 10px;
+  }
+
   .grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .toolbar button {
+    width: 100%;
+  }
+
+  table {
+    font-size: 10px;
+  }
+
+  table th,
+  table td {
+    padding: 4px 3px;
+  }
+
+  .dashboard-grid {
     grid-template-columns: 1fr;
   }
 }

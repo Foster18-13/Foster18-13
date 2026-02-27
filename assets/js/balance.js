@@ -72,11 +72,35 @@ function attachBalanceCalculations() {
         damages: damagesInput.value
       });
       balanceInput.value = balanceValue;
-      remarkInput.value = asNumber(closingInput.value) - asNumber(balanceValue);
+      const remarkValue = asNumber(closingInput.value) - asNumber(balanceValue);
+      remarkInput.value = remarkValue;
+
+      // Real-time validation styling
+      if (asNumber(closingInput.value) < 0) {
+        closingInput.style.borderColor = '#dc3545';
+        closingInput.title = 'Closing stock cannot be negative';
+      } else {
+        closingInput.style.borderColor = '';
+        closingInput.title = '';
+      }
+
+      if (Math.abs(remarkValue) > 100) {
+        remarkInput.style.backgroundColor = '#fff3cd';
+        remarkInput.title = 'Large variance detected';
+      } else {
+        remarkInput.style.backgroundColor = '';
+        remarkInput.title = '';
+      }
     };
 
+    // Prevent negative values
     [openingInput, returnsInput, damagesInput, closingInput].forEach((input) => {
-      input.addEventListener("input", recalc);
+      input.addEventListener("input", (e) => {
+        if (asNumber(e.target.value) < 0) {
+          e.target.value = 0;
+        }
+        recalc();
+      });
     });
   });
 }
@@ -138,9 +162,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
   renderBalanceTable();
   const saveButton = document.getElementById("saveBalance");
+  const copyPrevDayButton = document.getElementById("copyPrevDay");
   const exportButton = document.getElementById("exportBalance");
   const exportPdfButton = document.getElementById("exportBalancePdf");
   if (saveButton) saveButton.addEventListener("click", saveBalanceSheet);
+  if (copyPrevDayButton) {
+    copyPrevDayButton.addEventListener("click", () => {
+      if (!confirm("Copy previous day's data to today? This will overwrite current data.")) return;
+      
+      const data = loadData();
+      const currentDate = getSelectedDate();
+      const prevDate = new Date(currentDate);
+      prevDate.setDate(prevDate.getDate() - 1);
+      const prevDateStr = prevDate.toISOString().split('T')[0];
+      
+      const currentDayStore = getShiftStore(data, currentDate);
+      const prevDayStore = getShiftStore(data, prevDateStr);
+      
+      // Copy balance data
+      currentDayStore.balance = JSON.parse(JSON.stringify(prevDayStore.balance));
+      // Copy recording data
+      currentDayStore.recording = JSON.parse(JSON.stringify(prevDayStore.recording));
+      // Copy recording columns
+      currentDayStore.recordingColumns = prevDayStore.recordingColumns;
+      // Copy purchases
+      currentDayStore.purchases = JSON.parse(JSON.stringify(prevDayStore.purchases || []));
+      
+      saveData(data);
+      renderBalanceTable();
+      setStatus(`Data copied from ${prevDateStr}`, "ok");
+    });
+  }
   if (exportButton) {
     exportButton.addEventListener("click", () => {
       exportTableAsCsv("balanceTable", "balance_sheet");
