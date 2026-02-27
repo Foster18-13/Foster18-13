@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Home | Twellium Warehouse Portal</title>
   <link rel="stylesheet" href="assets/css/style.css?v=20260224_v2" />
+  <script src="assets/js/theme-toggle.js"></script>
 </head>
 
 <body>
@@ -46,38 +47,40 @@
       <section class="card">
         <h2 class="card-title">Tutorial Videos</h2>
         <p class="card-subtitle">Watch these videos before getting started</p>
-        <div
-          style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin: 16px 0;">
-          <div style="background: #f8f9fa; border-radius: 8px; overflow: hidden;">
-            <video width="100%" height="200" controls style="background: #000;">
+        <div class="video-grid">
+          <div class="video-card">
+            <video width="100%" height="200" controls class="video-player">
               <source src="assets/videos/intro-video.mp4" type="video/mp4" />
+              <track kind="subtitles" src="assets/videos/intro-video.vtt" srclang="en" label="English" />
               Your browser does not support the video tag.
             </video>
-            <div style="padding: 12px;">
-              <h4 style="margin: 0 0 4px 0; font-size: 13px;">Portal Introduction</h4>
-              <p style="margin: 0; font-size: 11px; color: #6c757d;">Overview of the warehouse management system</p>
+            <div class="video-info">
+              <h4>Portal Introduction</h4>
+              <p>Overview of the warehouse management system</p>
             </div>
           </div>
 
-          <div style="background: #f8f9fa; border-radius: 8px; overflow: hidden;">
-            <video width="100%" height="200" controls style="background: #000;">
+          <div class="video-card">
+            <video width="100%" height="200" controls class="video-player">
               <source src="assets/videos/balance-intro.mp4" type="video/mp4" />
+              <track kind="subtitles" src="assets/videos/balance-intro.vtt" srclang="en" label="English" />
               Your browser does not support the video tag.
             </video>
-            <div style="padding: 12px;">
-              <h4 style="margin: 0 0 4px 0; font-size: 13px;">Balance Sheet Guide</h4>
-              <p style="margin: 0; font-size: 11px; color: #6c757d;">How to use the daily balance sheet</p>
+            <div class="video-info">
+              <h4>Balance Sheet Guide</h4>
+              <p>How to use the daily balance sheet</p>
             </div>
           </div>
 
-          <div style="background: #f8f9fa; border-radius: 8px; overflow: hidden;">
-            <video width="100%" height="200" controls style="background: #000;">
+          <div class="video-card">
+            <video width="100%" height="200" controls class="video-player">
               <source src="assets/videos/recording-intro.mp4" type="video/mp4" />
+              <track kind="subtitles" src="assets/videos/recording-intro.vtt" srclang="en" label="English" />
               Your browser does not support the video tag.
             </video>
-            <div style="padding: 12px;">
-              <h4 style="margin: 0 0 4px 0; font-size: 13px;">Recording Sheet Guide</h4>
-              <p style="margin: 0; font-size: 11px; color: #6c757d;">How to record goods loaded/dispatch</p>
+            <div class="video-info">
+              <h4>Recording Sheet Guide</h4>
+              <p>How to record goods loaded/dispatch</p>
             </div>
           </div>
         </div>
@@ -86,7 +89,7 @@
       <section class="card">
         <h2 class="card-title">Quick Access</h2>
         <p class="card-subtitle">Jump directly to any worksheet</p>
-        <div class="toolbar" style="flex-wrap: wrap;">
+        <div class="toolbar toolbar-wrap">
           <a class="button button-primary" data-requires-auth="true" href="balance.html">Open Balance Sheet</a>
           <a class="button" data-requires-auth="true" href="recording.html">Open Recording Sheet</a>
           <a class="button" data-requires-auth="true" href="summary.html">Open Summary Sheet</a>
