@@ -54,17 +54,66 @@ function renderCustomersTable() {
     .map((customer) => {
       const product = getProductById(data, customer.productId);
       return `
-        <tr>
-          <td>${customer.customerName}</td>
+        <tr data-customer-id="${customer.id}">
+          <td>
+            <span class="customer-name-display">${customer.customerName}</span>
+            <input class="input customer-name-edit" style="display: none;" list="customerNameList" value="${customer.customerName}" data-customer-id="${customer.id}" />
+          </td>
           <td>${customer.waybillNumber}</td>
           <td>${product ? product.name : "Unknown Product"}</td>
           <td>${customer.quantity}</td>
           <td>${customer.dateDelivered}</td>
-          <td><button class="button button-danger" data-delete-id="${customer.id}" type="button">Delete</button></td>
+          <td>
+            <button class="button" data-edit-id="${customer.id}" type="button">Edit Name</button>
+            <button class="button button-danger" data-delete-id="${customer.id}" type="button">Delete</button>
+          </td>
         </tr>
       `;
     })
     .join("");
+
+  // Add edit functionality
+  tbody.querySelectorAll("button[data-edit-id]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const customerId = button.dataset.editId;
+      const row = tbody.querySelector(`tr[data-customer-id="${customerId}"]`);
+      const displaySpan = row.querySelector(".customer-name-display");
+      const editInput = row.querySelector(".customer-name-edit");
+      
+      if (displaySpan.style.display === "none") {
+        // Save the edit
+        const newName = editInput.value.trim();
+        if (newName) {
+          updateCustomerName(customerId, newName);
+          displaySpan.textContent = newName;
+          displaySpan.style.display = "";
+          editInput.style.display = "none";
+          button.textContent = "Edit Name";
+        } else {
+          setStatus("Customer name cannot be empty.", "error");
+        }
+      } else {
+        // Start editing
+        displaySpan.style.display = "none";
+        editInput.style.display = "";
+        editInput.focus();
+        editInput.select();
+        button.textContent = "Save";
+      }
+    });
+  });
+
+  // Allow Enter key to save
+  tbody.querySelectorAll(".customer-name-edit").forEach((input) => {
+    input.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        const customerId = input.dataset.customerId;
+        const button = tbody.querySelector(`button[data-edit-id="${customerId}"]`);
+        if (button) button.click();
+      }
+    });
+  });
 
   tbody.querySelectorAll("button[data-delete-id]").forEach((button) => {
     button.addEventListener("click", () => deleteCustomerEntry(button.dataset.deleteId));
@@ -197,6 +246,28 @@ function deleteCustomerEntry(id) {
   saveData(data);
   renderCustomersTable();
   setStatus("Customer entry deleted and removed from Recording Sheet.", "ok");
+}
+
+function updateCustomerName(id, newName) {
+  const data = loadData();
+  const date = getSelectedDate();
+  const dayStore = getShiftStore(data, date);
+  
+  if (!dayStore.customers) {
+    return;
+  }
+  
+  const customerEntry = dayStore.customers.find(item => item.id === id);
+  
+  if (!customerEntry) {
+    return;
+  }
+  
+  customerEntry.customerName = newName;
+  
+  saveData(data);
+  populateCustomerNameSuggestions();
+  setStatus("Customer name updated successfully.", "ok");
 }
 
 function syncAllToRecording() {
