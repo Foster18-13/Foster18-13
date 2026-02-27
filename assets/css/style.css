@@ -585,6 +585,165 @@ input[data-total] {
   background: #247ba0;
 }
 
+[data-theme="dark"] .card {
+  background: var(--surface);
+}
+
+[data-theme="dark"] .card-title {
+  background: #9f1239;
+}
+
+[data-theme="dark"] .sidebar {
+  background: var(--surface);
+}
+
+[data-theme="dark"] .main-nav a {
+  background: var(--surface-alt);
+  color: var(--text);
+}
+
+[data-theme="dark"] .main-nav a:hover {
+  background: #2d333b;
+}
+
+[data-theme="dark"] .main-nav a.active {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+[data-theme="dark"] table {
+  background: var(--surface);
+}
+
+[data-theme="dark"] tbody tr:hover {
+  background: var(--surface-alt);
+}
+
+[data-theme="dark"] label {
+  color: var(--text);
+}
+
+[data-theme="dark"] .table-wrap {
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .button-primary {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+[data-theme="dark"] .button-primary:hover {
+  background: #3d8fd1;
+}
+
+[data-theme="dark"] .button-danger {
+  background: var(--danger);
+  border-color: var(--danger);
+}
+
+[data-theme="dark"] .button-danger:hover {
+  background: #d73a46;
+}
+
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4,
+[data-theme="dark"] h5,
+[data-theme="dark"] h6 {
+  color: var(--text);
+}
+
+[data-theme="dark"] p,
+[data-theme="dark"] span,
+[data-theme="dark"] div {
+  color: var(--text);
+}
+
+[data-theme="dark"] a {
+  color: var(--primary);
+}
+
+[data-theme="dark"] .welcome-text {
+  color: var(--text);
+}
+
+[data-theme="dark"] strong {
+  color: var(--text);
+}
+
+[data-theme="dark"] .card-subtitle {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] select option {
+  background: var(--surface);
+  color: var(--text);
+}
+
+[data-theme="dark"] .status {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .status.ok {
+  color: var(--success);
+}
+
+[data-theme="dark"] .status.error {
+  color: var(--danger);
+}
+
+/* Dark Theme for Auth Pages (login/register) */
+[data-theme="dark"] .auth-container {
+  background: var(--bg) !important;
+}
+
+[data-theme="dark"] .auth-card {
+  background: var(--surface) !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-theme="dark"] .auth-card h2,
+[data-theme="dark"] .auth-card h3 {
+  color: var(--text) !important;
+}
+
+[data-theme="dark"] .form-group label {
+  color: var(--text) !important;
+}
+
+[data-theme="dark"] .form-group input {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+
+[data-theme="dark"] .form-group input:focus {
+  border-color: var(--primary) !important;
+}
+
+[data-theme="dark"] .auth-error {
+  background: #4a1c1c !important;
+  color: #ffb3b3 !important;
+}
+
+[data-theme="dark"] .auth-success {
+  background: #1c4a2e !important;
+  color: #b3ffcc !important;
+}
+
+[data-theme="dark"] .auth-links a {
+  color: var(--primary) !important;
+}
+
+[data-theme="dark"] .troubleshooting-section {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .troubleshooting-section h4 {
+  color: var(--text) !important;
+}
+
 /* Theme Toggle Button Styles */
 #themeToggle {
   font-size: 10px;
