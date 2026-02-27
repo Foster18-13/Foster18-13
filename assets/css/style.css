@@ -209,8 +209,9 @@ textarea {
 table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 600px;
+  min-width: 0;
   background: #fff;
+  table-layout: fixed;
 }
 
 .balance-table {
@@ -237,21 +238,22 @@ table {
 th,
 td {
   border-bottom: 1px solid var(--border);
-  padding: 8px 6px;
+  padding: 6px 5px;
   text-align: left;
   vertical-align: top;
+  font-size: 11px;
 }
 
 th {
   background: var(--surface-alt);
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 700;
-  white-space: nowrap;
+  white-space: normal;
   padding: 8px 6px;
 }
 
 td:first-child {
-  min-width: 250px;
+  min-width: 180px;
   padding: 8px 6px;
 }
 
@@ -259,8 +261,8 @@ td input,
 td select,
 td textarea {
   width: 100%;
-  padding: 6px 8px !important;
-  font-size: 11px;
+  padding: 5px 6px !important;
+  font-size: 10px;
 }
 
 .status {
