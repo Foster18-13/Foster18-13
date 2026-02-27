@@ -3,10 +3,9 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, orientation=landscape" />
   <title>Account Management | Twellium Warehouse Portal</title>
   <link rel="stylesheet" href="assets/css/style.css?v=20260224_v2" />
-  <script src="assets/js/theme-toggle.js"></script>
 </head>
 
 <body>
@@ -17,7 +16,7 @@
         <p>Warehouse Daily Recording Portal</p>
       </div>
       <div class="topbar-controls">
-        <div id="userControls" class="user-controls"></div>
+        <div id="userControls" style="display: flex; gap: 1rem; align-items: center;"></div>
       </div>
     </div>
   </header>
@@ -42,20 +41,21 @@
       <section class="card">
         <h2 class="card-title">Account Management</h2>
 
-        <div id="accountError" class="status error status-hidden"></div>
-        <div id="accountSuccess" class="status ok status-hidden"></div>
+        <div id="accountError" class="status error" style="display: none; margin-bottom: 1rem;"></div>
+        <div id="accountSuccess" class="status ok" style="display: none; margin-bottom: 1rem;"></div>
 
         <!-- Update Profile Section -->
-        <div class="account-section">
-          <h3 class="account-section-title">Update Profile</h3>
+        <div style="margin-bottom: 2rem;">
+          <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 1rem;">Update Profile</h3>
           <form id="updateProfileForm">
-            <div class="form-group">
-              <label for="displayName" class="form-label">Display Name</label>
+            <div style="margin-bottom: 1rem;">
+              <label for="displayName" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Display
+                Name</label>
               <input class="input" type="text" id="displayName" placeholder="Your name" required />
             </div>
 
-            <div class="form-group">
-              <label for="email" class="form-label">Email</label>
+            <div style="margin-bottom: 1rem;">
+              <label for="email" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Email</label>
               <input class="input" type="email" id="email" placeholder="your@email.com" required />
             </div>
 
@@ -64,22 +64,25 @@
         </div>
 
         <!-- Change Password Section -->
-        <div class="account-section account-section-divider">
-          <h3 class="account-section-title">Change Password</h3>
+        <div style="margin-bottom: 2rem; border-top: 1px solid #e0e0e0; padding-top: 2rem;">
+          <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 1rem;">Change Password</h3>
           <form id="changePasswordForm">
-            <div class="form-group">
-              <label for="currentPassword" class="form-label">Current Password</label>
+            <div style="margin-bottom: 1rem;">
+              <label for="currentPassword" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Current
+                Password</label>
               <input class="input" type="password" id="currentPassword" placeholder="Enter current password" required />
             </div>
 
-            <div class="form-group">
-              <label for="newPassword" class="form-label">New Password</label>
+            <div style="margin-bottom: 1rem;">
+              <label for="newPassword" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">New
+                Password</label>
               <input class="input" type="password" id="newPassword" placeholder="Enter new password (min. 6 characters)"
                 required />
             </div>
 
-            <div class="form-group">
-              <label for="confirmNewPassword" class="form-label">Confirm New Password</label>
+            <div style="margin-bottom: 1rem;">
+              <label for="confirmNewPassword" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Confirm
+                New Password</label>
               <input class="input" type="password" id="confirmNewPassword" placeholder="Confirm new password"
                 required />
             </div>
@@ -89,39 +92,43 @@
         </div>
 
         <!-- Backup & Restore Section -->
-        <div class="account-section account-section-divider">
-          <h3 class="account-section-title">Backup & Restore Data</h3>
-          <p class="account-section-text">Export all your warehouse data to a JSON file or restore from a backup.</p>
+        <div style="margin-bottom: 2rem; border-top: 1px solid #e0e0e0; padding-top: 2rem;">
+          <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 1rem;">Backup & Restore Data</h3>
+          <p style="color: #666; margin-bottom: 1rem;">Export all your warehouse data to a JSON file or restore from a
+            backup.</p>
 
-          <div class="button-group">
+          <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
             <button class="button button-primary" id="backupDataBtn" type="button">Export Backup</button>
             <button class="button" id="restoreDataBtn" type="button">Import Backup</button>
           </div>
 
-          <label for="restoreFileInput" class="hidden">Select backup file to restore</label>
-          <input type="file" id="restoreFileInput" accept=".json" class="hidden" />
+          <input type="file" id="restoreFileInput" accept=".json" style="display: none;" />
         </div>
 
         <!-- Delete Account Section -->
-        <div class="account-section account-section-divider account-section-danger">
-          <h3 class="account-section-title account-section-title-danger">Delete Account</h3>
-          <p class="account-section-text">Once you delete your account, there is no going back. Please be certain.</p>
-          <button class="button button-danger" id="deleteAccountBtn" type="button">Delete Account</button>
+        <div style="border-top: 1px solid #e0e0e0; padding-top: 2rem;">
+          <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 1rem; color: #d32f2f;">Delete Account</h3>
+          <p style="color: #666; margin-bottom: 1rem;">Once you delete your account, there is no going back. Please be
+            certain.</p>
+          <button class="button" id="deleteAccountBtn" type="button"
+            style="background-color: #d32f2f; color: white; border-color: #d32f2f;">Delete Account</button>
         </div>
       </section>
     </main>
   </div>
 
   <!-- Delete Confirmation Modal -->
-  <div id="deleteConfirmModal" class="modal modal-hidden">
-    <div class="modal-content">
-      <h3 class="modal-title">Confirm Account Deletion</h3>
-      <p class="modal-text">Are you absolutely sure you want to delete your account? This action cannot be undone. All
+  <div id="deleteConfirmModal"
+    style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div
+      style="background: white; padding: 2rem; border-radius: 8px; max-width: 400px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+      <h3 style="margin-top: 0; color: #d32f2f;">Confirm Account Deletion</h3>
+      <p style="color: #666;">Are you absolutely sure you want to delete your account? This action cannot be undone. All
         your data will be permanently removed.</p>
-      <div class="modal-buttons">
-        <button class="button button-danger modal-button-flex" id="confirmDeleteBtn" type="button">Delete My
-          Account</button>
-        <button class="button modal-button-flex" id="cancelDeleteBtn" type="button">Cancel</button>
+      <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+        <button class="button" id="confirmDeleteBtn" type="button"
+          style="flex: 1; background-color: #d32f2f; color: white; border-color: #d32f2f;">Delete My Account</button>
+        <button class="button" id="cancelDeleteBtn" type="button" style="flex: 1;">Cancel</button>
       </div>
     </div>
   </div>
@@ -141,7 +148,7 @@
       const userControls = document.getElementById('userControls');
       if (user) {
         userControls.innerHTML = `
-          <span class="user-welcome">Welcome, <strong>${user.displayName || user.email}</strong></span>
+          <span style="font-size: 14px;">Welcome, <strong>${user.displayName || user.email}</strong></span>
           <button class="button" onclick="logoutUser()">Logout</button>
         `;
       }

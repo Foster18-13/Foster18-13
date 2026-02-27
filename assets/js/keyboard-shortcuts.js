@@ -5,48 +5,69 @@
 // Ctrl+D: Dashboard
 // Ctrl+H: Home
 
-const shortcutMap = {
-  'b': 'balance.html',
-  'r': 'recording.html',
-  'd': 'dashboard.html',
-  'h': 'home.html',
-  'p': 'products.html',
-  'n': 'notebook.html',
-  'c': 'customers.html',
-};
-
-const saveButtonIds = ['saveBalance', 'saveRecording', 'saveSummary', 'savePurchase'];
-
-function handleKeyboardShortcut(e) {
+document.addEventListener('keydown', (e) => {
   // Don't trigger shortcuts when typing in inputs
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
     return;
   }
 
-  if (!e.ctrlKey) {
-    return;
+  // Ctrl+B: Balance Sheet
+  if (e.ctrlKey && e.key === 'b') {
+    e.preventDefault();
+    window.location.href = 'balance.html';
   }
 
-  const key = e.key.toLowerCase();
-
-  // Handle navigation shortcuts
-  if (shortcutMap[key]) {
+  // Ctrl+R: Recording Sheet
+  if (e.ctrlKey && e.key === 'r') {
     e.preventDefault();
-    globalThis.location.href = shortcutMap[key];
-    return;
+    window.location.href = 'recording.html';
   }
 
-  // Handle save shortcut
-  if (key === 's') {
+  // Ctrl+D: Dashboard
+  if (e.ctrlKey && e.key === 'd') {
     e.preventDefault();
-    const saveButton = saveButtonIds.reduce((button, id) => button || document.getElementById(id), null);
+    window.location.href = 'dashboard.html';
+  }
+
+  // Ctrl+H: Home
+  if (e.ctrlKey && e.key === 'h') {
+    e.preventDefault();
+    window.location.href = 'home.html';
+  }
+
+  // Ctrl+S: Save (if on sheets with save buttons)
+  if (e.ctrlKey && e.key === 's') {
+    e.preventDefault();
+    
+    // Try to find and click save button
+    const saveButton = document.getElementById('saveBalance') || 
+                      document.getElementById('saveRecording') || 
+                      document.getElementById('saveSummary') ||
+                      document.getElementById('savePurchase');
+    
     if (saveButton) {
       saveButton.click();
     }
   }
-}
 
-document.addEventListener('keydown', handleKeyboardShortcut);
+  // Ctrl+P: Products
+  if (e.ctrlKey && e.key === 'p') {
+    e.preventDefault();
+    window.location.href = 'products.html';
+  }
+
+  // Ctrl+N: Notebook
+  if (e.ctrlKey && e.key === 'n') {
+    e.preventDefault();
+    window.location.href = 'notebook.html';
+  }
+
+  // Ctrl+C: Customers
+  if (e.ctrlKey && e.key === 'c') {
+    e.preventDefault();
+    window.location.href = 'customers.html';
+  }
+});
 
 // Show shortcuts help on Ctrl+/
 document.addEventListener('keydown', (e) => {

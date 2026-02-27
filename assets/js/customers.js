@@ -4,32 +4,33 @@ function renderCustomerProductOptions() {
   productSelect.innerHTML = createProductOptions(data.products);
 }
 
-function populateCustomerNameSuggestions() {
-  const data = loadData();
-  const customerNames = new Set();
+function renderCustomerNameSuggestions() {
+  const datalist = document.getElementById("customerNameList");
+  if (!datalist) return;
 
-  // Collect all unique customer names from all dates
-  Object.keys(data.dailyStores || {}).forEach(date => {
-    const dayStore = data.dailyStores[date];
-    
-    ['day', 'night'].forEach(shift => {
-      dayStore[shift]?.customers?.forEach(customer => {
-          if (customer.customerName) {
-            customerNames.add(customer.customerName);
-          }
-        });
-      }
-    );
+  const data = loadData();
+  const uniqueNames = new Map();
+
+  Object.values(data.daily || {}).forEach((dayStore) => {
+    ["day", "night"].forEach((shift) => {
+      const shiftStore = dayStore[shift];
+      if (!shiftStore || !Array.isArray(shiftStore.customers)) return;
+
+      shiftStore.customers.forEach((customer) => {
+        const name = String(customer.customerName || "").trim();
+        if (!name) return;
+        const key = name.toLowerCase();
+        if (!uniqueNames.has(key)) {
+          uniqueNames.set(key, name);
+        }
+      });
+    });
   });
 
-  // Populate datalist
-  const datalist = document.getElementById('customerNameList');
-  if (datalist) {
-    datalist.innerHTML = Array.from(customerNames)
-      .sort((a, b) => a.localeCompare(b))
-      .map(name => `<option value="${name}"></option>`)
-      .join('');
-  }
+  const options = Array.from(uniqueNames.values())
+    .sort((a, b) => a.localeCompare(b));
+
+  datalist.innerHTML = options.map((name) => `<option value="${name}"></option>`).join("");
 }
 
 function renderCustomersTable() {
@@ -53,66 +54,17 @@ function renderCustomersTable() {
     .map((customer) => {
       const product = getProductById(data, customer.productId);
       return `
-        <tr data-customer-id="${customer.id}">
-          <td>
-            <span class="customer-name-display">${customer.customerName}</span>
-            <input class="input customer-name-edit" style="display: none;" list="customerNameList" value="${customer.customerName}" data-customer-id="${customer.id}" />
-          </td>
+        <tr>
+          <td>${customer.customerName}</td>
           <td>${customer.waybillNumber}</td>
           <td>${product ? product.name : "Unknown Product"}</td>
           <td>${customer.quantity}</td>
           <td>${customer.dateDelivered}</td>
-          <td>
-            <button class="button" data-edit-id="${customer.id}" type="button">Edit Name</button>
-            <button class="button button-danger" data-delete-id="${customer.id}" type="button">Delete</button>
-          </td>
+          <td><button class="button button-danger" data-delete-id="${customer.id}" type="button">Delete</button></td>
         </tr>
       `;
     })
     .join("");
-
-  // Add edit functionality
-  tbody.querySelectorAll("button[data-edit-id]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const customerId = button.dataset.editId;
-      const row = tbody.querySelector(`tr[data-customer-id="${customerId}"]`);
-      const displaySpan = row.querySelector(".customer-name-display");
-      const editInput = row.querySelector(".customer-name-edit");
-      
-      if (displaySpan.style.display === "none") {
-        // Save the edit
-        const newName = editInput.value.trim();
-        if (newName) {
-          updateCustomerName(customerId, newName);
-          displaySpan.textContent = newName;
-          displaySpan.style.display = "";
-          editInput.style.display = "none";
-          button.textContent = "Edit Name";
-        } else {
-          setStatus("Customer name cannot be empty.", "error");
-        }
-      } else {
-        // Start editing
-        displaySpan.style.display = "none";
-        editInput.style.display = "";
-        editInput.focus();
-        editInput.select();
-        button.textContent = "Save";
-      }
-    });
-  });
-
-  // Allow Enter key to save
-  tbody.querySelectorAll(".customer-name-edit").forEach((input) => {
-    input.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        const customerId = input.dataset.customerId;
-        const button = tbody.querySelector(`button[data-edit-id="${customerId}"]`);
-        if (button) button.click();
-      }
-    });
-  });
 
   tbody.querySelectorAll("button[data-delete-id]").forEach((button) => {
     button.addEventListener("click", () => deleteCustomerEntry(button.dataset.deleteId));
@@ -208,7 +160,7 @@ function addCustomerEntry(event) {
   event.target.reset();
   document.getElementById("dateDelivered").value = date;
   renderCustomersTable();
-  populateCustomerNameSuggestions();
+  renderCustomerNameSuggestions();
   setStatus("Customer entry added and synced to Recording Sheet!", "ok");
 }
 
@@ -245,28 +197,6 @@ function deleteCustomerEntry(id) {
   saveData(data);
   renderCustomersTable();
   setStatus("Customer entry deleted and removed from Recording Sheet.", "ok");
-}
-
-function updateCustomerName(id, newName) {
-  const data = loadData();
-  const date = getSelectedDate();
-  const dayStore = getShiftStore(data, date);
-  
-  if (!dayStore.customers) {
-    return;
-  }
-  
-  const customerEntry = dayStore.customers.find(item => item.id === id);
-  
-  if (!customerEntry) {
-    return;
-  }
-  
-  customerEntry.customerName = newName;
-  
-  saveData(data);
-  populateCustomerNameSuggestions();
-  setStatus("Customer name updated successfully.", "ok");
 }
 
 function syncAllToRecording() {
@@ -360,7 +290,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   renderCustomerProductOptions();
-  populateCustomerNameSuggestions();
+  renderCustomerNameSuggestions();
   renderCustomersTable();
   const currentDate = getSelectedDate();
   document.getElementById("dateDelivered").value = currentDate;

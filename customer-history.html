@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Customer History | Twellium Warehouse Portal</title>
   <link rel="stylesheet" href="assets/css/style.css?v=20260224_v2" />
-  <script src="assets/js/theme-toggle.js"></script>
 </head>
 
 <body>
@@ -17,7 +16,7 @@
         <p>Warehouse Daily Recording Portal</p>
       </div>
       <div class="topbar-controls">
-        <div id="userControls" class="user-controls"></div>
+        <div id="userControls" style="display: flex; gap: 1rem; align-instruments: center;"></div>
       </div>
     </div>
   </header>
@@ -44,7 +43,7 @@
         <h2 class="card-title">Customer History</h2>
         <p class="card-subtitle">Search customer orders across all dates</p>
 
-        <div class="search-controls">
+        <div style="margin-bottom: 16px;">
           <label for="searchCustomer">Search Customer Name:</label>
           <input class="input" type="text" id="searchCustomer" placeholder="Enter customer name..." />
           <button class="button" id="searchButton" type="button">Search</button>
@@ -52,7 +51,7 @@
         </div>
 
         <div id="historyResults">
-          <p class="empty-state-text">Enter a customer name to view their order history.</p>
+          <p style="color: #6c757d; font-size: 13px;">Enter a customer name to view their order history.</p>
         </div>
       </section>
     </main>
@@ -72,7 +71,7 @@
       const userControls = document.getElementById('userControls');
       if (user) {
         userControls.innerHTML = `
-          <span class="welcome-text">Welcome, <strong>${user.displayName || user.email}</strong></span>
+          <span style="font-size: 14px;">Welcome, <strong>${user.displayName || user.email}</strong></span>
           <button class="button" onclick="logoutUser()">Logout</button>
         `;
       }

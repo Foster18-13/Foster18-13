@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Reports | Twellium Warehouse Portal</title>
   <link rel="stylesheet" href="assets/css/style.css?v=20260224_v2" />
-  <script src="assets/js/theme-toggle.js"></script>
 </head>
 
 <body>
@@ -17,7 +16,7 @@
         <p>Warehouse Daily Recording Portal</p>
       </div>
       <div class="topbar-controls">
-        <div id="userControls" class="user-controls"></div>
+        <div id="userControls" style="display: flex; gap: 1rem; align-items: center;"></div>
       </div>
     </div>
   </header>
@@ -46,7 +45,7 @@
         <h2 class="card-title">Date Range Reports</h2>
         <p class="card-subtitle">Generate reports for specific date ranges</p>
 
-        <div class="date-range-grid">
+        <div style="margin-bottom: 16px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
           <div>
             <label for="startDate">Start Date:</label>
             <input class="input" type="date" id="startDate" />
@@ -57,14 +56,14 @@
           </div>
         </div>
 
-        <div class="button-group">
+        <div style="margin-bottom: 16px;">
           <button class="button" id="generateReportButton" type="button">Generate Report</button>
           <button class="button" id="quickWeek" type="button">Last 7 Days</button>
           <button class="button" id="quickMonth" type="button">Last 30 Days</button>
         </div>
 
         <div id="reportResults">
-          <p class="report-placeholder">Select a date range to generate a report.</p>
+          <p style="color: #6c757d; font-size: 13px;">Select a date range to generate a report.</p>
         </div>
       </section>
     </main>
@@ -84,7 +83,7 @@
       const userControls = document.getElementById('userControls');
       if (user) {
         userControls.innerHTML = `
-          <span class="welcome-text">Welcome, <strong>${user.displayName || user.email}</strong></span>
+          <span style="font-size: 14px;">Welcome, <strong>${user.displayName || user.email}</strong></span>
           <button class="button" onclick="logoutUser()">Logout</button>
         `;
       }

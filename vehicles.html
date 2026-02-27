@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Vehicle Tracking | Twellium Warehouse Portal</title>
   <link rel="stylesheet" href="assets/css/style.css?v=20260224_v2" />
-  <script src="assets/js/theme-toggle.js"></script>
 </head>
 
 <body>
@@ -20,7 +19,7 @@
         <label for="workingDate">Working Date</label>
         <input class="input" type="date" id="workingDate" />
         <button class="button" id="jumpToday" type="button">Today</button>
-        <div id="userControls" class="user-controls"></div>
+        <div id="userControls" style="display: flex; gap: 1rem; align-items: center;"></div>
       </div>
     </div>
   </header>
@@ -47,8 +46,8 @@
         <h2 class="card-title">Vehicle Tracking</h2>
         <p class="card-subtitle">Track vehicles and their delivery assignments</p>
 
-        <form id="vehicleForm" class="vehicle-form">
-          <h3 class="vehicle-form-title">Add Vehicle Assignment</h3>
+        <form id="vehicleForm" style="margin-bottom: 20px; padding: 16px; background: #f8f9fa; border-radius: 8px;">
+          <h3 style="font-size: 14px; margin: 0 0 12px 0;">Add Vehicle Assignment</h3>
           <div class="grid-2">
             <div>
               <label for="vehicleNumber">Vehicle Number:</label>
@@ -80,7 +79,7 @@
               </select>
             </div>
           </div>
-          <div class="vehicle-form-actions">
+          <div style="margin-top: 12px;">
             <button class="button button-primary" type="submit">Add Vehicle</button>
           </div>
         </form>
@@ -124,7 +123,7 @@
       const userControls = document.getElementById('userControls');
       if (user) {
         userControls.innerHTML = `
-          <span class="welcome-text">Welcome, <strong>${user.displayName || user.email}</strong></span>
+          <span style="font-size: 14px;">Welcome, <strong>${user.displayName || user.email}</strong></span>
           <button class="button" onclick="logoutUser()">Logout</button>
         `;
       }

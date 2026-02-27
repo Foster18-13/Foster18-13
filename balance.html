@@ -3,10 +3,9 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, orientation=landscape" />
   <title>Balance Sheet | Twellium Warehouse Portal</title>
   <link rel="stylesheet" href="assets/css/style.css?v=20260224_v2" />
-  <script src="assets/js/theme-toggle.js"></script>
 </head>
 
 <body>
@@ -15,7 +14,7 @@
       <div class="brand">
         <h1>Twellium Industrial Company Limited</h1>
         <p>Warehouse Daily Recording Portal</p>
-        <p id="printDate" class="print-date"></p>
+        <p id="printDate" style="display: none; margin: 5px 0 0 0; font-size: 14px;"></p>
       </div>
       <div class="topbar-controls">
         <label for="workingDate">Working Date</label>
@@ -23,7 +22,7 @@
         <button class="button" id="jumpToday" type="button">Today</button>
         <input class="input search-input" id="globalSearchInput" placeholder="Search item" />
         <button class="button" id="globalSearchBtn" type="button">Search</button>
-        <div id="userControls" class="user-controls"></div>
+        <div id="userControls" style="display: flex; gap: 1rem; align-items: center;"></div>
       </div>
     </div>
   </header>
@@ -47,14 +46,14 @@
     <main class="page">
       <section class="card">
         <h2 class="card-title">Daily Balance Sheet</h2>
-        <p class="card-subtitle hidden">Formula: Balance = Opening Stock + Goods Returned + Goods
+        <p class="card-subtitle" style="display: none;">Formula: Balance = Opening Stock + Goods Returned + Goods
           Received - Goods Loaded -
           Damages.
           Opening
           stock auto-carries from previous day closing when empty, and closing stock is entered manually.</p>
-        <div class="shift-selector-container">
-          <label for="shiftSelector" class="shift-label">Select Shift:</label>
-          <select id="shiftSelector" class="input shift-select">
+        <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem; align-items: center;">
+          <label for="shiftSelector" style="font-weight: bold;">Select Shift:</label>
+          <select id="shiftSelector" class="input" style="width: auto;">
             <option value="day">Day</option>
             <option value="night">Night</option>
           </select>
@@ -106,7 +105,7 @@
       const userControls = document.getElementById('userControls');
       if (user) {
         userControls.innerHTML = `
-          <span class="welcome-message">Welcome, <strong>${user.displayName || user.email}</strong></span>
+          <span style="font-size: 14px;">Welcome, <strong>${user.displayName || user.email}</strong></span>
           <button class="button" onclick="logoutUser()">Logout</button>
         `;
       }

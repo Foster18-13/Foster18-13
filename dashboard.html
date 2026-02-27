@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard | Twellium Warehouse Portal</title>
   <link rel="stylesheet" href="assets/css/style.css?v=20260224_v2" />
-  <script src="assets/js/theme-toggle.js"></script>
   <style>
     .dashboard-grid {
       display: grid;
@@ -66,12 +65,6 @@
     .alert-item:last-child {
       border-bottom: none;
     }
-
-    .user-controls {
-      display: flex;
-      gap: 1rem;
-      align-items: center;
-    }
   </style>
 </head>
 
@@ -86,7 +79,7 @@
         <label for="workingDate">Working Date</label>
         <input class="input" type="date" id="workingDate" />
         <button class="button" id="jumpToday" type="button">Today</button>
-        <div id="userControls" class="user-controls"></div>
+        <div id="userControls" style="display: flex; gap: 1rem; align-items: center;"></div>
       </div>
     </div>
   </header>
