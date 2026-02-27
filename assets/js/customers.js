@@ -158,20 +158,29 @@ function addCustomerEntry(event) {
 }
 
 function removeFromRecording(dayStore, productId, waybillNumber) {
-  if (dayStore.recording[productId]) {
+  // Only remove from the specific dayStore provided - ensures deletion is scoped to current day/shift only
+  if (!dayStore || !dayStore.recording) {
+    return;
+  }
+  
+  if (dayStore.recording[productId] && dayStore.recording[productId].entries) {
     const entries = dayStore.recording[productId].entries;
+    // Find the first matching entry in THIS dayStore only and clear it
     for (let i = 0; i < entries.length; i++) {
       if (entries[i] && entries[i].waybill === waybillNumber) {
         entries[i] = { waybill: "", qty: "" };
-        break;
+        break; // Only clear one entry to match the deleted customer
       }
     }
   }
 }
 
+// Delete a customer entry from the current day/shift ONLY
+// This does NOT affect the same item in other days or shifts
 function deleteCustomerEntry(id) {
   const data = loadData();
   const date = getSelectedDate();
+  const shift = getSelectedShift();
   const dayStore = getShiftStore(data, date);
   
   if (!dayStore.customers) {
@@ -184,12 +193,17 @@ function deleteCustomerEntry(id) {
     return;
   }
   
+  // Remove from current day/shift customers array
   dayStore.customers = dayStore.customers.filter((item) => item.id !== id);
+  
+  // Remove from current day/shift recording sheet only
+  // This ensures the deletion only affects the selected day + shift
   removeFromRecording(dayStore, customerEntry.productId, customerEntry.waybillNumber);
   
+  // Save and refresh current display
   saveData(data);
   renderCustomersTable();
-  setStatus("Customer entry deleted and removed from Recording Sheet.", "ok");
+  setStatus(`Customer entry deleted from ${date} ${shift} shift only.`, "ok");
 }
 
 function syncAllToRecording() {
