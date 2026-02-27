@@ -213,6 +213,27 @@ table {
   background: #fff;
 }
 
+.balance-table {
+  min-width: 0;
+}
+
+.balance-table th,
+.balance-table td {
+  padding: 6px 4px;
+  font-size: 11px;
+}
+
+.balance-table td:first-child {
+  min-width: 180px;
+}
+
+.balance-table td input,
+.balance-table td select,
+.balance-table td textarea {
+  font-size: 10px;
+  padding: 5px 6px !important;
+}
+
 th,
 td {
   border-bottom: 1px solid var(--border);
@@ -463,6 +484,12 @@ input[data-total] {
     padding: 8px;
     text-align: left;
     font-size: 10px;
+  }
+
+  .balance-table th,
+  .balance-table td {
+    padding: 6px 4px;
+    font-size: 9px;
   }
 
   th {
