@@ -55,7 +55,7 @@ body {
 }
 
 .brand h1 {
-  font-size: 12px;
+  font-size: 14px;
   margin: 0;
   font-family: "Georgia", serif;
   font-weight: 700;
@@ -69,7 +69,7 @@ body {
 .brand p {
   margin: 4px 0 0;
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .topbar-controls {
@@ -94,7 +94,7 @@ textarea {
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .button {
@@ -162,7 +162,7 @@ textarea {
   border-radius: 8px;
   border: 1px solid var(--border);
   background: var(--surface);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .main-nav a.active {
@@ -190,7 +190,7 @@ textarea {
 
 .card-title {
   margin: 0 0 10px;
-  font-size: 12px;
+  font-size: 14px;
   font-family: "Georgia", serif;
   font-weight: 700;
   background: #c41e3a;
@@ -203,7 +203,7 @@ textarea {
 .card-subtitle {
   margin: -4px 0 12px;
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .toolbar {
@@ -235,7 +235,7 @@ table {
 .balance-table th,
 .balance-table td {
   padding: 6px 4px;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .balance-table td:first-child {
@@ -245,7 +245,7 @@ table {
 .balance-table td input,
 .balance-table td select,
 .balance-table td textarea {
-  font-size: 10px;
+  font-size: 12px;
   padding: 5px 6px !important;
 }
 
@@ -255,12 +255,12 @@ td {
   padding: 6px 5px;
   text-align: left;
   vertical-align: top;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 th {
   background: var(--surface-alt);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   white-space: normal;
   padding: 8px 6px;
@@ -276,11 +276,11 @@ td select,
 td textarea {
   width: 100%;
   padding: 5px 6px !important;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .status {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--text-muted);
 }
 
@@ -317,14 +317,14 @@ td textarea {
 .entry-qty {
   width: 100%;
   padding: 6px 8px;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 input[data-total] {
   min-width: 80px;
   font-weight: 600;
   padding: 4px 6px !important;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .search-input {
@@ -402,7 +402,7 @@ input[data-total] {
   }
 
   .main-nav a {
-    font-size: 11px;
+    font-size: 13px;
     padding: 8px 10px;
   }
 
