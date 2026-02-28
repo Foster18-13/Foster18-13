@@ -79,6 +79,8 @@
         <label for="workingDate">Working Date</label>
         <input class="input" type="date" id="workingDate" />
         <button class="button" id="jumpToday" type="button">Today</button>
+        <input class="input search-input" id="globalSearchInput" placeholder="Search..." />
+        <button class="button" id="globalSearchBtn" type="button">Search</button>
         <button class="button" id="themeToggle" type="button">🌙 Dark</button>
         <div id="userControls" style="display: flex; gap: 1rem; align-items: center;"></div>
       </div>
@@ -194,6 +196,7 @@
   <script src="assets/js/keyboard-shortcuts.js"></script>
   <script src="assets/js/theme-toggle.js"></script>
   <script src="assets/js/alerts.js"></script>
+  <script src="assets/js/enhanced-search.js"></script>
   <script>
     firebase.auth().onAuthStateChanged((user) => {
       const userControls = document.getElementById('userControls');
@@ -204,7 +207,7 @@
         `;
       }
     });
-    
+
     // Initialize alert system
     if (typeof initAlertSystem === 'function') {
       initAlertSystem();

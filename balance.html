@@ -104,6 +104,7 @@
   <script src="assets/js/theme-toggle.js"></script>
   <script src="assets/js/auto-save.js"></script>
   <script src="assets/js/alerts.js"></script>
+  <script src="assets/js/enhanced-search.js"></script>
   <script>
     // Setup user controls in header
     firebase.auth().onAuthStateChanged((user) => {
@@ -115,7 +116,7 @@
         `;
       }
     });
-    
+
     // Initialize alert system
     if (typeof initAlertSystem === 'function') {
       initAlertSystem();
