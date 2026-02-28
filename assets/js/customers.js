@@ -50,7 +50,10 @@ function renderCustomersTable() {
     return;
   }
 
+  // Reverse the array so newest entries appear first (at the top)
   tbody.innerHTML = dayStore.customers
+    .slice()
+    .reverse()
     .map((customer) => {
       const product = getProductById(data, customer.productId);
       return `
