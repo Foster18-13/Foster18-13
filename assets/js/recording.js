@@ -114,6 +114,10 @@ function saveRecordingSheet() {
   });
 
   saveData(data);
+  addAuditLog("Recording sheet saved", {
+    products: document.querySelectorAll("#recordingTable tbody tr").length,
+    columns: dayStore.recordingColumns
+  });
   setStatus("Recording sheet saved. Loading values are updated in Balance Sheet.", "ok");
 }
 
@@ -123,6 +127,9 @@ function addRecordingColumn() {
   const dayStore = getShiftStore(data, date);
   dayStore.recordingColumns += 1;
   saveData(data);
+  addAuditLog("Recording column added", {
+    columns: dayStore.recordingColumns
+  });
   renderRecordingTable();
   setStatus(`Added Entry ${dayStore.recordingColumns}.`, "ok");
 }
@@ -150,8 +157,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const exportButton = document.getElementById("exportRecording");
   const exportPdfButton = document.getElementById("exportRecordingPdf");
 
-  if (saveButton) saveButton.addEventListener("click", saveRecordingSheet);
-  if (addColumnButton) addColumnButton.addEventListener("click", addRecordingColumn);
+  if (saveButton) {
+    saveButton.addEventListener("click", async () => {
+      await withLoadingFeedback(saveButton, "Saving...", () => saveRecordingSheet());
+    });
+  }
+  if (addColumnButton) {
+    addColumnButton.addEventListener("click", async () => {
+      await withLoadingFeedback(addColumnButton, "Adding...", () => addRecordingColumn());
+    });
+  }
   if (exportButton) {
     exportButton.addEventListener("click", () => {
       exportTableAsCsv("recordingTable", "recording_sheet");

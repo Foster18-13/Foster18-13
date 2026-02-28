@@ -117,8 +117,185 @@ function renderDashboard() {
     document.querySelector('#topCustomersTable tbody').innerHTML = 
       '<tr><td colspan="3">No customer orders for this date.</td></tr>';
   }
+
+  renderMovementChart(productMovements);
+  renderStockStatusChart(productMovements);
+}
+
+function getThemeChartColors() {
+  const css = getComputedStyle(document.documentElement);
+  return {
+    text: css.getPropertyValue('--text').trim() || '#1f2937',
+    textMuted: css.getPropertyValue('--text-muted').trim() || '#667085',
+    border: css.getPropertyValue('--border').trim() || '#d0d5dd',
+    bg: css.getPropertyValue('--bg').trim() || '#f8fafc',
+    primary: css.getPropertyValue('--primary').trim() || '#4f46e5',
+    success: css.getPropertyValue('--success').trim() || '#16a34a',
+    danger: css.getPropertyValue('--danger').trim() || '#dc2626'
+  };
+}
+
+function drawNoData(canvas, message) {
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const colors = getThemeChartColors();
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = colors.bg;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = colors.textMuted;
+  ctx.font = '14px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(message, canvas.width / 2, canvas.height / 2);
+}
+
+function renderMovementChart(productMovements) {
+  const canvas = document.getElementById('movementChart');
+  if (!canvas) return;
+
+  const topFive = productMovements
+    .map(product => ({
+      name: product.name,
+      value: asNumber(product.loaded) + asNumber(product.received)
+    }))
+    .filter(product => product.value > 0)
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 5);
+
+  if (topFive.length === 0) {
+    drawNoData(canvas, 'No movement data for selected date');
+    return;
+  }
+
+  const ctx = canvas.getContext('2d');
+  const colors = getThemeChartColors();
+  const width = canvas.width;
+  const height = canvas.height;
+  const left = 130;
+  const right = 26;
+  const top = 24;
+  const bottom = 24;
+  const chartWidth = width - left - right;
+  const barGap = 10;
+  const barHeight = Math.floor((height - top - bottom - (barGap * (topFive.length - 1))) / topFive.length);
+  const maxValue = Math.max(...topFive.map(item => item.value), 1);
+
+  ctx.clearRect(0, 0, width, height);
+  ctx.fillStyle = colors.bg;
+  ctx.fillRect(0, 0, width, height);
+
+  topFive.forEach((item, index) => {
+    const y = top + index * (barHeight + barGap);
+    const barWidth = Math.max(2, Math.round((item.value / maxValue) * chartWidth));
+
+    ctx.fillStyle = colors.primary;
+    ctx.fillRect(left, y, barWidth, barHeight);
+
+    ctx.fillStyle = colors.text;
+    ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(item.name.length > 16 ? `${item.name.slice(0, 16)}…` : item.name, left - 8, y + barHeight / 2);
+
+    ctx.textAlign = 'left';
+    ctx.fillText(String(item.value), left + barWidth + 8, y + barHeight / 2);
+  });
+}
+
+function renderStockStatusChart(productMovements) {
+  const canvas = document.getElementById('stockStatusChart');
+  if (!canvas) return;
+
+  let healthy = 0;
+  let low = 0;
+  let out = 0;
+
+  productMovements.forEach(product => {
+    const stock = asNumber(product.stock);
+    if (stock <= 0) {
+      out++;
+    } else if (stock <= 10) {
+      low++;
+    } else {
+      healthy++;
+    }
+  });
+
+  const total = healthy + low + out;
+  if (total === 0) {
+    drawNoData(canvas, 'No stock data available');
+    return;
+  }
+
+  const ctx = canvas.getContext('2d');
+  const colors = getThemeChartColors();
+  const width = canvas.width;
+  const height = canvas.height;
+
+  ctx.clearRect(0, 0, width, height);
+  ctx.fillStyle = colors.bg;
+  ctx.fillRect(0, 0, width, height);
+
+  const legend = [
+    { label: 'Healthy (>10)', value: healthy, color: colors.success },
+    { label: 'Low (1-10)', value: low, color: '#f59e0b' },
+    { label: 'Out (0)', value: out, color: colors.danger }
+  ];
+
+  const barX = 50;
+  const barY = 64;
+  const barW = width - 100;
+  const barH = 26;
+  let cursor = barX;
+
+  legend.forEach(item => {
+    if (item.value <= 0) return;
+    const segmentW = Math.max(0, Math.round((item.value / total) * barW));
+    ctx.fillStyle = item.color;
+    ctx.fillRect(cursor, barY, segmentW, barH);
+    cursor += segmentW;
+  });
+
+  ctx.strokeStyle = colors.border;
+  ctx.lineWidth = 1;
+  ctx.strokeRect(barX, barY, barW, barH);
+
+  ctx.fillStyle = colors.text;
+  ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText(`Total products: ${total}`, barX, barY - 14);
+
+  let legendY = 126;
+  legend.forEach(item => {
+    ctx.fillStyle = item.color;
+    ctx.fillRect(barX, legendY - 10, 14, 14);
+
+    ctx.fillStyle = colors.text;
+    ctx.fillText(`${item.label}: ${item.value}`, barX + 22, legendY);
+    legendY += 28;
+  });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   renderDashboard();
+
+  const workingDate = document.getElementById('workingDate');
+  const jumpToday = document.getElementById('jumpToday');
+  const themeToggle = document.getElementById('themeToggle');
+
+  if (workingDate) {
+    workingDate.addEventListener('change', renderDashboard);
+  }
+
+  if (jumpToday) {
+    jumpToday.addEventListener('click', () => {
+      setTimeout(renderDashboard, 0);
+    });
+  }
+
+  if (themeToggle) {
+    themeToggle.addEventListener('click', () => {
+      setTimeout(renderDashboard, 0);
+    });
+  }
 });

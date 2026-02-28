@@ -24,6 +24,40 @@ function showAccountMessage(message, type = 'ok') {
   }, 5000);
 }
 
+function formatAuditDetails(details) {
+  if (!details || typeof details !== 'object') return '';
+  return Object.entries(details)
+    .filter(([, value]) => value !== '' && value !== null && value !== undefined)
+    .map(([key, value]) => `${key}: ${value}`)
+    .join(' | ');
+}
+
+function renderAuditLogTable() {
+  const tbody = document.querySelector('#auditLogTable tbody');
+  if (!tbody || typeof getAuditLogs !== 'function') return;
+
+  const logs = getAuditLogs(150);
+  if (!logs.length) {
+    tbody.innerHTML = '<tr><td colspan="6">No audit entries yet.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = logs.map((entry) => {
+    const time = new Date(entry.timestamp || entry.createdAt || Date.now()).toLocaleString();
+    const detailsText = formatAuditDetails(entry.details);
+    return `
+      <tr>
+        <td>${time}</td>
+        <td>${entry.user || 'Unknown user'}</td>
+        <td>${entry.action || ''}</td>
+        <td>${entry.date || ''}</td>
+        <td>${entry.shift || ''}</td>
+        <td>${detailsText || '-'}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
 async function updateUserProfile(displayName, email) {
   try {
     const user = firebase.auth().currentUser;
@@ -53,6 +87,10 @@ async function updateUserProfile(displayName, email) {
 
     // Update session storage
     saveUserAuthState(user);
+
+    if (typeof addAuditLog === 'function') {
+      addAuditLog('Profile updated', { displayName, email });
+    }
 
     showAccountMessage('Profile updated successfully!', 'ok');
   } catch (error) {
@@ -84,6 +122,10 @@ async function changePassword(currentPassword, newPassword) {
 
     // Update password
     await user.updatePassword(newPassword);
+
+    if (typeof addAuditLog === 'function') {
+      addAuditLog('Password changed', {});
+    }
 
     showAccountMessage('Password changed successfully!', 'ok');
     
@@ -160,7 +202,8 @@ function setupAccountManagement() {
         return;
       }
 
-      await updateUserProfile(displayName, email);
+      const submitButton = updateProfileForm.querySelector('button[type="submit"]');
+      await withLoadingFeedback(submitButton, 'Updating...', () => updateUserProfile(displayName, email), { overlay: true });
     });
   }
 
@@ -187,7 +230,8 @@ function setupAccountManagement() {
         return;
       }
 
-      await changePassword(currentPassword, newPassword);
+      const submitButton = changePasswordForm.querySelector('button[type="submit"]');
+      await withLoadingFeedback(submitButton, 'Changing...', () => changePassword(currentPassword, newPassword), { overlay: true });
     });
   }
 
@@ -197,17 +241,23 @@ function setupAccountManagement() {
   const restoreFileInput = document.getElementById('restoreFileInput');
 
   if (backupDataBtn) {
-    backupDataBtn.addEventListener('click', () => {
-      const data = loadData();
-      const dataStr = JSON.stringify(data, null, 2);
-      const dataBlob = new Blob([dataStr], { type: 'application/json' });
-      const url = URL.createObjectURL(dataBlob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `warehouse-backup-${new Date().toISOString().split('T')[0]}.json`;
-      link.click();
-      URL.revokeObjectURL(url);
-      showAccountMessage('Backup exported successfully!', 'ok');
+    backupDataBtn.addEventListener('click', async () => {
+      await withLoadingFeedback(backupDataBtn, 'Exporting...', () => {
+        const data = loadData();
+        const dataStr = JSON.stringify(data, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `warehouse-backup-${new Date().toISOString().split('T')[0]}.json`;
+        link.click();
+        URL.revokeObjectURL(url);
+        if (typeof addAuditLog === 'function') {
+          addAuditLog('Backup exported', { fileType: 'json' });
+        }
+        showAccountMessage('Backup exported successfully!', 'ok');
+        renderAuditLogTable();
+      }, { overlay: true });
     });
   }
 
@@ -235,6 +285,11 @@ function setupAccountManagement() {
         // Confirm restore
         if (confirm('This will replace all current data with the backup. Are you sure?')) {
           saveData(importedData);
+          if (typeof addAuditLog === 'function') {
+            addAuditLog('Backup restored', {
+              products: Array.isArray(importedData.products) ? importedData.products.length : 0
+            });
+          }
           showAccountMessage('Data restored successfully! Reload the page to see changes.', 'ok');
           setTimeout(() => {
             globalThis.location.reload();
@@ -244,6 +299,29 @@ function setupAccountManagement() {
         showAccountMessage('Failed to restore backup: ' + error.message, 'error');
       }
       e.target.value = ''; // Reset input
+    });
+  }
+
+  const refreshAuditLogBtn = document.getElementById('refreshAuditLogBtn');
+  const clearAuditLogBtn = document.getElementById('clearAuditLogBtn');
+
+  if (refreshAuditLogBtn) {
+    refreshAuditLogBtn.addEventListener('click', renderAuditLogTable);
+  }
+
+  if (clearAuditLogBtn) {
+    clearAuditLogBtn.addEventListener('click', async () => {
+      if (!confirm('Clear all audit log entries?')) return;
+      await withLoadingFeedback(clearAuditLogBtn, 'Clearing...', () => {
+        if (typeof clearAuditLogs === 'function') {
+          clearAuditLogs();
+        }
+        if (typeof addAuditLog === 'function') {
+          addAuditLog('Audit log cleared', {});
+        }
+        renderAuditLogTable();
+        showAccountMessage('Audit log cleared.', 'ok');
+      }, { overlay: true });
     });
   }
 
@@ -268,9 +346,7 @@ function setupAccountManagement() {
   if (confirmDeleteBtn) {
     confirmDeleteBtn.addEventListener('click', async () => {
       deleteConfirmModal.style.display = 'none';
-      confirmDeleteBtn.disabled = true;
-      confirmDeleteBtn.textContent = 'Deleting account...';
-      await deleteUserAccount();
+      await withLoadingFeedback(confirmDeleteBtn, 'Deleting account...', () => deleteUserAccount(), { overlay: true });
     });
   }
 
@@ -280,6 +356,8 @@ function setupAccountManagement() {
       deleteConfirmModal.style.display = 'none';
     }
   });
+
+  renderAuditLogTable();
   }); // Close onAuthStateChanged callback
 }
 

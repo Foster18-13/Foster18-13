@@ -295,6 +295,66 @@ function setStatus(message, type = "") {
   element.className = `status ${type}`.trim();
 }
 
+function getOrCreateGlobalLoadingOverlay() {
+  let overlay = document.getElementById("globalLoadingOverlay");
+  if (overlay) return overlay;
+
+  overlay = document.createElement("div");
+  overlay.id = "globalLoadingOverlay";
+  overlay.className = "global-loading-overlay";
+  overlay.innerHTML = `
+    <div class="global-loading-box" role="status" aria-live="polite" aria-busy="true">
+      <span class="loading-spinner" aria-hidden="true"></span>
+      <span id="globalLoadingMessage">Processing...</span>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  return overlay;
+}
+
+function showGlobalLoading(message = "Processing...") {
+  const overlay = getOrCreateGlobalLoadingOverlay();
+  const messageNode = document.getElementById("globalLoadingMessage");
+  if (messageNode) messageNode.textContent = message;
+  overlay.classList.add("active");
+}
+
+function hideGlobalLoading() {
+  const overlay = document.getElementById("globalLoadingOverlay");
+  if (!overlay) return;
+  overlay.classList.remove("active");
+}
+
+async function withLoadingFeedback(triggerElement, loadingText, task, options = {}) {
+  const showOverlay = !!options.overlay;
+  const buttonLike = triggerElement && typeof triggerElement === "object" ? triggerElement : null;
+  const originalText = buttonLike ? buttonLike.textContent : "";
+
+  try {
+    if (buttonLike) {
+      buttonLike.disabled = true;
+      buttonLike.classList.add("button-loading");
+      if (loadingText) {
+        buttonLike.textContent = loadingText;
+      }
+    }
+    if (showOverlay) {
+      showGlobalLoading(loadingText || "Processing...");
+    }
+
+    return await Promise.resolve(task());
+  } finally {
+    if (showOverlay) {
+      hideGlobalLoading();
+    }
+    if (buttonLike) {
+      buttonLike.disabled = false;
+      buttonLike.classList.remove("button-loading");
+      buttonLike.textContent = originalText;
+    }
+  }
+}
+
 function createProductOptions(products, selected = "") {
   const options = [`<option value="">Select product</option>`];
   

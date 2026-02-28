@@ -1,4 +1,5 @@
 const STORAGE_KEY = "twellium_warehouse_portal_v1";
+const AUDIT_LOG_LIMIT = 500;
 const REQUIRED_PRODUCTS = [
   "Verna Shrink 500ml x 24",
   "Verna Shrink 500ml x 16",
@@ -161,6 +162,75 @@ function saveData(data) {
   }
 }
 
+function getCurrentUserLabel() {
+  try {
+    const firebaseUser = globalThis.firebase?.auth?.()?.currentUser;
+    if (firebaseUser) {
+      return firebaseUser.displayName || firebaseUser.email || "Unknown user";
+    }
+  } catch {
+    // ignore auth lookup errors and fall back
+  }
+  return "Unknown user";
+}
+
+function ensureAuditLogStore(data) {
+  if (!Array.isArray(data.auditLogs)) {
+    data.auditLogs = [];
+  }
+}
+
+function pushAuditLogEntry(data, action, details = {}) {
+  ensureAuditLogStore(data);
+  let fallbackValue = "";
+  if (details !== null && details !== undefined) {
+    try {
+      fallbackValue = JSON.stringify(details);
+    } catch {
+      fallbackValue = "[unserializable]";
+    }
+  }
+  const normalizedDetails = details && typeof details === "object"
+    ? details
+    : { value: fallbackValue };
+  const entry = {
+    id: generateId("audit"),
+    action: String(action || "Unknown action"),
+    details: normalizedDetails,
+    date: getSelectedDate(),
+    shift: getSelectedShift(),
+    user: getCurrentUserLabel(),
+    timestamp: Date.now(),
+    createdAt: new Date().toISOString()
+  };
+
+  data.auditLogs.unshift(entry);
+  if (data.auditLogs.length > AUDIT_LOG_LIMIT) {
+    data.auditLogs = data.auditLogs.slice(0, AUDIT_LOG_LIMIT);
+  }
+
+  return entry;
+}
+
+function addAuditLog(action, details = {}) {
+  const data = loadData();
+  const entry = pushAuditLogEntry(data, action, details);
+  saveData(data);
+  return entry;
+}
+
+function getAuditLogs(limit = 200) {
+  const data = loadData();
+  ensureAuditLogStore(data);
+  return data.auditLogs.slice(0, Math.max(0, asNumber(limit) || 200));
+}
+
+function clearAuditLogs() {
+  const data = loadData();
+  data.auditLogs = [];
+  saveData(data);
+}
+
 function ensureDayStore(data, date) {
   if (!data.daily[date]) {
     data.daily[date] = {
@@ -302,6 +372,7 @@ function addProduct(name) {
     name: clean,
     palletFactor: inferPalletFactorFromName(clean)
   });
+  pushAuditLogEntry(data, "Product added", { productName: clean });
   saveData(data);
   return { ok: true };
 }
@@ -316,7 +387,13 @@ function updateProductPalletFactor(productId, factor) {
   const target = data.products.find((item) => item.id === productId);
   if (!target) return { ok: false, message: "Product not found." };
 
+  const previous = target.palletFactor;
   target.palletFactor = value;
+  pushAuditLogEntry(data, "Product pallet factor updated", {
+    productName: target.name,
+    previous,
+    current: value
+  });
   saveData(data);
   return { ok: true };
 }
@@ -332,7 +409,12 @@ function updateProduct(productId, newName) {
   const duplicate = data.products.some((item) => item.id !== productId && item.name.toLowerCase() === clean.toLowerCase());
   if (duplicate) return { ok: false, message: "Another product has the same name." };
 
+  const previousName = target.name;
   target.name = clean;
+  pushAuditLogEntry(data, "Product updated", {
+    previousName,
+    currentName: clean
+  });
   saveData(data);
   return { ok: true };
 }
@@ -367,6 +449,10 @@ function deleteProduct(productId) {
     });
   });
 
+  pushAuditLogEntry(data, "Product deleted", {
+    productName: target?.name || "Unknown product",
+    productId
+  });
   saveData(data);
   return { ok: true };
 }

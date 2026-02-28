@@ -65,6 +65,41 @@
     .alert-item:last-child {
       border-bottom: none;
     }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 14px;
+    }
+
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .chart-card h3 {
+      margin: 0 0 10px 0;
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .chart-canvas {
+      width: 100%;
+      height: 260px;
+      display: block;
+      border-radius: 8px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+    }
+
+    .user-controls {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
   </style>
 </head>
 
@@ -82,7 +117,7 @@
         <input class="input search-input" id="globalSearchInput" placeholder="Search..." />
         <button class="button" id="globalSearchBtn" type="button">Search</button>
         <button class="button" id="themeToggle" type="button">🌙 Dark</button>
-        <div id="userControls" style="display: flex; gap: 1rem; align-items: center;"></div>
+        <div id="userControls" class="user-controls"></div>
       </div>
     </div>
   </header>
@@ -179,6 +214,21 @@
             </thead>
             <tbody></tbody>
           </table>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title">Data Visualization</h2>
+        <p class="card-subtitle">Movement and stock insights for the selected date.</p>
+        <div class="charts-grid">
+          <div class="chart-card">
+            <h3>Top 5 Product Movement</h3>
+            <canvas id="movementChart" class="chart-canvas" width="600" height="260"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3>Stock Status Overview</h3>
+            <canvas id="stockStatusChart" class="chart-canvas" width="600" height="260"></canvas>
+          </div>
         </div>
       </section>
     </main>

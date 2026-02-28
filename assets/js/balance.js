@@ -143,6 +143,10 @@ function saveBalanceSheet() {
   });
 
   saveData(data);
+  addAuditLog("Balance sheet saved", {
+    warnings: warnings.length,
+    products: document.querySelectorAll("#balanceTable tbody tr").length
+  });
   if (warnings.length) {
     setStatus(`Saved with ${warnings.length} warning(s).`, "error");
   } else {
@@ -172,32 +176,42 @@ document.addEventListener("DOMContentLoaded", () => {
   const copyPrevDayButton = document.getElementById("copyPrevDay");
   const exportButton = document.getElementById("exportBalance");
   const exportPdfButton = document.getElementById("exportBalancePdf");
-  if (saveButton) saveButton.addEventListener("click", saveBalanceSheet);
+  if (saveButton) {
+    saveButton.addEventListener("click", async () => {
+      await withLoadingFeedback(saveButton, "Saving...", () => saveBalanceSheet());
+    });
+  }
   if (copyPrevDayButton) {
-    copyPrevDayButton.addEventListener("click", () => {
+    copyPrevDayButton.addEventListener("click", async () => {
       if (!confirm("Copy previous day's data to today? This will overwrite current data.")) return;
-      
-      const data = loadData();
-      const currentDate = getSelectedDate();
-      const prevDate = new Date(currentDate);
-      prevDate.setDate(prevDate.getDate() - 1);
-      const prevDateStr = prevDate.toISOString().split('T')[0];
-      
-      const currentDayStore = getShiftStore(data, currentDate);
-      const prevDayStore = getShiftStore(data, prevDateStr);
-      
-      // Copy balance data
-      currentDayStore.balance = structuredClone(prevDayStore.balance);
-      // Copy recording data
-      currentDayStore.recording = structuredClone(prevDayStore.recording);
-      // Copy recording columns
-      currentDayStore.recordingColumns = prevDayStore.recordingColumns;
-      // Copy purchases
-      currentDayStore.purchases = structuredClone(prevDayStore.purchases || []);
-      
-      saveData(data);
-      renderBalanceTable();
-      setStatus(`Data copied from ${prevDateStr}`, "ok");
+      await withLoadingFeedback(copyPrevDayButton, "Copying...", () => {
+        const data = loadData();
+        const currentDate = getSelectedDate();
+        const prevDate = new Date(currentDate);
+        prevDate.setDate(prevDate.getDate() - 1);
+        const prevDateStr = prevDate.toISOString().split('T')[0];
+        
+        const currentDayStore = getShiftStore(data, currentDate);
+        const prevDayStore = getShiftStore(data, prevDateStr);
+        
+        // Copy balance data
+        currentDayStore.balance = structuredClone(prevDayStore.balance);
+        // Copy recording data
+        currentDayStore.recording = structuredClone(prevDayStore.recording);
+        // Copy recording columns
+        currentDayStore.recordingColumns = prevDayStore.recordingColumns;
+        // Copy purchases
+        currentDayStore.purchases = structuredClone(prevDayStore.purchases || []);
+        
+        saveData(data);
+        addAuditLog("Data copied from previous day", {
+          fromDate: prevDateStr,
+          toDate: currentDate,
+          shift: getSelectedShift()
+        });
+        renderBalanceTable();
+        setStatus(`Data copied from ${prevDateStr}`, "ok");
+      });
     });
   }
   if (exportButton) {

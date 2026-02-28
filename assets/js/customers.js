@@ -70,7 +70,9 @@ function renderCustomersTable() {
     .join("");
 
   tbody.querySelectorAll("button[data-delete-id]").forEach((button) => {
-    button.addEventListener("click", () => deleteCustomerEntry(button.dataset.deleteId));
+    button.addEventListener("click", async () => {
+      await withLoadingFeedback(button, "Deleting...", () => deleteCustomerEntry(button.dataset.deleteId));
+    });
   });
 }
 
@@ -153,6 +155,12 @@ function addCustomerEntry(event) {
   }
 
   saveData(data);
+  addAuditLog("Customer entry added", {
+    customerName,
+    waybillNumber,
+    quantity: quantityNum,
+    productId
+  });
   event.target.reset();
   document.getElementById("dateDelivered").value = date;
   renderCustomersTable();
@@ -162,11 +170,11 @@ function addCustomerEntry(event) {
 
 function removeFromRecording(dayStore, productId, waybillNumber) {
   // Only remove from the specific dayStore provided - ensures deletion is scoped to current day/shift only
-  if (!dayStore || !dayStore.recording) {
+  if (!dayStore?.recording) {
     return;
   }
   
-  if (dayStore.recording[productId] && dayStore.recording[productId].entries) {
+  if (dayStore.recording[productId]?.entries) {
     const entries = dayStore.recording[productId].entries;
     // Find the first matching entry in THIS dayStore only and clear it
     for (let i = 0; i < entries.length; i++) {
@@ -205,6 +213,12 @@ function deleteCustomerEntry(id) {
   
   // Save and refresh current display
   saveData(data);
+  addAuditLog("Customer entry deleted", {
+    customerName: customerEntry.customerName,
+    waybillNumber: customerEntry.waybillNumber,
+    quantity: customerEntry.quantity,
+    productId: customerEntry.productId
+  });
   renderCustomersTable();
   setStatus(`Customer entry deleted from ${date} ${shift} shift only.`, "ok");
 }
@@ -286,6 +300,9 @@ function syncAllToRecording() {
   });
 
   saveData(data);
+  addAuditLog("Customer entries synced to recording", {
+    count: dayStore.customers.length
+  });
   setStatus(`Synced ${dayStore.customers.length} customer entries to Recording Sheet!`, "ok");
 }
 
@@ -319,10 +336,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const exportPdfButton = document.getElementById("exportCustomersPdf");
   const syncButton = document.getElementById("syncToRecording");
   
-  form.addEventListener("submit", addCustomerEntry);
+  form.addEventListener("submit", async (event) => {
+    const submitButton = form.querySelector('button[type="submit"]');
+    await withLoadingFeedback(submitButton, "Adding...", () => addCustomerEntry(event));
+  });
   
   if (syncButton) {
-    syncButton.addEventListener("click", syncAllToRecording);
+    syncButton.addEventListener("click", async () => {
+      await withLoadingFeedback(syncButton, "Syncing...", () => syncAllToRecording());
+    });
   }
   
   if (exportButton) {

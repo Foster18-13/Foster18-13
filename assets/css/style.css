@@ -45,7 +45,7 @@ body {
   margin: 0;
   font-family: "Georgia", serif;
   font-weight: 700;
-  background: #40a0c5;
+  background: var(--primary);
   color: #ffffff;
   padding: 8px 12px;
   border-radius: 4px;
@@ -63,6 +63,14 @@ body {
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.hidden-file-input {
+  display: none;
+}
+
+.audit-log-actions {
+  margin-bottom: 10px;
 }
 
 input,
@@ -94,6 +102,65 @@ textarea {
 
 .button:hover {
   background: #f8f9fc;
+}
+
+.button-loading {
+  opacity: 0.8;
+  cursor: progress;
+}
+
+.button-loading::before {
+  content: "";
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 6px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  vertical-align: -2px;
+  animation: spin 0.7s linear infinite;
+}
+
+.global-loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.35);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 12000;
+}
+
+.global-loading-overlay.active {
+  display: flex;
+}
+
+.global-loading-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 12px;
+}
+
+.loading-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--primary);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .button-primary {
@@ -569,6 +636,7 @@ input[data-total] {
 }
 
 [data-theme="dark"] table {
+  background: var(--surface);
   border-color: var(--border);
 }
 
@@ -609,10 +677,6 @@ input[data-total] {
 [data-theme="dark"] .main-nav a.active {
   background: var(--primary-soft);
   color: var(--primary);
-}
-
-[data-theme="dark"] table {
-  background: var(--surface);
 }
 
 [data-theme="dark"] tbody tr:hover {
@@ -923,6 +987,7 @@ input[data-total] {
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.6);
+  -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
   align-items: center;
   justify-content: center;

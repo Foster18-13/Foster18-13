@@ -104,7 +104,36 @@
             <button class="button" id="restoreDataBtn" type="button">Import Backup</button>
           </div>
 
-          <input type="file" id="restoreFileInput" accept=".json" style="display: none;" />
+          <input type="file" id="restoreFileInput" class="hidden-file-input" accept=".json"
+            title="Select backup file" />
+        </div>
+
+        <div class="section-container section-divider">
+          <h3 class="section-title">Activity Audit Log</h3>
+          <p class="section-description">Recent actions showing who changed what and when.</p>
+          <div class="button-group audit-log-actions">
+            <button class="button" id="refreshAuditLogBtn" type="button">Refresh Log</button>
+            <button class="button button-danger" id="clearAuditLogBtn" type="button">Clear Log</button>
+          </div>
+          <div class="table-wrap">
+            <table id="auditLogTable">
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>User</th>
+                  <th>Action</th>
+                  <th>Date</th>
+                  <th>Shift</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colspan="6">No audit entries yet.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <!-- Delete Account Section -->

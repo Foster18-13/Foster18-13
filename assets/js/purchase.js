@@ -32,7 +32,9 @@ function renderPurchaseTable() {
     .join("");
 
   tbody.querySelectorAll("button[data-delete-id]").forEach((button) => {
-    button.addEventListener("click", () => deletePurchase(button.dataset.deleteId));
+    button.addEventListener("click", async () => {
+      await withLoadingFeedback(button, "Deleting...", () => deletePurchase(button.dataset.deleteId));
+    });
   });
 }
 
@@ -67,6 +69,12 @@ function addPurchaseEntry(event) {
   });
 
   saveData(data);
+  addAuditLog("Purchase entry added", {
+    productId,
+    waybill,
+    vehicleNumber,
+    quantityReceived
+  });
   event.target.reset();
   document.getElementById("dateReceived").value = date;
   renderPurchaseTable();
@@ -77,8 +85,14 @@ function deletePurchase(id) {
   const data = loadData();
   const date = getSelectedDate();
   const dayStore = getShiftStore(data, date);
+  const purchase = dayStore.purchases.find((item) => item.id === id);
   dayStore.purchases = dayStore.purchases.filter((item) => item.id !== id);
   saveData(data);
+  addAuditLog("Purchase entry deleted", {
+    productId: purchase?.productId || "",
+    waybill: purchase?.waybill || "",
+    quantityReceived: purchase?.quantityReceived ?? purchase?.pallets ?? ""
+  });
   renderPurchaseTable();
   setStatus("Purchase entry deleted.", "ok");
 }
@@ -101,7 +115,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("purchaseForm");
   const exportButton = document.getElementById("exportPurchase");
   const exportPdfButton = document.getElementById("exportPurchasePdf");
-  form.addEventListener("submit", addPurchaseEntry);
+  form.addEventListener("submit", async (event) => {
+    const submitButton = form.querySelector('button[type="submit"]');
+    await withLoadingFeedback(submitButton, "Adding...", () => addPurchaseEntry(event));
+  });
   if (exportButton) {
     exportButton.addEventListener("click", () => {
       exportTableAsCsv("purchaseTable", "purchase_sheet");
