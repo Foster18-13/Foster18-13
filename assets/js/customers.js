@@ -305,6 +305,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const currentDate = getSelectedDate();
   document.getElementById("dateDelivered").value = currentDate;
 
+  // Initialize auto-save tracking
+  if (typeof initAutoSave === 'function') {
+    initAutoSave(() => {
+      // Auto-save is passive for customers since adding/deleting already saves
+      markDataSaved();
+    });
+    trackInputChanges('#customerForm');
+  }
+
   const form = document.getElementById("customerForm");
   const exportButton = document.getElementById("exportCustomers");
   const exportPdfButton = document.getElementById("exportCustomersPdf");

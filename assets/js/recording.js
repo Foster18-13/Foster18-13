@@ -138,6 +138,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   renderRecordingTable();
+  
+  // Initialize auto-save
+  if (typeof initAutoSave === 'function') {
+    initAutoSave(saveRecordingSheet);
+    trackInputChanges('#recordingTable');
+  }
+  
   const saveButton = document.getElementById("saveRecording");
   const addColumnButton = document.getElementById("addColumn");
   const exportButton = document.getElementById("exportRecording");

@@ -193,6 +193,7 @@
   <script src="assets/js/dashboard.js"></script>
   <script src="assets/js/keyboard-shortcuts.js"></script>
   <script src="assets/js/theme-toggle.js"></script>
+  <script src="assets/js/alerts.js"></script>
   <script>
     firebase.auth().onAuthStateChanged((user) => {
       const userControls = document.getElementById('userControls');
@@ -203,6 +204,11 @@
         `;
       }
     });
+    
+    // Initialize alert system
+    if (typeof initAlertSystem === 'function') {
+      initAlertSystem();
+    }
   </script>
 </body>
 

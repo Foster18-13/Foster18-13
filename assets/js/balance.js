@@ -161,6 +161,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   renderBalanceTable();
+  
+  // Initialize auto-save
+  if (typeof initAutoSave === 'function') {
+    initAutoSave(saveBalanceSheet);
+    trackInputChanges('#balanceTable');
+  }
+  
   const saveButton = document.getElementById("saveBalance");
   const copyPrevDayButton = document.getElementById("copyPrevDay");
   const exportButton = document.getElementById("exportBalance");
