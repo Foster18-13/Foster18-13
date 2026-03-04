@@ -7,6 +7,36 @@ function getRowTotal(row) {
   return total;
 }
 
+function hasRecordingContent(shiftStore) {
+  if (!shiftStore || typeof shiftStore !== "object") return false;
+  const recording = shiftStore.recording && typeof shiftStore.recording === "object" ? shiftStore.recording : {};
+
+  return Object.values(recording).some((record) => {
+    const entries = Array.isArray(record?.entries) ? record.entries : [];
+    return entries.some((entry) => {
+      if (entry && typeof entry === "object") {
+        return String(entry.waybill ?? "").trim() !== "" || String(entry.qty ?? "").trim() !== "";
+      }
+      return String(entry ?? "").trim() !== "";
+    });
+  });
+}
+
+function getNearbyRecordingLocations(data, selectedDate, selectedShift, limit = 4) {
+  if (!data || typeof data !== "object" || !data.daily) return [];
+
+  return Object.entries(data.daily)
+    .flatMap(([dateKey, dayValue]) => {
+      if (!dayValue || typeof dayValue !== "object") return [];
+      return ["day", "night"]
+        .filter((shiftKey) => hasRecordingContent(dayValue[shiftKey]))
+        .map((shiftKey) => ({ dateKey, shiftKey }));
+    })
+    .filter((item) => !(item.dateKey === selectedDate && item.shiftKey === selectedShift))
+    .sort((a, b) => b.dateKey.localeCompare(a.dateKey))
+    .slice(0, limit);
+}
+
 function renderRecordingTable() {
   const tableHead = document.querySelector("#recordingTable thead");
   const tbody = document.querySelector("#recordingTable tbody");
@@ -64,6 +94,15 @@ function renderRecordingTable() {
       return `<tr data-product-id="${product.id}">${rowCells.join("")}</tr>`;
     })
     .join("");
+
+  if (!hasRecordingContent(dayStore)) {
+    const selectedShift = getSelectedShift();
+    const nearby = getNearbyRecordingLocations(data, date, selectedShift);
+    if (nearby.length) {
+      const hint = nearby.map((item) => `${item.dateKey} (${item.shiftKey})`).join(", ");
+      setStatus(`No entries on ${date} (${selectedShift}). Data found on: ${hint}`, "error");
+    }
+  }
 
   attachRecordingCalculations();
 }
