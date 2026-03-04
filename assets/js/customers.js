@@ -306,6 +306,200 @@ function syncAllToRecording() {
   setStatus(`Synced ${dayStore.customers.length} customer entries to Recording Sheet!`, "ok");
 }
 
+// Batch Entry Functions
+function toggleBatchMode() {
+  const batchSection = document.getElementById("batchEntrySection");
+  const singleForm = document.getElementById("customerForm");
+  const toggleBtn = document.getElementById("toggleBatchMode");
+  
+  const isBatchVisible = batchSection.style.display !== "none";
+  
+  if (isBatchVisible) {
+    // Switch to single mode
+    batchSection.style.display = "none";
+    singleForm.style.display = "grid";
+    toggleBtn.textContent = "📦 Batch Entry Mode";
+  } else {
+    // Switch to batch mode
+    batchSection.style.display = "block";
+    singleForm.style.display = "none";
+    toggleBtn.textContent = "📝 Single Entry Mode";
+    initBatchEntry();
+  }
+}
+
+function initBatchEntry() {
+  const batchDateInput = document.getElementById("batchDateDelivered");
+  if (batchDateInput) {
+    batchDateInput.value = getSelectedDate();
+  }
+  
+  // Clear and add first product row
+  const container = document.getElementById("batchProductRows");
+  container.innerHTML = "";
+  addBatchProductRow();
+}
+
+let batchRowCounter = 0;
+
+function addBatchProductRow() {
+  const container = document.getElementById("batchProductRows");
+  const rowId = `batch-row-${batchRowCounter++}`;
+  
+  const data = loadData();
+  const productOptions = createProductOptions(data.products);
+  
+  const rowDiv = document.createElement("div");
+  rowDiv.className = "grid-2";
+  rowDiv.id = rowId;
+  rowDiv.style.marginBottom = "0.5rem";
+  rowDiv.style.padding = "0.5rem";
+  rowDiv.style.border = "1px solid #ddd";
+  rowDiv.style.borderRadius = "4px";
+  
+  rowDiv.innerHTML = `
+    <div>
+      <label>Product</label>
+      <select class="select batch-product" required>${productOptions}</select>
+    </div>
+    <div style="display: flex; gap: 0.5rem; align-items: end;">
+      <div style="flex: 1;">
+        <label>Quantity</label>
+        <input class="input batch-quantity" type="number" min="0" step="any" required />
+      </div>
+      <button class="button button-danger" type="button" onclick="removeBatchProductRow('${rowId}')">Remove</button>
+    </div>
+  `;
+  
+  container.appendChild(rowDiv);
+}
+
+function removeBatchProductRow(rowId) {
+  const row = document.getElementById(rowId);
+  if (row) {
+    const container = document.getElementById("batchProductRows");
+    if (container.children.length > 1) {
+      row.remove();
+    } else {
+      setStatus("At least one product is required.", "error");
+    }
+  }
+}
+
+// Make function globally accessible for inline onclick
+globalThis.removeBatchProductRow = removeBatchProductRow;
+
+function handleBatchCustomerEntry(event) {
+  event.preventDefault();
+  
+  const customerName = document.getElementById("batchCustomerName").value.trim();
+  const waybillNumber = document.getElementById("batchWaybillNumber").value.trim();
+  const dateDelivered = document.getElementById("batchDateDelivered").value;
+  
+  if (!customerName || !waybillNumber || !dateDelivered) {
+    setStatus("Customer name, waybill, and date are required.", "error");
+    return;
+  }
+  
+  // Collect all product rows
+  const productSelects = document.querySelectorAll(".batch-product");
+  const quantityInputs = document.querySelectorAll(".batch-quantity");
+  
+  const products = [];
+  for (let i = 0; i < productSelects.length; i++) {
+    const productId = productSelects[i].value;
+    const quantity = Number.parseFloat(quantityInputs[i].value);
+    
+    if (!productId || !quantity || quantity <= 0) {
+      setStatus(`Product ${i + 1}: Please select a product and enter a valid quantity.`, "error");
+      return;
+    }
+    
+    products.push({ productId, quantity });
+  }
+  
+  if (products.length === 0) {
+    setStatus("Add at least one product.", "error");
+    return;
+  }
+  
+  // Add all entries
+  const data = loadData();
+  const date = getSelectedDate();
+  const dayStore = getShiftStore(data, date);
+  
+  // Initialize customers array if it doesn't exist
+  if (!dayStore.customers) {
+    dayStore.customers = [];
+  }
+  
+  let addedCount = 0;
+  products.forEach(({ productId, quantity }) => {
+    // Add customer entry
+    dayStore.customers.push({
+      id: generateId("customer"),
+      customerName,
+      waybillNumber,
+      productId,
+      quantity,
+      dateDelivered
+    });
+    
+    // Add to recording sheet
+    if (!dayStore.recording[productId]) {
+      dayStore.recording[productId] = { entries: [] };
+    }
+    
+    if (!dayStore.recording[productId].entries) {
+      dayStore.recording[productId].entries = [];
+    }
+    
+    const entries = dayStore.recording[productId].entries;
+    let added = false;
+    
+    // Find an empty slot
+    for (let i = 0; i < entries.length; i++) {
+      if (!entries[i] || (typeof entries[i] === 'object' && !entries[i].waybill && !entries[i].qty)) {
+        entries[i] = {
+          waybill: waybillNumber,
+          qty: String(quantity)
+        };
+        added = true;
+        break;
+      }
+    }
+    
+    // If no empty slot, add new entry
+    if (!added) {
+      entries.push({
+        waybill: waybillNumber,
+        qty: String(quantity)
+      });
+    }
+    
+    // Update column count
+    if (entries.length > dayStore.recordingColumns) {
+      dayStore.recordingColumns = entries.length;
+    }
+    
+    addedCount++;
+  });
+  
+  saveData(data);
+  addAuditLog("Batch customer entry added", {
+    customerName,
+    waybillNumber,
+    productsCount: addedCount
+  });
+  
+  // Reset form
+  event.target.reset();
+  initBatchEntry();
+  renderCustomersTable();
+  renderCustomerNameSuggestions();
+  setStatus(`✓ Added ${addedCount} products for ${customerName} (Waybill: ${waybillNumber})`, "ok");
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const shiftSelector = document.getElementById("shiftSelector");
   if (shiftSelector) {
@@ -335,6 +529,31 @@ document.addEventListener("DOMContentLoaded", () => {
   const exportButton = document.getElementById("exportCustomers");
   const exportPdfButton = document.getElementById("exportCustomersPdf");
   const syncButton = document.getElementById("syncToRecording");
+  
+  // Batch entry event listeners
+  const toggleBatchBtn = document.getElementById("toggleBatchMode");
+  const batchForm = document.getElementById("batchCustomerForm");
+  const addBatchRowBtn = document.getElementById("addBatchProductRow");
+  const cancelBatchBtn = document.getElementById("cancelBatchEntry");
+  
+  if (toggleBatchBtn) {
+    toggleBatchBtn.addEventListener("click", toggleBatchMode);
+  }
+  
+  if (batchForm) {
+    batchForm.addEventListener("submit", async (event) => {
+      const submitButton = batchForm.querySelector('button[type="submit"]');
+      await withLoadingFeedback(submitButton, "Saving all...", () => handleBatchCustomerEntry(event));
+    });
+  }
+  
+  if (addBatchRowBtn) {
+    addBatchRowBtn.addEventListener("click", addBatchProductRow);
+  }
+  
+  if (cancelBatchBtn) {
+    cancelBatchBtn.addEventListener("click", toggleBatchMode);
+  }
   
   form.addEventListener("submit", async (event) => {
     const submitButton = form.querySelector('button[type="submit"]');
