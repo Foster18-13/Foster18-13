@@ -43,8 +43,17 @@ function generateId(prefix = "id") {
   return `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
 }
 
+function formatDateToLocalISO(dateValue) {
+  const date = dateValue instanceof Date ? dateValue : new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return "";
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 function todayISO() {
-  return new Date().toISOString().slice(0, 10);
+  return formatDateToLocalISO(new Date());
 }
 
 function inferPalletFactorFromName(name) {
@@ -311,7 +320,7 @@ function getPreviousDateISO(date) {
   const targetDate = new Date(`${date}T00:00:00`);
   if (Number.isNaN(targetDate.getTime())) return "";
   targetDate.setDate(targetDate.getDate() - 1);
-  return targetDate.toISOString().slice(0, 10);
+  return formatDateToLocalISO(targetDate);
 }
 
 function getPreviousClosingStock(data, date, productId, shift = null) {

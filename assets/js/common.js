@@ -131,7 +131,8 @@ function shiftWorkingDate(days) {
   if (Number.isNaN(base.getTime())) return;
 
   base.setDate(base.getDate() + days);
-  const nextDate = base.toISOString().slice(0, 10);
+  const nextDate = formatDateToLocalISO(base);
+  if (!nextDate) return;
   setSelectedDate(nextDate);
   location.reload();
 }
