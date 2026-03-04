@@ -1,9 +1,9 @@
-// Auto-Save System - Saves data every 30 seconds if changes detected
+// Auto-Save System - Saves data every 1 second if changes detected
 
 let autoSaveTimer = null;
 let hasUnsavedChanges = false;
 let lastSaveTime = null;
-const AUTO_SAVE_INTERVAL = 30000; // 30 seconds
+const AUTO_SAVE_INTERVAL = 1000; // 1 second
 
 // Mark that data has been modified
 function markDataChanged() {
