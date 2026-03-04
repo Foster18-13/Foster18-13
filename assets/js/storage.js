@@ -153,6 +153,61 @@ function hasLegacySourceData() {
   return Object.keys(dailyRecords).length > 0 || Object.keys(dailyBalance).length > 0;
 }
 
+function isWarehouseSnapshotCandidate(value) {
+  if (!value || typeof value !== "object") return false;
+  if (!Array.isArray(value.products)) return false;
+  if (!value.daily || typeof value.daily !== "object") return false;
+  return true;
+}
+
+function getDailySnapshotScore(data) {
+  if (!data || typeof data !== "object" || !data.daily || typeof data.daily !== "object") return 0;
+
+  let score = 0;
+  Object.values(data.daily).forEach((dayValue) => {
+    if (!dayValue || typeof dayValue !== "object") return;
+    ["day", "night"].forEach((shiftKey) => {
+      const shift = dayValue[shiftKey];
+      if (!shift || typeof shift !== "object") return;
+      score += Object.keys(shift.recording || {}).length * 3;
+      score += Object.keys(shift.balance || {}).length * 2;
+      score += Array.isArray(shift.purchases) ? shift.purchases.length : 0;
+    });
+  });
+
+  return score;
+}
+
+function findBestLocalStorageWarehouseSnapshot(excludedKeys = []) {
+  const excluded = new Set(excludedKeys);
+  let best = null;
+
+  for (let index = 0; index < localStorage.length; index += 1) {
+    const key = localStorage.key(index);
+    if (!key || excluded.has(key)) continue;
+
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw || raw.length < 20) continue;
+      const parsed = JSON.parse(raw);
+      if (!isWarehouseSnapshotCandidate(parsed)) continue;
+
+      const score = getDailySnapshotScore(parsed);
+      if (!best || score > best.score) {
+        best = { key, score, data: parsed };
+      }
+    } catch {
+      // ignore non-json storage values
+    }
+  }
+
+  return best;
+}
+
+function hasMeaningfulDailySnapshot(data) {
+  return getDailySnapshotScore(data) > 0;
+}
+
 function tryMigrateLegacyStorage(data) {
   const alreadyMigrated = !!data?._meta?.legacyMigratedAt;
   if (alreadyMigrated || !hasLegacySourceData()) return false;
@@ -212,6 +267,32 @@ function tryMigrateLegacyStorage(data) {
   }
 
   return changed;
+}
+
+function tryRecoverFromAlternativeLocalStorage(data) {
+  const alreadyRecovered = !!data?._meta?.recoveredFromStorageKey;
+  if (alreadyRecovered || hasMeaningfulDailySnapshot(data)) return false;
+
+  const candidate = findBestLocalStorageWarehouseSnapshot([
+    STORAGE_KEY,
+    LEGACY_DAILY_RECORDS_KEY,
+    LEGACY_DAILY_BALANCE_KEY,
+    "twellium_selected_date",
+    "twellium_selected_shift"
+  ]);
+
+  if (!candidate?.data || !hasMeaningfulDailySnapshot(candidate.data)) return false;
+
+  data.products = Array.isArray(candidate.data.products) ? candidate.data.products : data.products;
+  data.daily = candidate.data.daily && typeof candidate.data.daily === "object" ? candidate.data.daily : data.daily;
+  data.auditLogs = Array.isArray(candidate.data.auditLogs) ? candidate.data.auditLogs : data.auditLogs;
+
+  data._meta = data._meta && typeof data._meta === "object" ? data._meta : {};
+  data._meta.recoveredFromStorageKey = candidate.key;
+  data._meta.recoveredAt = Date.now();
+  data._meta.recoveredScore = candidate.score;
+
+  return true;
 }
 
 function isLegacyStarterList(products) {
@@ -275,6 +356,7 @@ function loadData() {
     if (!raw) {
       const initial = defaultData();
       tryMigrateLegacyStorage(initial);
+      tryRecoverFromAlternativeLocalStorage(initial);
       saveData(initial);
       return initial;
     }
@@ -284,7 +366,10 @@ function loadData() {
     parsed.daily = parsed.daily && typeof parsed.daily === "object" ? parsed.daily : {};
     parsed._meta = parsed._meta && typeof parsed._meta === "object" ? parsed._meta : {};
     parsed._meta.updatedAt = asNumber(parsed._meta.updatedAt) || 0;
-    const changed = ensureRequiredProducts(parsed) || tryMigrateLegacyStorage(parsed);
+    const changed =
+      ensureRequiredProducts(parsed) ||
+      tryMigrateLegacyStorage(parsed) ||
+      tryRecoverFromAlternativeLocalStorage(parsed);
     if (changed) saveData(parsed);
     return parsed;
   } catch {
