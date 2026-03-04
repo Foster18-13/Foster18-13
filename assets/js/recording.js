@@ -37,6 +37,31 @@ function getNearbyRecordingLocations(data, selectedDate, selectedShift, limit = 
     .slice(0, limit);
 }
 
+function autoSwitchToLatestRecordingIfEmpty() {
+  const data = loadData();
+  const selectedDate = getSelectedDate();
+  const selectedShift = getSelectedShift();
+  const currentStore = getShiftStore(data, selectedDate, selectedShift);
+
+  if (hasRecordingContent(currentStore)) return false;
+
+  const nearby = getNearbyRecordingLocations(data, selectedDate, selectedShift, 1);
+  if (!nearby.length) return false;
+
+  const target = nearby[0];
+  setSelectedDate(target.dateKey);
+  setSelectedShift(target.shiftKey);
+
+  const dateInput = document.getElementById("workingDate");
+  if (dateInput) dateInput.value = target.dateKey;
+
+  const shiftSelector = document.getElementById("shiftSelector");
+  if (shiftSelector) shiftSelector.value = target.shiftKey;
+
+  setStatus(`Showing latest found entries: ${target.dateKey} (${target.shiftKey})`, "ok");
+  return true;
+}
+
 function renderRecordingTable() {
   const tableHead = document.querySelector("#recordingTable thead");
   const tbody = document.querySelector("#recordingTable tbody");
@@ -183,6 +208,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  autoSwitchToLatestRecordingIfEmpty();
   renderRecordingTable();
   
   // Initialize auto-save
