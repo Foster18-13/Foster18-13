@@ -144,6 +144,20 @@ async function pushLocalToCloud() {
   cloudSyncState.pushing = true;
   try {
     const data = loadData();
+    const localHasData = hasMeaningfulDailyData(data);
+
+    if (!localHasData) {
+      const existing = await docRef.get();
+      if (existing.exists) {
+        const payload = existing.data() || {};
+        const cloudData = payload.data;
+        if (cloudData && hasMeaningfulDailyData(cloudData)) {
+          setCloudStatus("Cloud sync paused: local data is empty", "error");
+          return;
+        }
+      }
+    }
+
     await docRef.set(
       {
         data,

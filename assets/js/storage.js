@@ -1,6 +1,8 @@
 const STORAGE_KEY = "twellium_warehouse_portal_v1";
 const LEGACY_DAILY_RECORDS_KEY = "dailyRecordingSheetData";
 const LEGACY_DAILY_BALANCE_KEY = "dailyBalanceSheetData";
+const LOCAL_BACKUP_STORAGE_KEY = "twellium_warehouse_portal_backup_v1";
+const LOCAL_BACKUP_LIMIT = 40;
 const AUDIT_LOG_LIMIT = 500;
 const REQUIRED_PRODUCTS = [
   "Verna Shrink 500ml x 24",
@@ -78,6 +80,34 @@ function defaultData() {
       updatedAt: Date.now()
     }
   };
+}
+
+function createWarehouseSnapshot(data) {
+  return {
+    products: Array.isArray(data?.products) ? data.products : [],
+    daily: data?.daily && typeof data.daily === "object" ? data.daily : {},
+    auditLogs: Array.isArray(data?.auditLogs) ? data.auditLogs : [],
+    _meta: data?._meta && typeof data._meta === "object" ? data._meta : {}
+  };
+}
+
+function safeReadBackupHistory() {
+  try {
+    const raw = localStorage.getItem(LOCAL_BACKUP_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeBackupHistory(backups) {
+  try {
+    localStorage.setItem(LOCAL_BACKUP_STORAGE_KEY, JSON.stringify(backups));
+  } catch {
+    // ignore quota/write errors for backup stream
+  }
 }
 
 function safeReadLegacyObject(key) {
@@ -206,6 +236,50 @@ function findBestLocalStorageWarehouseSnapshot(excludedKeys = []) {
 
 function hasMeaningfulDailySnapshot(data) {
   return getDailySnapshotScore(data) > 0;
+}
+
+function addLocalBackupSnapshot(data, source = "auto-save") {
+  const snapshot = createWarehouseSnapshot(data);
+  const score = getDailySnapshotScore(snapshot);
+  const history = safeReadBackupHistory();
+  const backupItem = {
+    timestamp: Date.now(),
+    source,
+    score,
+    data: snapshot
+  };
+
+  history.unshift(backupItem);
+  const trimmed = history.slice(0, LOCAL_BACKUP_LIMIT);
+  writeBackupHistory(trimmed);
+}
+
+function tryRecoverFromBackupHistory(data) {
+  const alreadyRecovered = !!data?._meta?.recoveredFromBackupAt;
+  if (alreadyRecovered || hasMeaningfulDailySnapshot(data)) return false;
+
+  const history = safeReadBackupHistory();
+  if (!history.length) return false;
+
+  const candidate = history
+    .filter((item) => item?.data && isWarehouseSnapshotCandidate(item.data))
+    .sort((a, b) => {
+      const scoreGap = (b.score || 0) - (a.score || 0);
+      if (scoreGap !== 0) return scoreGap;
+      return (b.timestamp || 0) - (a.timestamp || 0);
+    })[0];
+
+  if (!candidate?.data || !hasMeaningfulDailySnapshot(candidate.data)) return false;
+
+  data.products = Array.isArray(candidate.data.products) ? candidate.data.products : data.products;
+  data.daily = candidate.data.daily && typeof candidate.data.daily === "object" ? candidate.data.daily : data.daily;
+  data.auditLogs = Array.isArray(candidate.data.auditLogs) ? candidate.data.auditLogs : data.auditLogs;
+
+  data._meta = data._meta && typeof data._meta === "object" ? data._meta : {};
+  data._meta.recoveredFromBackupAt = Date.now();
+  data._meta.recoveredBackupScore = asNumber(candidate.score);
+
+  return true;
 }
 
 function tryMigrateLegacyStorage(data) {
@@ -357,6 +431,7 @@ function loadData() {
       const initial = defaultData();
       tryMigrateLegacyStorage(initial);
       tryRecoverFromAlternativeLocalStorage(initial);
+      tryRecoverFromBackupHistory(initial);
       saveData(initial);
       return initial;
     }
@@ -369,11 +444,13 @@ function loadData() {
     const changed =
       ensureRequiredProducts(parsed) ||
       tryMigrateLegacyStorage(parsed) ||
-      tryRecoverFromAlternativeLocalStorage(parsed);
+      tryRecoverFromAlternativeLocalStorage(parsed) ||
+      tryRecoverFromBackupHistory(parsed);
     if (changed) saveData(parsed);
     return parsed;
   } catch {
     const fallback = defaultData();
+    tryRecoverFromBackupHistory(fallback);
     saveData(fallback);
     return fallback;
   }
@@ -383,6 +460,7 @@ function saveData(data) {
   data._meta = data._meta && typeof data._meta === "object" ? data._meta : {};
   data._meta.updatedAt = Date.now();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  addLocalBackupSnapshot(data);
 
   if (typeof globalThis.dispatchEvent === "function") {
     globalThis.dispatchEvent(
