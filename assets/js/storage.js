@@ -1,4 +1,6 @@
 const STORAGE_KEY = "twellium_warehouse_portal_v1";
+const LEGACY_DAILY_RECORDS_KEY = "dailyRecordingSheetData";
+const LEGACY_DAILY_BALANCE_KEY = "dailyBalanceSheetData";
 const AUDIT_LOG_LIMIT = 500;
 const REQUIRED_PRODUCTS = [
   "Verna Shrink 500ml x 24",
@@ -78,6 +80,140 @@ function defaultData() {
   };
 }
 
+function safeReadLegacyObject(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function normalizeProductName(value) {
+  return String(value || "").trim();
+}
+
+function findOrCreateProductIdByName(data, rawName) {
+  const productName = normalizeProductName(rawName);
+  if (!productName) return "";
+
+  const existing = data.products.find((item) => item.name.toLowerCase() === productName.toLowerCase());
+  if (existing) return existing.id;
+
+  const newProduct = {
+    id: generateId("product"),
+    name: productName,
+    palletFactor: inferPalletFactorFromName(productName)
+  };
+  data.products.push(newProduct);
+  return newProduct.id;
+}
+
+function mapLegacyEntryItem(item) {
+  if (item && typeof item === "object") {
+    return {
+      waybill: String(item.waybill ?? item.waybillNo ?? item.waybill_number ?? ""),
+      qty: String(item.qty ?? item.quantity ?? item.value ?? "")
+    };
+  }
+
+  return {
+    waybill: "",
+    qty: String(item ?? "")
+  };
+}
+
+function mapLegacyRowEntries(row) {
+  if (!row || typeof row !== "object") return [];
+
+  const candidates = [row.entries, row.values, row.columns, row.data];
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate)) {
+      return candidate.map((item) => mapLegacyEntryItem(item));
+    }
+  }
+
+  if (row.qty !== undefined || row.quantity !== undefined || row.loaded !== undefined) {
+    return [
+      {
+        waybill: String(row.waybill ?? row.waybillNo ?? ""),
+        qty: String(row.qty ?? row.quantity ?? row.loaded ?? "")
+      }
+    ];
+  }
+
+  return [];
+}
+
+function hasLegacySourceData() {
+  const dailyRecords = safeReadLegacyObject(LEGACY_DAILY_RECORDS_KEY);
+  const dailyBalance = safeReadLegacyObject(LEGACY_DAILY_BALANCE_KEY);
+  return Object.keys(dailyRecords).length > 0 || Object.keys(dailyBalance).length > 0;
+}
+
+function tryMigrateLegacyStorage(data) {
+  const alreadyMigrated = !!data?._meta?.legacyMigratedAt;
+  if (alreadyMigrated || !hasLegacySourceData()) return false;
+
+  const dailyRecords = safeReadLegacyObject(LEGACY_DAILY_RECORDS_KEY);
+  const dailyBalance = safeReadLegacyObject(LEGACY_DAILY_BALANCE_KEY);
+  const dateKeys = new Set([...Object.keys(dailyRecords), ...Object.keys(dailyBalance)]);
+
+  let changed = false;
+
+  dateKeys.forEach((dateKey) => {
+    if (!dateKey) return;
+    const dayStore = getShiftStore(data, dateKey, "day");
+
+    const recordDay = dailyRecords[dateKey] || {};
+    const rows = Array.isArray(recordDay.rows) ? recordDay.rows : [];
+    const legacyColumns = Number(recordDay.untitledColumns);
+    if (Number.isFinite(legacyColumns) && legacyColumns > dayStore.recordingColumns) {
+      dayStore.recordingColumns = legacyColumns;
+      changed = true;
+    }
+
+    rows.forEach((row) => {
+      const productId = findOrCreateProductIdByName(data, row.product ?? row.productName ?? row.name ?? row.item);
+      if (!productId) return;
+
+      const mappedEntries = mapLegacyRowEntries(row);
+      if (!mappedEntries.length) return;
+
+      const currentRecord = dayStore.recording[productId];
+      const hasCurrentEntries = !!(currentRecord && Array.isArray(currentRecord.entries) && currentRecord.entries.length > 0);
+      if (!hasCurrentEntries) {
+        dayStore.recording[productId] = { entries: mappedEntries };
+        dayStore.recordingColumns = Math.max(dayStore.recordingColumns, mappedEntries.length);
+        changed = true;
+      }
+    });
+
+    const balanceRows = Array.isArray(dailyBalance[dateKey]) ? dailyBalance[dateKey] : [];
+    balanceRows.forEach((row) => {
+      const productId = findOrCreateProductIdByName(data, row.product ?? row.productName ?? row.name ?? row.item);
+      if (!productId) return;
+
+      dayStore.balance[productId] = dayStore.balance[productId] || {};
+      const currentClosing = dayStore.balance[productId].closing;
+      const hasClosing = currentClosing !== undefined && currentClosing !== null && currentClosing !== "";
+      if (!hasClosing && row.closing !== undefined && row.closing !== null && row.closing !== "") {
+        dayStore.balance[productId].closing = row.closing;
+        changed = true;
+      }
+    });
+  });
+
+  if (changed) {
+    data._meta = data._meta && typeof data._meta === "object" ? data._meta : {};
+    data._meta.legacyMigratedAt = Date.now();
+  }
+
+  return changed;
+}
+
 function isLegacyStarterList(products) {
   if (products.length !== 2) return false;
   const names = new Set(products.map((item) => item.name.toLowerCase().trim()));
@@ -138,6 +274,7 @@ function loadData() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
       const initial = defaultData();
+      tryMigrateLegacyStorage(initial);
       saveData(initial);
       return initial;
     }
@@ -147,7 +284,7 @@ function loadData() {
     parsed.daily = parsed.daily && typeof parsed.daily === "object" ? parsed.daily : {};
     parsed._meta = parsed._meta && typeof parsed._meta === "object" ? parsed._meta : {};
     parsed._meta.updatedAt = asNumber(parsed._meta.updatedAt) || 0;
-    const changed = ensureRequiredProducts(parsed);
+    const changed = ensureRequiredProducts(parsed) || tryMigrateLegacyStorage(parsed);
     if (changed) saveData(parsed);
     return parsed;
   } catch {
