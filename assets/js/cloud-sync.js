@@ -78,6 +78,25 @@ function getCloudDocRef() {
   return cloudSyncState.docRef;
 }
 
+function hasMeaningfulDailyData(data) {
+  if (!data || typeof data !== "object") return false;
+  const daily = data.daily && typeof data.daily === "object" ? data.daily : {};
+
+  return Object.values(daily).some((dayValue) => {
+    if (!dayValue || typeof dayValue !== "object") return false;
+    return ["day", "night"].some((shiftKey) => {
+      const shift = dayValue[shiftKey];
+      if (!shift || typeof shift !== "object") return false;
+
+      const recordingCount = Object.keys(shift.recording || {}).length;
+      const balanceCount = Object.keys(shift.balance || {}).length;
+      const purchaseCount = Array.isArray(shift.purchases) ? shift.purchases.length : 0;
+
+      return recordingCount > 0 || balanceCount > 0 || purchaseCount > 0;
+    });
+  });
+}
+
 async function pullFromCloudIfNewer() {
   if (!cloudSyncState.user || cloudSyncState.pullInProgress) return;
   const docRef = getCloudDocRef();
@@ -95,10 +114,17 @@ async function pullFromCloudIfNewer() {
     const localData = loadData();
     const localUpdatedAt = asNumber(localData?._meta?.updatedAt);
     const cloudUpdatedAt = asNumber(cloudData?._meta?.updatedAt);
+    const localHasData = hasMeaningfulDailyData(localData);
+    const cloudHasData = hasMeaningfulDailyData(cloudData);
 
-    if (cloudUpdatedAt > localUpdatedAt) {
+    const shouldRecoverFromCloud = !localHasData && cloudHasData;
+
+    if (cloudUpdatedAt > localUpdatedAt || shouldRecoverFromCloud) {
       saveData(cloudData);
-      setCloudStatus("Cloud sync: latest data loaded", "ok");
+      setCloudStatus(
+        shouldRecoverFromCloud ? "Cloud recovery: historical data loaded" : "Cloud sync: latest data loaded",
+        "ok"
+      );
       globalThis.setTimeout(() => {
         location.reload();
       }, 400);
