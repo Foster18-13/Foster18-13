@@ -159,7 +159,20 @@ function attachRecordingCalculations() {
   });
 }
 
-function saveRecordingSheet() {
+let recordingPersistTimer = null;
+
+function queueRecordingPersist(delay = 1200) {
+  if (recordingPersistTimer) {
+    clearTimeout(recordingPersistTimer);
+  }
+
+  recordingPersistTimer = setTimeout(() => {
+    saveRecordingSheet({ silent: true, logAudit: false });
+  }, delay);
+}
+
+function saveRecordingSheet(options = {}) {
+  const { silent = false, logAudit = true } = options;
   const data = loadData();
   const date = getSelectedDate();
   const dayStore = getShiftStore(data, date);
@@ -178,11 +191,15 @@ function saveRecordingSheet() {
   });
 
   saveData(data);
-  addAuditLog("Recording sheet saved", {
-    products: document.querySelectorAll("#recordingTable tbody tr").length,
-    columns: dayStore.recordingColumns
-  });
-  setStatus("Recording sheet saved. Loading values are updated in Balance Sheet.", "ok");
+  if (logAudit) {
+    addAuditLog("Recording sheet saved", {
+      products: document.querySelectorAll("#recordingTable tbody tr").length,
+      columns: dayStore.recordingColumns
+    });
+  }
+  if (!silent) {
+    setStatus("Recording sheet saved. Loading values are updated in Balance Sheet.", "ok");
+  }
 }
 
 function addRecordingColumn() {
@@ -210,6 +227,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
   autoSwitchToLatestRecordingIfEmpty();
   renderRecordingTable();
+
+  const recordingTable = document.getElementById("recordingTable");
+  if (recordingTable) {
+    recordingTable.addEventListener("input", (event) => {
+      if (event.target.matches(".entry-waybill, .entry-qty")) {
+        queueRecordingPersist();
+      }
+    });
+  }
+
+  globalThis.addEventListener("pagehide", () => {
+    saveRecordingSheet({ silent: true, logAudit: false });
+  });
   
   // Initialize auto-save
   if (typeof initAutoSave === 'function') {
@@ -224,7 +254,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (saveButton) {
     saveButton.addEventListener("click", async () => {
-      await withLoadingFeedback(saveButton, "Saving...", () => saveRecordingSheet());
+      await withLoadingFeedback(saveButton, "Saving...", () => saveRecordingSheet({ silent: false, logAudit: true }));
     });
   }
   if (addColumnButton) {
