@@ -187,7 +187,7 @@ function closeAlert(element) {
 }
 
 // Make closeAlert available globally
-window.closeAlert = closeAlert;
+globalThis.closeAlert = closeAlert;
 
 // Cleanup on page unload
-window.addEventListener('unload', stopAlertMonitoring);
+globalThis.addEventListener('unload', stopAlertMonitoring);

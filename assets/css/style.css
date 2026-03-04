@@ -264,21 +264,22 @@ textarea {
   gap: 8px;
   flex-wrap: wrap;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 18px;
 }
 
 .table-wrap {
   overflow-x: auto;
   border: 1px solid var(--border);
   border-radius: 10px;
+  margin: 0;
 }
 
 table {
-  width: 100%;
+  width: auto;
   border-collapse: collapse;
-  min-width: 0;
+  min-width: 100%;
   background: #fff;
-  table-layout: fixed;
+  margin: 0;
 }
 
 .balance-table {
@@ -287,7 +288,7 @@ table {
 
 .balance-table th,
 .balance-table td {
-  padding: 6px 4px;
+  padding: 10px 6px;
   font-size: 11px;
 }
 
@@ -305,23 +306,42 @@ table {
 th,
 td {
   border-bottom: 1px solid var(--border);
-  padding: 6px 5px;
+  padding: 20px 12px;
   text-align: left;
-  vertical-align: top;
-  font-size: 11px;
+  vertical-align: middle;
+  font-size: 13px;
+  min-height: 120px;
 }
 
 th {
   background: var(--surface-alt);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   white-space: normal;
-  padding: 8px 6px;
+  padding: 16px 12px;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 2px solid var(--border);
+}
+
+th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 11;
+  text-align: left;
 }
 
 td:first-child {
-  min-width: 180px;
-  padding: 8px 6px;
+  min-width: 220px;
+  padding: 16px 12px;
+  font-weight: 600;
+  position: sticky;
+  left: 0;
+  background: #fff;
+  z-index: 1;
+  font-size: 13px;
 }
 
 td input,
@@ -362,22 +382,38 @@ td textarea {
 
 .entry-cell-stack {
   display: grid;
-  gap: 2px;
-  min-width: 85px;
+  gap: 12px;
+  min-width: 180px;
+  padding: 14px;
+  background: var(--surface-alt);
+  border-radius: 8px;
+  row-gap: 12px;
 }
 
 .entry-waybill,
 .entry-qty {
   width: 100%;
-  padding: 6px 8px;
-  font-size: 11px;
+  padding: 12px 14px;
+  font-size: 13px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  height: 44px;
+}
+
+.entry-waybill::placeholder,
+.entry-qty::placeholder {
+  font-size: 10px;
+  color: var(--text-muted);
 }
 
 input[data-total] {
-  min-width: 80px;
+  min-width: 90px;
   font-weight: 600;
-  padding: 4px 6px !important;
-  font-size: 10px;
+  padding: 8px 10px !important;
+  font-size: 11px;
+  text-align: center;
+  background: var(--surface-alt);
 }
 
 .search-input {
