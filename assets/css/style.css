@@ -40,6 +40,39 @@ body {
   gap: 16px;
 }
 
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, var(--primary) 0%, #0a3d7a 100%);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Arial Black", Arial, sans-serif;
+  font-size: 18px;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: -1px;
+  box-shadow: 0 2px 8px rgba(18, 84, 161, 0.3);
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+
+.logo:hover {
+  transform: scale(1.05);
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
 .brand h1 {
   font-size: 12px;
   margin: 0;
@@ -701,6 +734,11 @@ input[data-total] {
 
 [data-theme="dark"] .brand h1 {
   background: #247ba0;
+}
+
+[data-theme="dark"] .logo {
+  background: linear-gradient(135deg, #58a6ff 0%, #247ba0 100%);
+  box-shadow: 0 2px 8px rgba(88, 166, 255, 0.4);
 }
 
 [data-theme="dark"] .card {

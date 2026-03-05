@@ -15,7 +15,7 @@ function initAlertSystem() {
 
 // Request browser notification permission
 function requestNotificationPermission() {
-  if ('Notification' in window && Notification.permission === 'default') {
+  if ('Notification' in globalThis && Notification.permission === 'default') {
     Notification.requestPermission();
   }
 }
@@ -52,7 +52,7 @@ function checkStockAlerts() {
   if (dayStore.balance) {
     data.products.forEach(product => {
       const productBalance = dayStore.balance[product.id] || {};
-      const closing = parseFloat(productBalance.closing) || 0;
+      const closing = Number.parseFloat(productBalance.closing) || 0;
       
       if (closing > 0 && closing <= LOW_STOCK_THRESHOLD) {
         lowStockItems.push({
@@ -140,7 +140,7 @@ function showStockAlert(items, date, shift) {
 
 // Show browser notification
 function showBrowserNotification(count) {
-  if ('Notification' in window && Notification.permission === 'granted') {
+  if ('Notification' in globalThis && Notification.permission === 'granted') {
     const notification = new Notification('Stock Alert', {
       body: `You have ${count} item(s) that need attention`,
       icon: '/assets/images/logo.png',
@@ -150,7 +150,7 @@ function showBrowserNotification(count) {
     });
     
     notification.onclick = function() {
-      window.focus();
+      globalThis.focus();
       this.close();
     };
     
