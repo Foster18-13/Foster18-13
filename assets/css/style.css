@@ -722,6 +722,11 @@ input[data-total] {
 [data-theme="dark"] th,
 [data-theme="dark"] td {
   border-color: var(--border);
+  color: var(--text);
+}
+
+[data-theme="dark"] th {
+  color: var(--text);
 }
 
 [data-theme="dark"] .brand h1 {
@@ -764,6 +769,11 @@ input[data-total] {
 
 [data-theme="dark"] tbody tr {
   color: var(--text);
+}
+
+[data-theme="dark"] td:first-child {
+  color: var(--text);
+  font-weight: 600;
 }
 
 [data-theme="dark"] label {
@@ -857,6 +867,14 @@ input[data-total] {
 [data-theme="dark"] .balance-table td input,
 [data-theme="dark"] .balance-table td select,
 [data-theme="dark"] .balance-table td textarea {
+  background: #0d1117 !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+
+[data-theme="dark"] table td input,
+[data-theme="dark"] table td select,
+[data-theme="dark"] table td textarea {
   background: #0d1117 !important;
   color: var(--text) !important;
   border-color: var(--border) !important;
