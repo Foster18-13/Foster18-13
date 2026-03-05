@@ -93,7 +93,7 @@
       const userControls = document.getElementById('userControls');
       if (user) {
         userControls.innerHTML = `
-          <span style="font-size: 14px;">Welcome, <strong>${user.displayName || user.email}</strong></span>
+          <span style="font-size: 14px; color: var(--text);">Welcome, <strong>${user.displayName || user.email}</strong></span>
           <button class="button" onclick="logoutUser()">Logout</button>
         `;
       }

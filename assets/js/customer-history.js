@@ -33,7 +33,7 @@ function searchCustomerHistory() {
     }
 
     // Search night shift
-    if (dayStore.night && dayStore.night.customers) {
+    if (dayStore.night?.customers) {
       dayStore.night.customers.forEach(customer => {
         if (customer.customerName.toLowerCase().includes(searchTerm)) {
           const product = getProductById(data, customer.productId);

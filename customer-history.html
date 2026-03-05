@@ -20,7 +20,7 @@
       </div>
       <div class="topbar-controls">
         <button class="button" id="themeToggle" type="button">🌙 Dark</button>
-        <div id="userControls" style="display: flex; gap: 1rem; align-instruments: center;"></div>
+        <div id="userControls" style="display: flex; gap: 1rem; align-items: center;"></div>
       </div>
     </div>
   </header>
@@ -76,7 +76,7 @@
       const userControls = document.getElementById('userControls');
       if (user) {
         userControls.innerHTML = `
-          <span style="font-size: 14px;">Welcome, <strong>${user.displayName || user.email}</strong></span>
+          <span style="font-size: 14px; color: var(--text);">Welcome, <strong>${user.displayName || user.email}</strong></span>
           <button class="button" onclick="logoutUser()">Logout</button>
         `;
       }
