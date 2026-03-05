@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Add Product</title>
+</head>
+
+<body>
+  <h2>Adding Product...</h2>
+  <div id="status"></div>
+
+  <script src="assets/js/storage.js"></script>
+  <script>
+    const productName = "bigoo lemonade 350ml x 20";
+    const result = addProduct(productName);
+
+    const statusDiv = document.getElementById('status');
+    if (result.ok) {
+      statusDiv.innerHTML = `<p style="color: green;">✓ Successfully added: ${productName}</p>
+        <p><a href="products.html">Go to Products page</a></p>`;
+    } else {
+      statusDiv.innerHTML = `<p style="color: red;">Error: ${result.message}</p>
+        <p><a href="products.html">Go to Products page</a></p>`;
+    }
+  </script>
+</body>
+
+</html>

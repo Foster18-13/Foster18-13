@@ -54,6 +54,36 @@
             <option value="day">Day</option>
             <option value="night">Night</option>
           </select>
+          <button class="button" id="togglePurchaseBatchMode" type="button" style="margin-left: auto;">📦 Multiple
+            Entry</button>
+        </div>
+
+        <div id="purchaseBatchSection"
+          style="display: none; margin-bottom: 1rem; padding: 1rem; border: 1px solid #d0d5dd; border-radius: 8px;">
+          <form id="purchaseBatchForm">
+            <div class="grid-2" style="margin-bottom: 0.75rem;">
+              <div>
+                <label for="batchWaybill">Waybill Number</label>
+                <input class="input" id="batchWaybill" required />
+              </div>
+              <div>
+                <label for="batchVehicleNumber">Vehicle Number</label>
+                <input class="input" id="batchVehicleNumber" required />
+              </div>
+              <div>
+                <label for="batchDateReceived">Date Received</label>
+                <input class="input" id="batchDateReceived" type="date" required />
+              </div>
+            </div>
+
+            <div id="purchaseBatchRows"></div>
+
+            <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+              <button class="button" id="addPurchaseBatchRow" type="button">+ Add Product</button>
+              <button class="button button-primary" type="submit">Save Multiple Entries</button>
+              <button class="button" id="cancelPurchaseBatchMode" type="button">Cancel</button>
+            </div>
+          </form>
         </div>
 
         <form id="purchaseForm" class="grid-2">
@@ -78,7 +108,7 @@
             <input class="input" id="dateReceived" type="date" required />
           </div>
           <div class="align-end-row">
-            <button class="button button-primary" type="submit">Add Purchase Entry</button>
+            <button class="button button-primary" type="submit">Add Single Entry</button>
           </div>
         </form>
 
