@@ -47,7 +47,7 @@ body {
 }
 
 .logo {
-  width: 48px;
+  width: 65px;
   height: 48px;
   background: linear-gradient(135deg, var(--primary) 0%, #0a3d7a 100%);
   border-radius: 8px;
@@ -55,10 +55,10 @@ body {
   align-items: center;
   justify-content: center;
   font-family: "Arial Black", Arial, sans-serif;
-  font-size: 18px;
+  font-size: 13px;
   font-weight: 900;
   color: #ffffff;
-  letter-spacing: -1px;
+  letter-spacing: 0.5px;
   box-shadow: 0 2px 8px rgba(18, 84, 161, 0.3);
   flex-shrink: 0;
   transition: transform 0.2s;
