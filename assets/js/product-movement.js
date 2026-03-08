@@ -78,7 +78,7 @@ function viewProductMovement() {
       <h3 style="margin: 0 0 8px 0; font-size: 14px;">${product.name} - Movement Summary</h3>
       <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; font-size: 12px;">
         <div><strong>Total Received:</strong> ${totalReceived}</div>
-        <div><strong>Total Loaded:</strong> ${totalLoaded}</div>
+        <div><strong>Total Delivered:</strong> ${totalLoaded}</div>
         <div><strong>Total Damages:</strong> ${totalDamages}</div>
       </div>
     </div>
@@ -91,7 +91,7 @@ function viewProductMovement() {
             <th>Opening</th>
             <th>Received</th>
             <th>Returns</th>
-            <th>Loaded</th>
+            <th>Delivered</th>
             <th>Damages</th>
             <th>Closing</th>
           </tr>

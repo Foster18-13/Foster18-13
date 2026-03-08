@@ -333,12 +333,12 @@ function renderReport(reportData, previousData, periodLabel, startDate, endDate)
             <tr>
               <th>Product</th>
               <th class="number">Active Days</th>
-              <th class="number">Total Loaded</th>
+              <th class="number">Total Delivered</th>
               <th class="number">Total Received</th>
               <th class="number">Total Sold</th>
               <th class="number">Total Returns</th>
               <th class="number">Total Damages</th>
-              <th class="number">Avg Daily Load</th>
+              <th class="number">Avg Daily Delivered</th>
             </tr>
           </thead>
           <tbody>
@@ -422,9 +422,9 @@ function renderReport(reportData, previousData, periodLabel, startDate, endDate)
             <thead>
               <tr>
                 <th>Vehicle</th>
-                <th class="number">Total Loaded</th>
+                <th class="number">Total Delivered</th>
                 <th class="number">Different Products</th>
-                <th class="number">Avg Daily Load</th>
+                <th class="number">Avg Daily Delivered</th>
               </tr>
             </thead>
             <tbody>

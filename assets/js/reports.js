@@ -99,7 +99,7 @@ function generateReport() {
         <div><strong>Customer Orders:</strong> ${totalCustomers}</div>
         <div><strong>Purchase Orders:</strong> ${totalPurchases}</div>
         <div><strong>Total Received:</strong> ${totalReceived}</div>
-        <div><strong>Total Loaded:</strong> ${totalLoaded}</div>
+        <div><strong>Total Delivered:</strong> ${totalLoaded}</div>
         <div><strong>Total Damages:</strong> ${totalDamages}</div>
       </div>
     </div>
@@ -111,7 +111,7 @@ function generateReport() {
           <tr>
             <th>Product Name</th>
             <th>Total Received</th>
-            <th>Total Loaded</th>
+            <th>Total Delivered</th>
             <th>Total Damages</th>
             <th>Net Movement</th>
           </tr>
