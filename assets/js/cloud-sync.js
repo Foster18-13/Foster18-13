@@ -7,7 +7,8 @@ let cloudSyncState = {
   debounceTimer: null,
   firestore: null,
   auth: null,
-  docRef: null
+  docRef: null,
+  lastPullTime: 0
 };
 
 function hasFirebaseConfig() {
@@ -110,6 +111,10 @@ async function pullFromCloudIfNewer() {
 
   cloudSyncState.pullInProgress = true;
   try {
+    // Clear any pending push operations
+    globalThis.clearTimeout(cloudSyncState.debounceTimer);
+    cloudSyncState.debounceTimer = null;
+    
     const snapshot = await docRef.get();
     if (!snapshot.exists) return;
 
@@ -127,6 +132,7 @@ async function pullFromCloudIfNewer() {
 
     if (cloudUpdatedAt > localUpdatedAt || shouldRecoverFromCloud) {
       saveData(cloudData, true); // Preserve timestamp to avoid sync loop
+      cloudSyncState.lastPullTime = Date.now(); // Record pull time
       setCloudStatus(
         shouldRecoverFromCloud ? "Cloud recovery: historical data loaded" : "Cloud sync: latest data loaded",
         "ok"
@@ -138,6 +144,7 @@ async function pullFromCloudIfNewer() {
       }, 400);
     } else {
       // Data is up to date, mark as synced
+      cloudSyncState.lastPullTime = Date.now(); // Record check time
       sessionStorage.setItem('cloudSyncCompleted', 'true');
     }
   } catch (error) {
@@ -151,6 +158,12 @@ async function pushLocalToCloud() {
   if (!cloudSyncState.user || cloudSyncState.pushing) return;
   const docRef = getCloudDocRef();
   if (!docRef) return;
+
+  // Don't push within 5 seconds of pulling to avoid loops
+  const timeSinceLastPull = Date.now() - cloudSyncState.lastPullTime;
+  if (timeSinceLastPull < 5000) {
+    return;
+  }
 
   cloudSyncState.pushing = true;
   try {
@@ -324,12 +337,15 @@ function initCloudSync() {
 
       if (cloudSyncState.user) {
         await pullFromCloudIfNewer();
-        queueCloudPush();
+        // Don't push immediately after pull to avoid loops
       }
     });
 
     globalThis.addEventListener("warehouse:data-saved", () => {
-      queueCloudPush();
+      // Only push if user is signed in and not currently pulling
+      if (cloudSyncState.user && !cloudSyncState.pullInProgress) {
+        queueCloudPush();
+      }
     });
   } catch {
     cloudSyncState.enabled = false;

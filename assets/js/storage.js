@@ -458,7 +458,8 @@ function saveData(data, preserveTimestamp = false) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   addLocalBackupSnapshot(data);
 
-  if (typeof globalThis.dispatchEvent === "function") {
+  // Only dispatch event for local changes, not cloud syncs
+  if (!preserveTimestamp && typeof globalThis.dispatchEvent === "function") {
     globalThis.dispatchEvent(
       new CustomEvent("warehouse:data-saved", {
         detail: { data }
