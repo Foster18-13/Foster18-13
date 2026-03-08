@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Force Admin Init | Twellium Warehouse Portal</title>
+  <link rel="stylesheet" href="assets/css/style.css?v=20260224_v2" />
+  <style>
+    .init-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: #f5f5f5;
+      padding: 1rem;
+    }
+
+    .init-card {
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 500px;
+    }
+
+    .init-card h2 {
+      margin-bottom: 1.5rem;
+      text-align: center;
+      color: #333;
+    }
+
+    .status-message {
+      padding: 1rem;
+      border-radius: 4px;
+      margin-bottom: 1rem;
+      font-size: 14px;
+    }
+
+    .status-ok {
+      color: #155724;
+      background: #d4edda;
+    }
+
+    .status-error {
+      color: #842029;
+      background: #f8d7da;
+    }
+
+    .status-info {
+      color: #004085;
+      background: #cce5ff;
+    }
+  </style>
+</head>
+
+<body>
+  <button class="button" id="themeToggle" type="button"
+    style="position: fixed; top: 1rem; right: 1rem; z-index: 1000;">🌙 Dark</button>
+  <div class="init-container">
+    <div class="init-card">
+      <h2>Admin Force Init</h2>
+      <div id="statusMessages"></div>
+      <button class="button button-primary" id="initBtn" type="button" style="width: 100%;">Initialize Admin
+        Profile</button>
+      <p style="margin-top: 1rem; font-size: 12px; color: #666; text-align: center;">
+        This only works for: antwifosterfrimpong@gmail.com
+      </p>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="assets/js/firebase-config.js"></script>
+  <script src="assets/js/theme-toggle.js"></script>
+  <script>
+    if (!firebase.apps.length) {
+      firebase.initializeApp(FIREBASE_CONFIG);
+    }
+
+    const FORCED_ADMIN_EMAIL = "antwifosterfrimpong@gmail.com";
+
+    function showStatus(message, type = 'info') {
+      const container = document.getElementById('statusMessages');
+      const div = document.createElement('div');
+      div.className = `status-message status-${type}`;
+      div.textContent = message;
+      container.appendChild(div);
+    }
+
+    document.getElementById('initBtn').addEventListener('click', async () => {
+      const btn = document.getElementById('initBtn');
+      const container = document.getElementById('statusMessages');
+      container.innerHTML = '';
+
+      try {
+        btn.disabled = true;
+        btn.textContent = 'Initializing...';
+
+        const user = firebase.auth().currentUser;
+        if (!user) {
+          showStatus('Not signed in. Please sign in with ' + FORCED_ADMIN_EMAIL + ' first.', 'error');
+          btn.disabled = false;
+          btn.textContent = 'Initialize Admin Profile';
+          return;
+        }
+
+        if (user.email?.toLowerCase() !== FORCED_ADMIN_EMAIL) {
+          showStatus('Access denied. This tool only works for: ' + FORCED_ADMIN_EMAIL, 'error');
+          btn.disabled = false;
+          btn.textContent = 'Initialize Admin Profile';
+          return;
+        }
+
+        showStatus('Creating admin profile for ' + user.email + '...', 'info');
+
+        await firebase.firestore().collection('users').doc(user.uid).set({
+          username: user.displayName || user.email || 'Admin',
+          email: user.email,
+          uid: user.uid,
+          role: 'admin',
+          approved: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+
+        showStatus('Admin profile created successfully!', 'ok');
+        showStatus('Redirecting to home...', 'info');
+
+        setTimeout(() => {
+          window.location.href = 'home.html';
+        }, 2000);
+
+      } catch (error) {
+        console.error('Init error:', error);
+        if (error.code === 'permission-denied') {
+          showStatus('Firestore rules are blocking admin creation. Update rules to allow forced admin emails to create with role=admin.', 'error');
+        } else {
+          showStatus('Failed: ' + (error.message || 'Unknown error'), 'error');
+        }
+        btn.disabled = false;
+        btn.textContent = 'Initialize Admin Profile';
+      }
+    });
+
+    firebase.auth().onAuthStateChanged((user) => {
+      if (user) {
+        showStatus('Signed in as: ' + (user.email || 'Unknown'), 'ok');
+      } else {
+        showStatus('Not signed in. Sign in via login page with ' + FORCED_ADMIN_EMAIL, 'info');
+      }
+    });
+  </script>
+</body>
+
+</html>

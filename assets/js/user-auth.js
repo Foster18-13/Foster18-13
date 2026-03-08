@@ -94,7 +94,7 @@ async function resolveUserRole(user) {
           email: user.email || '',
           uid: user.uid,
           role,
-          approved: forcedAdmin,
+          approved: true,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         }, { merge: true });
@@ -205,7 +205,7 @@ function setupRegistrationForm() {
         username: username,
         email: email,
         role,
-        approved: false,
+        approved: true,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         uid: userCredential.user.uid
@@ -224,22 +224,14 @@ function setupRegistrationForm() {
       successMsg.style.borderRadius = '4px';
       successMsg.style.marginBottom = '1rem';
       
-      // Check if user is forced admin or regular user
-      if (isForcedAdminEmail(email)) {
-        successMsg.textContent = 'Admin account created successfully! Redirecting to home...';
-        form.parentElement.insertBefore(successMsg, form);
-        // Redirect to home after 1 second
-        setTimeout(() => {
-          globalThis.location.href = 'home.html';
-        }, 1000);
-      } else {
-        successMsg.textContent = 'Account created! Your account is pending admin approval. You will be notified once approved.';
-        form.parentElement.insertBefore(successMsg, form);
-        // Redirect to login after 3 seconds
-        setTimeout(() => {
-          globalThis.location.href = 'login.html';
-        }, 3000);
-      }
+      // Show success and redirect
+      successMsg.textContent = 'Account created successfully! Redirecting to home...';
+      form.parentElement.insertBefore(successMsg, form);
+      
+      // Redirect to home after 1 second
+      setTimeout(() => {
+        globalThis.location.href = 'home.html';
+      }, 1000);
 
     } catch (error) {
       submitBtn.disabled = false;
