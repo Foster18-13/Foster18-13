@@ -1,14 +1,16 @@
 function renderProducts() {
   const tbody = document.querySelector("#productTable tbody");
   const data = loadData();
+  const currentDate = getCurrentWorkingDate();
+  const activeProducts = getActiveProductsForDate(data, currentDate);
 
-  if (!data.products.length) {
-    tbody.innerHTML = `<tr><td colspan="2">No products found.</td></tr>`;
+  if (!activeProducts.length) {
+    tbody.innerHTML = `<tr><td colspan="2">No products found for this date.</td></tr>`;
     return;
   }
 
   // Sort products alphabetically by name
-  const sortedProducts = [...data.products].sort((a, b) => {
+  const sortedProducts = [...activeProducts].sort((a, b) => {
     return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
   });
 

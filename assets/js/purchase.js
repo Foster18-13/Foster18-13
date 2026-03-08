@@ -1,7 +1,9 @@
 function renderPurchaseProductOptions() {
   const productSelect = document.getElementById("productId");
   const data = loadData();
-  productSelect.innerHTML = createProductOptions(data.products);
+  const currentDate = document.getElementById('workingDate')?.value || todayISO();
+  const activeProducts = getActiveProductsForDate(data, currentDate);
+  productSelect.innerHTML = createProductOptions(activeProducts);
 }
 
 function renderPurchaseTable() {
@@ -83,11 +85,13 @@ function addPurchaseEntry(event) {
 
 function createPurchaseBatchRow() {
   const data = loadData();
+  const currentDate = document.getElementById('workingDate')?.value || todayISO();
+  const activeProducts = getActiveProductsForDate(data, currentDate);
   return `
     <div class="grid-2 purchase-batch-row" style="margin-bottom: 0.5rem; padding: 0.5rem; border: 1px solid #eaecf0; border-radius: 6px;">
       <div>
         <label>Product Name</label>
-        <select class="select batch-product-id" required>${createProductOptions(data.products)}</select>
+        <select class="select batch-product-id" required>${createProductOptions(activeProducts)}</select>
       </div>
       <div style="display: flex; gap: 0.5rem; align-items: end;">
         <div style="flex: 1;">

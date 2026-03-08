@@ -3,14 +3,15 @@ function renderSummary() {
   const data = loadData();
   const date = getSelectedDate();
   const dayStore = getShiftStore(data, date);
+  const activeProducts = getActiveProductsForDate(data, date);
 
-  if (!data.products.length) {
-    tbody.innerHTML = `<tr><td colspan="2">No products found. Add products from the Products page.</td></tr>`;
+  if (!activeProducts.length) {
+    tbody.innerHTML = `<tr><td colspan="2">No products available for this date.</td></tr>`;
     return;
   }
 
   // Sort products alphabetically by name
-  const sortedProducts = [...data.products].sort((a, b) => {
+  const sortedProducts = [...activeProducts].sort((a, b) => {
     return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
   });
 

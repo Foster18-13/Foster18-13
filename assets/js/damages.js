@@ -1,7 +1,9 @@
 function renderDamageProductOptions() {
   const productSelect = document.getElementById("productIdDamage");
   const data = loadData();
-  productSelect.innerHTML = '<option value="">-- Select product --</option>' + createProductOptions(data.products);
+  const currentDate = document.getElementById('workingDate')?.value || todayISO();
+  const activeProducts = getActiveProductsForDate(data, currentDate);
+  productSelect.innerHTML = '<option value="">-- Select product --</option>' + createProductOptions(activeProducts);
 }
 
 function renderDamagesTable() {

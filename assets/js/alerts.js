@@ -45,12 +45,13 @@ function checkStockAlerts() {
   const date = getSelectedDate();
   const shift = getSelectedShift();
   const dayStore = getShiftStore(data, date);
+  const activeProducts = getActiveProductsForDate(data, date);
   
   const lowStockItems = [];
   
   // Check balance sheet for low stock
   if (dayStore.balance) {
-    data.products.forEach(product => {
+    activeProducts.forEach(product => {
       const productBalance = dayStore.balance[product.id] || {};
       const closing = Number.parseFloat(productBalance.closing) || 0;
       

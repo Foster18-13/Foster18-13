@@ -1,7 +1,9 @@
 function renderCustomerProductOptions() {
   const productSelect = document.getElementById("productId");
   const data = loadData();
-  productSelect.innerHTML = createProductOptions(data.products);
+  const currentDate = document.getElementById('workingDate')?.value || todayISO();
+  const activeProducts = getActiveProductsForDate(data, currentDate);
+  productSelect.innerHTML = createProductOptions(activeProducts);
 }
 
 function renderCustomerNameSuggestions() {
@@ -347,7 +349,9 @@ function addBatchProductRow() {
   const rowId = `batch-row-${batchRowCounter++}`;
   
   const data = loadData();
-  const productOptions = createProductOptions(data.products);
+  const currentDate = document.getElementById('workingDate')?.value || todayISO();
+  const activeProducts = getActiveProductsForDate(data, currentDate);
+  const productOptions = createProductOptions(activeProducts);
   
   const rowDiv = document.createElement("div");
   rowDiv.className = "grid-2";

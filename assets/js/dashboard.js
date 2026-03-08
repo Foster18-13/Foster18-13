@@ -2,9 +2,10 @@ function renderDashboard() {
   const data = loadData();
   const date = getSelectedDate();
   const dayStore = getShiftStore(data, date);
+  const activeProducts = getActiveProductsForDate(data, date);
 
   // Total products
-  document.getElementById('totalProducts').textContent = data.products.length;
+  document.getElementById('totalProducts').textContent = activeProducts.length;
 
   // Calculate totals
   let totalStock = 0;
@@ -17,7 +18,7 @@ function renderDashboard() {
   const lowStockProducts = [];
   const productMovements = [];
 
-  data.products.forEach(product => {
+  activeProducts.forEach(product => {
     const balance = dayStore.balance[product.id] || {};
     const recording = dayStore.recording[product.id] || { entries: [] };
     

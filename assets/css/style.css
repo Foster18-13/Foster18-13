@@ -255,7 +255,9 @@ textarea {
   border-radius: 8px;
   border: 1px solid var(--border);
   background: #fff;
-  font-size: 10px;
+  font-size: 11px;
+  line-height: 1.35;
+  font-family: "Segoe UI", "Segoe UI Emoji", "Noto Color Emoji", "Apple Color Emoji", Arial, sans-serif;
 }
 
 .main-nav a.active {

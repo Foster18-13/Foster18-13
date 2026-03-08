@@ -69,10 +69,11 @@ function renderRecordingTable() {
   const date = getSelectedDate();
   const dayStore = getShiftStore(data, date);
   const columns = dayStore.recordingColumns;
+  const activeProducts = getActiveProductsForDate(data, date);
 
-  if (!data.products.length) {
+  if (!activeProducts.length) {
     tableHead.innerHTML = "";
-    tbody.innerHTML = `<tr><td>No products found. Add products from the Products page.</td></tr>`;
+    tbody.innerHTML = `<tr><td>No products available for this date.</td></tr>`;
     return;
   }
 
@@ -84,7 +85,7 @@ function renderRecordingTable() {
   tableHead.innerHTML = `<tr>${headers.map((header) => `<th>${header}</th>`).join("")}</tr>`;
 
   // Sort products alphabetically by name
-  const sortedProducts = [...data.products].sort((a, b) => {
+  const sortedProducts = [...activeProducts].sort((a, b) => {
     return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
   });
 

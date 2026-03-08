@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Period Reports | Twellium Warehouse Portal</title>
+  <link rel="stylesheet" href="assets/css/style.css?v=20260224_v2" />
+  <style>
+    .period-selector {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .period-tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .period-tab {
+      padding: 0.75rem 1.5rem;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .period-tab.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .period-tab:hover:not(.active) {
+      background: var(--hover);
+    }
+
+    .report-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .summary-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      text-align: center;
+    }
+
+    .summary-card .value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin: 0.5rem 0;
+    }
+
+    .summary-card .label {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .summary-card .trend {
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+    }
+
+    .trend.up {
+      color: var(--success);
+    }
+
+    .trend.down {
+      color: var(--error);
+    }
+
+    .report-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .report-section h3 {
+      margin-top: 0;
+      color: var(--primary);
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .report-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .report-table th,
+    .report-table td {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .report-table th {
+      background: var(--hover);
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+    }
+
+    .report-table tr:hover {
+      background: var(--hover);
+    }
+
+    .report-table .number {
+      text-align: right;
+      font-family: 'Courier New', monospace;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .chart-container {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: white;
+      border-radius: 6px;
+      min-height: 200px;
+    }
+
+    .no-data {
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-secondary);
+    }
+
+    @media print {
+
+      .page-header,
+      .period-selector,
+      .action-buttons {
+        display: none;
+      }
+
+      .report-section {
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page-header">
+    <div class="container">
+      <h1>📊 Period Reports</h1>
+      <div class="header-right">
+        <span class="welcome-text">Welcome, <strong id="currentUserName">User</strong></span>
+        <button class="button" id="signOutButton">Sign Out</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="page-toolbar">
+      <button class="button" onclick="goBack()">← Back</button>
+      <button class="button button-primary" onclick="window.location.href='dashboard.html'">Dashboard</button>
+    </div>
+
+    <div class="period-selector">
+      <div class="period-tabs">
+        <div class="period-tab active" onclick="selectPeriodType('monthly')">Monthly</div>
+        <div class="period-tab" onclick="selectPeriodType('quarterly')">Quarterly</div>
+        <div class="period-tab" onclick="selectPeriodType('yearly')">Yearly</div>
+      </div>
+
+      <div id="monthlySelector" class="period-options">
+        <div class="grid-3">
+          <div>
+            <label for="monthSelect">Select Month</label>
+            <select id="monthSelect" class="select">
+              <option value="">-- Select Month --</option>
+            </select>
+          </div>
+          <div>
+            <label for="yearSelect">Year</label>
+            <select id="yearSelect" class="select">
+              <option value="">-- Select Year --</option>
+            </select>
+          </div>
+          <div style="display: flex; align-items: flex-end;">
+            <button class="button button-primary" onclick="generateReport()" style="width: 100%;">Generate
+              Report</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="quarterlySelector" class="period-options" style="display: none;">
+        <div class="grid-3">
+          <div>
+            <label for="quarterSelect">Select Quarter</label>
+            <select id="quarterSelect" class="select">
+              <option value="Q1">Q1 (Jan-Mar)</option>
+              <option value="Q2">Q2 (Apr-Jun)</option>
+              <option value="Q3">Q3 (Jul-Sep)</option>
+              <option value="Q4">Q4 (Oct-Dec)</option>
+            </select>
+          </div>
+          <div>
+            <label for="quarterYear">Year</label>
+            <select id="quarterYear" class="select">
+              <option value="">-- Select Year --</option>
+            </select>
+          </div>
+          <div style="display: flex; align-items: flex-end;">
+            <button class="button button-primary" onclick="generateReport()" style="width: 100%;">Generate
+              Report</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="yearlySelector" class="period-options" style="display: none;">
+        <div class="grid-3">
+          <div>
+            <label for="yearlyYear">Select Year</label>
+            <select id="yearlyYear" class="select">
+              <option value="">-- Select Year --</option>
+            </select>
+          </div>
+          <div></div>
+          <div style="display: flex; align-items: flex-end;">
+            <button class="button button-primary" onclick="generateReport()" style="width: 100%;">Generate
+              Report</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="reportResults"></div>
+  </div>
+
+  <script type="module">
+    import { auth } from './assets/js/firebase-config.js';
+    import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        const displayName = user.displayName || user.email || 'User';
+        document.getElementById('currentUserName').textContent = displayName;
+      } else {
+        window.location.href = 'login.html';
+      }
+    });
+
+    document.getElementById('signOutButton').addEventListener('click', async () => {
+      try {
+        await signOut(auth);
+        window.location.href = 'login.html';
+      } catch (error) {
+        console.error('Sign out error:', error);
+        alert('Error signing out. Please try again.');
+      }
+    });
+  </script>
+
+  <script src="assets/js/storage.js"></script>
+  <script src="assets/js/common.js"></script>
+  <script src="assets/js/period-reports.js"></script>
+</body>
+
+</html>

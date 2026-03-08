@@ -66,7 +66,8 @@ function defaultData() {
     products: REQUIRED_PRODUCTS.map((name) => ({
       id: generateId("product"),
       name,
-      palletFactor: inferPalletFactorFromName(name)
+      palletFactor: inferPalletFactorFromName(name),
+      addedDate: null
     })),
     daily: {},
     _meta: {
@@ -678,12 +679,45 @@ function getProductById(data, productId) {
   return data.products.find((item) => item.id === productId);
 }
 
+function getActiveProductsForDate(data, dateString) {
+  if (!dateString) return data.products;
+  
+  return data.products.filter((product) => {
+    const addedDate = product.addedDate;
+    const deletedDate = product.deletedDate;
+    
+    // If product has addedDate, check if date is on or after addedDate
+    if (addedDate && dateString < addedDate) {
+      return false;
+    }
+    
+    // If product has deletedDate, check if date is before deletedDate
+    if (deletedDate && dateString >= deletedDate) {
+      return false;
+    }
+    
+    return true;
+  });
+}
+
+function getCurrentWorkingDate() {
+  const dateInput = document.getElementById('workingDate');
+  if (dateInput && dateInput.value) {
+    return dateInput.value;
+  }
+  return todayISO();
+}
+
 function addProduct(name) {
   const clean = String(name || "").trim();
   if (!clean) return { ok: false, message: "Product name is required." };
 
   const data = loadData();
-  const exists = data.products.some((product) => product.name.toLowerCase() === clean.toLowerCase());
+  const currentDate = getCurrentWorkingDate();
+  
+  // Check if product exists and is active for current date
+  const activeProducts = getActiveProductsForDate(data, currentDate);
+  const exists = activeProducts.some((product) => product.name.toLowerCase() === clean.toLowerCase());
   if (exists) return { ok: false, message: "Product already exists." };
 
   const deletedRequired = getDeletedRequiredSet(data);
@@ -698,9 +732,10 @@ function addProduct(name) {
   data.products.push({
     id: generateId("product"),
     name: clean,
-    palletFactor: inferPalletFactorFromName(clean)
+    palletFactor: inferPalletFactorFromName(clean),
+    addedDate: currentDate
   });
-  pushAuditLogEntry(data, "Product added", { productName: clean });
+  pushAuditLogEntry(data, "Product added", { productName: clean, effectiveDate: currentDate });
   saveData(data);
   return { ok: true };
 }
@@ -750,7 +785,12 @@ function updateProduct(productId, newName) {
 function deleteProduct(productId) {
   const data = loadData();
   const target = data.products.find((item) => item.id === productId);
-  data.products = data.products.filter((item) => item.id !== productId);
+  if (!target) return { ok: false, message: "Product not found." };
+  
+  const currentDate = getCurrentWorkingDate();
+  
+  // Mark product as deleted from current date onwards
+  target.deletedDate = currentDate;
 
   if (target) {
     const targetKey = String(target.name || "").toLowerCase().trim();
@@ -765,21 +805,26 @@ function deleteProduct(productId) {
     }
   }
 
-  Object.values(data.daily).forEach((day) => {
-    ["day", "night"].forEach((shiftId) => {
-      const shift = day[shiftId];
-      if (!shift) return;
-      if (shift.recording) delete shift.recording[productId];
-      if (shift.balance) delete shift.balance[productId];
-      if (Array.isArray(shift.purchases)) {
-        shift.purchases = shift.purchases.filter((purchase) => purchase.productId !== productId);
-      }
-    });
+  // Remove records only for current date and future dates
+  Object.keys(data.daily).forEach((dateKey) => {
+    if (dateKey >= currentDate) {
+      const day = data.daily[dateKey];
+      ["day", "night"].forEach((shiftId) => {
+        const shift = day[shiftId];
+        if (!shift) return;
+        if (shift.recording) delete shift.recording[productId];
+        if (shift.balance) delete shift.balance[productId];
+        if (Array.isArray(shift.purchases)) {
+          shift.purchases = shift.purchases.filter((purchase) => purchase.productId !== productId);
+        }
+      });
+    }
   });
 
   pushAuditLogEntry(data, "Product deleted", {
     productName: target?.name || "Unknown product",
-    productId
+    productId,
+    effectiveDate: currentDate
   });
   saveData(data);
   return { ok: true };
