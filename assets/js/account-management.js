@@ -151,11 +151,21 @@ async function saveSelectedUserRole() {
   }
 }
 
-function initRoleManagement() {
+async function initRoleManagement() {
   const section = document.getElementById('roleManagementSection');
   if (!section) return;
 
-  const role = typeof getCurrentUserRole === 'function' ? getCurrentUserRole() : 'clerk';
+  const currentUser = firebase.auth().currentUser;
+  const role = await Promise.resolve(
+    typeof resolveUserRole === 'function' && currentUser
+      ? resolveUserRole(currentUser)
+      : (typeof getCurrentUserRole === 'function' ? getCurrentUserRole() : 'clerk')
+  );
+
+  if (currentUser && typeof saveUserAuthState === 'function') {
+    saveUserAuthState(currentUser, role);
+  }
+
   const isAdmin = typeof hasRoleAccess === 'function' ? hasRoleAccess(role, 'admin') : role === 'admin';
   if (!isAdmin) {
     section.style.display = 'none';
@@ -182,7 +192,7 @@ function initRoleManagement() {
     });
   }
 
-  loadUsersForRoleManagement();
+  await loadUsersForRoleManagement();
 }
 
 async function updateUserProfile(displayName, email) {

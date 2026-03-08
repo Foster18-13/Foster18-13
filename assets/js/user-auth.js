@@ -48,29 +48,40 @@ async function resolveUserRole(user) {
 
     if (!doc.exists) {
       const role = forcedAdmin ? "admin" : DEFAULT_USER_ROLE;
-      await usersRef.set({
-        username: user.displayName || user.email || '',
-        email: user.email || '',
-        uid: user.uid,
-        role,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }, { merge: true });
+      try {
+        await usersRef.set({
+          username: user.displayName || user.email || '',
+          email: user.email || '',
+          uid: user.uid,
+          role,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      } catch (error) {
+        console.error('Failed to initialize user profile in Firestore:', error);
+      }
       return role;
     }
 
     const currentRole = normalizeUserRole(doc.data()?.role);
     const role = forcedAdmin ? "admin" : currentRole;
     if (role !== doc.data()?.role) {
-      await usersRef.set({
-        role,
-        updatedAt: new Date().toISOString()
-      }, { merge: true });
+      try {
+        await usersRef.set({
+          role,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      } catch (error) {
+        console.error('Failed to sync user role in Firestore:', error);
+      }
     }
 
     return role;
   } catch (error) {
     console.error('Failed to resolve user role:', error);
+    if (isForcedAdminEmail(user?.email)) {
+      return "admin";
+    }
     return DEFAULT_USER_ROLE;
   }
 }
