@@ -19,16 +19,8 @@ function hasRoleAccess(currentRole, minimumRole) {
 }
 
 async function getDefaultRoleForNewUser() {
-  try {
-    const existingAdmin = await firebase.firestore()
-      .collection('users')
-      .where('role', '==', 'admin')
-      .limit(1)
-      .get();
-    return existingAdmin.empty ? 'admin' : DEFAULT_USER_ROLE;
-  } catch {
-    return DEFAULT_USER_ROLE;
-  }
+  // All new users start as clerk - admin must be assigned manually
+  return DEFAULT_USER_ROLE;
 }
 
 async function resolveUserRole(user) {
