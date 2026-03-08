@@ -1,11 +1,23 @@
 // User Account Authentication System
 const USER_AUTH_STORAGE_KEY = "warehousePortalUserAuth";
 const DEFAULT_USER_ROLE = "clerk";
+const FORCED_ADMIN_EMAILS = [
+  "antwifosterfrimpong@gmail.com"
+];
 const USER_ROLE_PRIORITY = {
   clerk: 1,
   supervisor: 2,
   admin: 3
 };
+
+function normalizeEmail(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function isForcedAdminEmail(email) {
+  const target = normalizeEmail(email);
+  return target && FORCED_ADMIN_EMAILS.some((item) => normalizeEmail(item) === target);
+}
 
 function normalizeUserRole(role) {
   const normalized = String(role || "").toLowerCase().trim();
@@ -18,7 +30,10 @@ function hasRoleAccess(currentRole, minimumRole) {
   return current >= minimum;
 }
 
-async function getDefaultRoleForNewUser() {
+async function getDefaultRoleForNewUser(email = "") {
+  if (isForcedAdminEmail(email)) {
+    return "admin";
+  }
   // All new users start as clerk - admin must be assigned manually
   return DEFAULT_USER_ROLE;
 }
@@ -29,20 +44,23 @@ async function resolveUserRole(user) {
   try {
     const usersRef = firebase.firestore().collection('users').doc(user.uid);
     const doc = await usersRef.get();
+    const forcedAdmin = isForcedAdminEmail(user.email);
 
     if (!doc.exists) {
+      const role = forcedAdmin ? "admin" : DEFAULT_USER_ROLE;
       await usersRef.set({
         username: user.displayName || user.email || '',
         email: user.email || '',
         uid: user.uid,
-        role: DEFAULT_USER_ROLE,
+        role,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       }, { merge: true });
-      return DEFAULT_USER_ROLE;
+      return role;
     }
 
-    const role = normalizeUserRole(doc.data()?.role);
+    const currentRole = normalizeUserRole(doc.data()?.role);
+    const role = forcedAdmin ? "admin" : currentRole;
     if (role !== doc.data()?.role) {
       await usersRef.set({
         role,
@@ -128,7 +146,7 @@ function setupRegistrationForm() {
         displayName: username
       });
 
-      const role = await getDefaultRoleForNewUser();
+      const role = await getDefaultRoleForNewUser(email);
 
       // Store user data in Firestore
       await firebase.firestore().collection('users').doc(userCredential.user.uid).set({
