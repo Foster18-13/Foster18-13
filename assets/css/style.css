@@ -772,8 +772,14 @@ input[data-total] {
 }
 
 [data-theme="dark"] td:first-child {
+  background: var(--surface);
   color: var(--text);
   font-weight: 600;
+}
+
+[data-theme="dark"] th:first-child {
+  background: var(--surface-alt);
+  color: var(--text);
 }
 
 [data-theme="dark"] label {
