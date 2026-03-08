@@ -80,6 +80,31 @@ function searchInProducts(data, query) {
   });
 }
 
+// Helper function to find product name by ID
+function getProductName(products, productId) {
+  const product = products.find(p => p.id === productId);
+  return product?.name || 'Unknown';
+}
+
+// Helper function to process balance entry
+function processBalanceEntry(productId, balance, date, shift, query, data) {
+  const productName = getProductName(data.products, productId);
+  
+  if (productName.toLowerCase().includes(query) || 
+      date.includes(query) || 
+      shift.includes(query)) {
+    searchResults.push({
+      type: 'Balance',
+      title: `${productName} - ${date} (${shift})`,
+      details: `Opening: ${balance.opening || 0}, Closing: ${balance.closing || 0}`,
+      link: `balance.html?date=${date}&shift=${shift}`,
+      date: date,
+      shift: shift,
+      icon: '📊'
+    });
+  }
+}
+
 // Search in balance sheets
 function searchInBalance(data, query) {
   Object.entries(data.daily || {}).forEach(([date, dayData]) => {
@@ -88,25 +113,40 @@ function searchInBalance(data, query) {
       if (!shiftData?.balance) return;
       
       Object.entries(shiftData.balance).forEach(([productId, balance]) => {
-        const product = data.products.find(p => p.id === productId);
-        const productName = product?.name || 'Unknown';
-        
-        if (productName.toLowerCase().includes(query) || 
-            date.includes(query) || 
-            shift.includes(query)) {
-          searchResults.push({
-            type: 'Balance',
-            title: `${productName} - ${date} (${shift})`,
-            details: `Opening: ${balance.opening || 0}, Closing: ${balance.closing || 0}`,
-            link: `balance.html?date=${date}&shift=${shift}`,
-            date: date,
-            shift: shift,
-            icon: '📊'
-          });
-        }
+        processBalanceEntry(productId, balance, date, shift, query, data);
       });
     });
   });
+}
+
+// Helper function to process recording entry
+function processRecordingEntry(entry, productName, date, shift, query) {
+  if (entry && (
+    entry.waybill?.toLowerCase().includes(query) ||
+    productName.toLowerCase().includes(query) ||
+    date.includes(query)
+  )) {
+    searchResults.push({
+      type: 'Recording',
+      title: `Waybill: ${entry.waybill} - ${productName}`,
+      details: `Date: ${date} (${shift}), Qty: ${entry.qty}`,
+      link: `returns.html?date=${date}&shift=${shift}`,
+      date: date,
+      shift: shift,
+      icon: '📝'
+    });
+  }
+}
+
+// Helper function to process recording entries for a product
+function processRecordingEntries(productId, recording, date, shift, query, data) {
+  const productName = getProductName(data.products, productId);
+  
+  if (recording.entries && Array.isArray(recording.entries)) {
+    recording.entries.forEach((entry) => {
+      processRecordingEntry(entry, productName, date, shift, query);
+    });
+  }
 }
 
 // Search in recording sheets
@@ -117,31 +157,30 @@ function searchInRecording(data, query) {
       if (!shiftData?.recording) return;
       
       Object.entries(shiftData.recording).forEach(([productId, recording]) => {
-        const product = data.products.find(p => p.id === productId);
-        const productName = product?.name || 'Unknown';
-        
-        if (recording.entries && Array.isArray(recording.entries)) {
-          recording.entries.forEach((entry, index) => {
-            if (entry && (
-              entry.waybill?.toLowerCase().includes(query) ||
-              productName.toLowerCase().includes(query) ||
-              date.includes(query)
-            )) {
-              searchResults.push({
-                type: 'Recording',
-                title: `Waybill: ${entry.waybill} - ${productName}`,
-                details: `Date: ${date} (${shift}), Qty: ${entry.qty}`,
-                link: `returns.html?date=${date}&shift=${shift}`,
-                date: date,
-                shift: shift,
-                icon: '📝'
-              });
-            }
-          });
-        }
+        processRecordingEntries(productId, recording, date, shift, query, data);
       });
     });
   });
+}
+
+// Helper function to process customer entry
+function processCustomerEntry(customer, date, shift, query, data) {
+  const productName = getProductName(data.products, customer.productId);
+  
+  if (customer.customerName?.toLowerCase().includes(query) ||
+      customer.waybillNumber?.toLowerCase().includes(query) ||
+      productName.toLowerCase().includes(query) ||
+      date.includes(query)) {
+    searchResults.push({
+      type: 'Customer',
+      title: `${customer.customerName} - ${customer.waybillNumber}`,
+      details: `Product: ${productName}, Date: ${date} (${shift}), Qty: ${customer.quantity}`,
+      link: `customers.html?date=${date}&shift=${shift}`,
+      date: date,
+      shift: shift,
+      icon: '👤'
+    });
+  }
 }
 
 // Search in customers
@@ -152,26 +191,29 @@ function searchInCustomers(data, query) {
       if (!shiftData?.customers) return;
       
       shiftData.customers.forEach(customer => {
-        const product = data.products.find(p => p.id === customer.productId);
-        const productName = product?.name || 'Unknown';
-        
-        if (customer.customerName?.toLowerCase().includes(query) ||
-            customer.waybillNumber?.toLowerCase().includes(query) ||
-            productName.toLowerCase().includes(query) ||
-            date.includes(query)) {
-          searchResults.push({
-            type: 'Customer',
-            title: `${customer.customerName} - ${customer.waybillNumber}`,
-            details: `Product: ${productName}, Date: ${date} (${shift}), Qty: ${customer.quantity}`,
-            link: `customers.html?date=${date}&shift=${shift}`,
-            date: date,
-            shift: shift,
-            icon: '👤'
-          });
-        }
+        processCustomerEntry(customer, date, shift, query, data);
       });
     });
   });
+}
+
+// Helper function to process purchase entry
+function processPurchaseEntry(purchase, date, shift, query, data) {
+  const productName = getProductName(data.products, purchase.productId);
+  
+  if (productName.toLowerCase().includes(query) ||
+      date.includes(query) ||
+      purchase.supplier?.toLowerCase().includes(query)) {
+    searchResults.push({
+      type: 'Purchase',
+      title: `Purchase: ${productName}`,
+      details: `Supplier: ${purchase.supplier || 'N/A'}, Date: ${date} (${shift}), Qty: ${purchase.quantity}`,
+      link: `purchase.html?date=${date}&shift=${shift}`,
+      date: date,
+      shift: shift,
+      icon: '🛒'
+    });
+  }
 }
 
 // Search in purchases
@@ -182,22 +224,7 @@ function searchInPurchases(data, query) {
       if (!shiftData?.purchases) return;
       
       shiftData.purchases.forEach(purchase => {
-        const product = data.products.find(p => p.id === purchase.productId);
-        const productName = product?.name || 'Unknown';
-        
-        if (productName.toLowerCase().includes(query) ||
-            date.includes(query) ||
-            purchase.supplier?.toLowerCase().includes(query)) {
-          searchResults.push({
-            type: 'Purchase',
-            title: `Purchase: ${productName}`,
-            details: `Supplier: ${purchase.supplier || 'N/A'}, Date: ${date} (${shift}), Qty: ${purchase.quantity}`,
-            link: `purchase.html?date=${date}&shift=${shift}`,
-            date: date,
-            shift: shift,
-            icon: '🛒'
-          });
-        }
+        processPurchaseEntry(purchase, date, shift, query, data);
       });
     });
   });
@@ -221,8 +248,10 @@ function displaySearchResults(query) {
       return b.date.localeCompare(a.date);
     });
     
-    resultsContainer.innerHTML = searchResults.map((result, index) => `
-      <div class="search-result-item" onclick="navigateToResult('${result.link.replaceAll("'", "\\'")}')">
+    resultsContainer.innerHTML = searchResults.map((result, index) => {
+      const escapedLink = result.link.replaceAll("'", "&apos;");
+      return `
+      <div class="search-result-item" onclick="navigateToResult('${escapedLink}')">
         <div class="search-result-icon">${result.icon}</div>
         <div class="search-result-content">
           <div class="search-result-type">${result.type}</div>
@@ -231,7 +260,8 @@ function displaySearchResults(query) {
         </div>
         <div class="search-result-arrow">→</div>
       </div>
-    `).join('');
+    `;
+    }).join('');
   }
   
   modal.style.display = 'flex';

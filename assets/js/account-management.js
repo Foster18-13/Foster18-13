@@ -315,25 +315,7 @@ async function rejectUserById(userId, btnElement) {
   }
 }
 
-async function initPendingApprovals() {
-  const section = document.getElementById('pendingApprovalsSection');
-  if (!section) return;
-
-  const tbody = document.querySelector('#pendingUsersTable tbody');
-  const refreshButton = document.getElementById('refreshPendingUsersBtn');
-
-  if (AUTO_APPROVAL_ENABLED) {
-    section.style.display = 'block';
-    if (refreshButton) {
-      refreshButton.style.display = 'none';
-    }
-    if (tbody) {
-      tbody.innerHTML = '<tr><td colspan="4">Auto-approval is enabled. New accounts can log in immediately.</td></tr>';
-    }
-    return;
-  }
-
-  const currentUser = firebase.auth().currentUser;
+async function getUserRole(currentUser) {
   let fallbackRole = 'clerk';
   if (typeof getCurrentUserRole === 'function') {
     fallbackRole = getCurrentUserRole();
@@ -344,21 +326,52 @@ async function initPendingApprovals() {
     resolvedRoleValue = resolveUserRole(currentUser);
   }
 
-  const role = await Promise.resolve(
-    resolvedRoleValue
-  );
+  return await Promise.resolve(resolvedRoleValue);
+}
+
+function isUserAdmin(role, currentUser) {
+  const isAdminByRole = typeof hasRoleAccess === 'function' ? hasRoleAccess(role, 'admin') : role === 'admin';
+  return isAdminByRole || isBootstrapAdminUser(currentUser);
+}
+
+function showAutoApprovalMessage(section, refreshButton, tbody) {
+  section.style.display = 'block';
+  if (refreshButton) {
+    refreshButton.style.display = 'none';
+  }
+  if (tbody) {
+    tbody.innerHTML = '<tr><td colspan="4">Auto-approval is enabled. New accounts can log in immediately.</td></tr>';
+  }
+}
+
+function showInsufficientPermissions(section, role) {
+  section.style.display = 'none';
+  if (typeof showAccountMessage === 'function') {
+    showAccountMessage('Pending approvals are visible to Admin users only. Your current role is ' + getRoleLabel(role) + '.', 'ok');
+  }
+}
+
+async function initPendingApprovals() {
+  const section = document.getElementById('pendingApprovalsSection');
+  if (!section) return;
+
+  const tbody = document.querySelector('#pendingUsersTable tbody');
+  const refreshButton = document.getElementById('refreshPendingUsersBtn');
+
+  if (AUTO_APPROVAL_ENABLED) {
+    showAutoApprovalMessage(section, refreshButton, tbody);
+    return;
+  }
+
+  const currentUser = firebase.auth().currentUser;
+  const role = await getUserRole(currentUser);
 
   if (currentUser && typeof saveUserAuthState === 'function') {
     saveUserAuthState(currentUser, role);
   }
 
-  const isAdminByRole = typeof hasRoleAccess === 'function' ? hasRoleAccess(role, 'admin') : role === 'admin';
-  const isAdmin = isAdminByRole || isBootstrapAdminUser(currentUser);
-  if (!isAdmin) {
-    section.style.display = 'none';
-    if (typeof showAccountMessage === 'function') {
-      showAccountMessage('Pending approvals are visible to Admin users only. Your current role is ' + getRoleLabel(role) + '.', 'ok');
-    }
+  if (!isUserAdmin(role, currentUser)) {
+    showInsufficientPermissions(section, role);
     return;
   }
 

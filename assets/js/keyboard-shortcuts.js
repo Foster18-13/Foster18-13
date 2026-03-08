@@ -5,68 +5,57 @@
 // Ctrl+D: Dashboard
 // Ctrl+H: Home
 
+// Navigation shortcuts mapping
+const navigationShortcuts = {
+  'b': 'balance.html',
+  'r': 'returns.html',
+  'd': 'dashboard.html',
+  'h': 'home.html',
+  'p': 'products.html',
+  'n': 'notebook.html',
+  'c': 'customers.html'
+};
+
+// Save button IDs to try
+const saveButtonIds = ['saveBalance', 'saveRecording', 'saveSummary', 'savePurchase'];
+
+function handleNavigation(key) {
+  const page = navigationShortcuts[key];
+  if (page) {
+    globalThis.location.href = page;
+  }
+}
+
+function handleSave() {
+  const saveButton = saveButtonIds
+    .map(id => document.getElementById(id))
+    .find(btn => btn !== null);
+  
+  if (saveButton) {
+    saveButton.click();
+  }
+}
+
 document.addEventListener('keydown', (e) => {
   // Don't trigger shortcuts when typing in inputs
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
     return;
   }
 
-  // Ctrl+B: Balance Sheet
-  if (e.ctrlKey && e.key === 'b') {
-    e.preventDefault();
-    globalThis.location.href = 'balance.html';
+  if (!e.ctrlKey) {
+    return;
   }
 
-  // Ctrl+R: Returns Sheet
-  if (e.ctrlKey && e.key === 'r') {
-    e.preventDefault();
-    globalThis.location.href = 'returns.html';
+  e.preventDefault();
+
+  // Handle save shortcut
+  if (e.key === 's') {
+    handleSave();
+    return;
   }
 
-  // Ctrl+D: Dashboard
-  if (e.ctrlKey && e.key === 'd') {
-    e.preventDefault();
-    globalThis.location.href = 'dashboard.html';
-  }
-
-  // Ctrl+H: Home
-  if (e.ctrlKey && e.key === 'h') {
-    e.preventDefault();
-    globalThis.location.href = 'home.html';
-  }
-
-  // Ctrl+S: Save (if on sheets with save buttons)
-  if (e.ctrlKey && e.key === 's') {
-    e.preventDefault();
-    
-    // Try to find and click save button
-    const saveButton = document.getElementById('saveBalance') || 
-                      document.getElementById('saveRecording') || 
-                      document.getElementById('saveSummary') ||
-                      document.getElementById('savePurchase');
-    
-    if (saveButton) {
-      saveButton.click();
-    }
-  }
-
-  // Ctrl+P: Products
-  if (e.ctrlKey && e.key === 'p') {
-    e.preventDefault();
-    globalThis.location.href = 'products.html';
-  }
-
-  // Ctrl+N: Notes for the Day
-  if (e.ctrlKey && e.key === 'n') {
-    e.preventDefault();
-    globalThis.location.href = 'notebook.html';
-  }
-
-  // Ctrl+C: Customers
-  if (e.ctrlKey && e.key === 'c') {
-    e.preventDefault();
-    globalThis.location.href = 'customers.html';
-  }
+  // Handle navigation shortcuts
+  handleNavigation(e.key);
 });
 
 // Show shortcuts help on Ctrl+/

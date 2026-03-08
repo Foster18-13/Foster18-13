@@ -1,3 +1,37 @@
+function calculateEntriesTotalQty(entries) {
+  return entries.reduce((sum, entry) => sum + asNumber(entry.qty || 0), 0);
+}
+
+function aggregateProductDataForShift(productStats, product, shiftData) {
+  const balance = shiftData.balance[product.id] || {};
+  const recording = shiftData.recording[product.id] || { entries: [] };
+
+  productStats[product.id].totalReceived += asNumber(balance.received);
+  productStats[product.id].totalDamages += asNumber(balance.damages);
+  productStats[product.id].totalDelivered += calculateEntriesTotalQty(recording.entries);
+}
+
+function processShiftData(dayStore, shift, productStats, data) {
+  if (!dayStore[shift]) return { customers: 0, purchases: 0 };
+
+  let customerCount = 0;
+  let purchaseCount = 0;
+
+  if (dayStore[shift].customers) {
+    customerCount = dayStore[shift].customers.length;
+  }
+
+  if (dayStore[shift].purchases) {
+    purchaseCount = dayStore[shift].purchases.length;
+  }
+
+  data.products.forEach(product => {
+    aggregateProductDataForShift(productStats, product, dayStore[shift]);
+  });
+
+  return { customers: customerCount, purchases: purchaseCount };
+}
+
 function setQuickRange(days) {
   const endDate = new Date();
   const startDate = new Date();
@@ -49,30 +83,9 @@ function generateReport() {
       const dayStore = data.dailyStores[dateStr];
 
       ['day', 'night'].forEach(shift => {
-        if (!dayStore[shift]) return;
-
-        // Count customers
-        if (dayStore[shift].customers) {
-          totalCustomers += dayStore[shift].customers.length;
-        }
-
-        // Count purchases
-        if (dayStore[shift].purchases) {
-          totalPurchases += dayStore[shift].purchases.length;
-        }
-
-        // Aggregate product data
-        data.products.forEach(product => {
-          const balance = dayStore[shift].balance[product.id] || {};
-          const recording = dayStore[shift].recording[product.id] || { entries: [] };
-
-          productStats[product.id].totalReceived += asNumber(balance.received);
-          productStats[product.id].totalDamages += asNumber(balance.damages);
-          productStats[product.id].totalDelivered += recording.entries.reduce(
-            (sum, entry) => sum + asNumber(entry.qty || 0), 
-            0
-          );
-        });
+        const counts = processShiftData(dayStore, shift, productStats, data);
+        totalCustomers += counts.customers;
+        totalPurchases += counts.purchases;
       });
     }
   });
