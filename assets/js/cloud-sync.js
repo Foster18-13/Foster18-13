@@ -8,7 +8,8 @@ let cloudSyncState = {
   firestore: null,
   auth: null,
   docRef: null,
-  lastPullTime: 0
+  lastPullTime: 0,
+  initialized: false
 };
 
 function hasFirebaseConfig() {
@@ -139,9 +140,14 @@ async function pullFromCloudIfNewer() {
       );
       // Mark sync as completed in this session
       sessionStorage.setItem('cloudSyncCompleted', 'true');
-      globalThis.setTimeout(() => {
-        location.reload();
-      }, 400);
+      
+      // Only reload if data actually changed significantly
+      const hasSignificantChange = cloudUpdatedAt > localUpdatedAt + 1000; // More than 1 second difference
+      if (hasSignificantChange) {
+        globalThis.setTimeout(() => {
+          location.reload();
+        }, 400);
+      }
     } else {
       // Data is up to date, mark as synced
       cloudSyncState.lastPullTime = Date.now(); // Record check time
@@ -294,6 +300,12 @@ function wireCloudButtons() {
 }
 
 function initCloudSync() {
+  // Prevent multiple initializations
+  if (cloudSyncState.initialized) {
+    return;
+  }
+  cloudSyncState.initialized = true;
+
   ensureCloudControls();
 
   if (!hasFirebaseConfig()) {

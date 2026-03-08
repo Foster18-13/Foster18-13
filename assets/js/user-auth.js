@@ -4,7 +4,7 @@ const DEFAULT_USER_ROLE = "clerk";
 const FORCED_ADMIN_EMAILS = [
   "antwifosterfrimpong@gmail.com"
 ];
-const ROOT_ONLY_URL_MODE = true;
+const ROOT_ONLY_URL_MODE = false;
 const USER_ROLE_PRIORITY = {
   clerk: 1,
   supervisor: 2,
@@ -380,9 +380,15 @@ globalThis.approveUser = approveUser;
 globalThis.rejectUser = rejectUser;
 
 function protectPortalPageWithAuth() {
+  // Prevent multiple initializations
+  if (globalThis._authProtectionInitialized) {
+    return;
+  }
+  globalThis._authProtectionInitialized = true;
+
   // Don't protect auth pages
   const currentPage = location.pathname.split("/").pop() || "index.html";
-  const authPages = ['login.html', 'register.html', 'access.html'];
+  const authPages = ['login.html', 'register.html', 'access.html', 'index.html', '404.html'];
 
   if (authPages.includes(currentPage.toLowerCase())) {
     return;
