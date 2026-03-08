@@ -3,7 +3,7 @@ function searchCustomerHistory() {
   const resultsDiv = document.getElementById("historyResults");
 
   if (!searchTerm) {
-    resultsDiv.innerHTML = '<p style="color: #dc3545;">Please enter a customer name.</p>';
+    resultsDiv.innerHTML = '<p class="text-error">Please enter a customer name.</p>';
     return;
   }
 
@@ -52,7 +52,7 @@ function searchCustomerHistory() {
   });
 
   if (allResults.length === 0) {
-    resultsDiv.innerHTML = `<p style="color: #6c757d;">No orders found for "${searchTerm}".</p>`;
+    resultsDiv.innerHTML = `<p class="text-muted">No orders found for "${searchTerm}".</p>`;
     return;
   }
 
@@ -101,7 +101,7 @@ function searchCustomerHistory() {
 function clearSearch() {
   document.getElementById("searchCustomer").value = '';
   document.getElementById("historyResults").innerHTML = 
-    '<p style="color: #6c757d; font-size: 13px;">Enter a customer name to view their order history.</p>';
+    '<p class="text-muted" style="font-size: 13px;">Enter a customer name to view their order history.</p>';
 }
 
 document.addEventListener("DOMContentLoaded", () => {

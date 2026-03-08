@@ -13,7 +13,7 @@ function generateReport() {
   const resultsDiv = document.getElementById("reportResults");
 
   if (!startDateStr || !endDateStr) {
-    resultsDiv.innerHTML = '<p style="color: #dc3545;">Please select both start and end dates.</p>';
+    resultsDiv.innerHTML = '<p class="text-error">Please select both start and end dates.</p>';
     return;
   }
 
@@ -21,7 +21,7 @@ function generateReport() {
   const endDate = new Date(endDateStr);
 
   if (startDate > endDate) {
-    resultsDiv.innerHTML = '<p style="color: #dc3545;">Start date must be before end date.</p>';
+    resultsDiv.innerHTML = '<p class="text-error">Start date must be before end date.</p>';
     return;
   }
 
@@ -40,7 +40,7 @@ function generateReport() {
       totalDamages: 0
     };
   });
-
+ 
   // Collect data for date range
   Object.keys(data.dailyStores || {}).forEach(dateStr => {
     const date = new Date(dateStr);
@@ -78,7 +78,7 @@ function generateReport() {
   });
 
   if (totalDays === 0) {
-    resultsDiv.innerHTML = `<p style="color: #6c757d;">No data found for the selected date range.</p>`;
+    resultsDiv.innerHTML = `<p class="text-muted">No data found for the selected date range.</p>`;
     return;
   }
 
@@ -125,7 +125,7 @@ function generateReport() {
                 <td>${p.totalReceived}</td>
                 <td>${p.totalLoaded}</td>
                 <td>${p.totalDamages}</td>
-                <td style="color: ${netMovement >= 0 ? '#28a745' : '#dc3545'}">${netMovement}</td>
+                <td class="${netMovement >= 0 ? 'text-success' : 'text-error'}">${netMovement}</td>
               </tr>
             `;
           }).join('')}

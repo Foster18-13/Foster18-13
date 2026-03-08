@@ -16,7 +16,7 @@ function viewProductMovement() {
   const resultsDiv = document.getElementById("movementResults");
 
   if (!productId) {
-    resultsDiv.innerHTML = '<p style="color: #dc3545;">Please select a product.</p>';
+    resultsDiv.innerHTML = '<p class="text-error">Please select a product.</p>';
     return;
   }
 
@@ -57,7 +57,7 @@ function viewProductMovement() {
   });
 
   if (movements.length === 0) {
-    resultsDiv.innerHTML = `<p style="color: #6c757d;">No movement data found for "${product.name}".</p>`;
+    resultsDiv.innerHTML = `<p class="text-muted">No movement data found for "${product.name}".</p>`;
     return;
   }
 

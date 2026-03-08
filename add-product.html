@@ -17,10 +17,10 @@
 
     const statusDiv = document.getElementById('status');
     if (result.ok) {
-      statusDiv.innerHTML = `<p style="color: green;">✓ Successfully added: ${productName}</p>
+      statusDiv.innerHTML = `<p class="text-success">✓ Successfully added: ${productName}</p>
         <p><a href="products.html">Go to Products page</a></p>`;
     } else {
-      statusDiv.innerHTML = `<p style="color: red;">Error: ${result.message}</p>
+      statusDiv.innerHTML = `<p class="text-error">Error: ${result.message}</p>
         <p><a href="products.html">Go to Products page</a></p>`;
     }
   </script>

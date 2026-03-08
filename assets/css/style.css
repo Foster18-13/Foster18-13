@@ -898,6 +898,49 @@ input[data-total] {
 }
 
 /* Dark Theme for Auth Pages (login/register) */
+
+/* Utility classes for text colors */
+.text-muted {
+  color: #6c757d;
+}
+
+.text-error {
+  color: #dc3545;
+}
+
+.text-success {
+  color: #28a745;
+}
+
+[data-theme="dark"] .text-muted {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .text-error {
+  color: var(--danger) !important;
+}
+
+[data-theme="dark"] .text-success {
+  color: var(--success) !important;
+}
+
+/* Override inline styles in dark mode */
+[data-theme="dark"] p[style*="color: #6c757d"],
+[data-theme="dark"] p[style*="color: #dc3545"],
+[data-theme="dark"] p[style*="color: green"],
+[data-theme="dark"] p[style*="color: red"] {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] td[style*="color: #28a745"] {
+  color: var(--success) !important;
+}
+
+[data-theme="dark"] td[style*="color: #dc3545"] {
+  color: var(--danger) !important;
+}
+
+/* Dark Theme for Auth Pages (login/register) */
 [data-theme="dark"] .auth-container {
   background: var(--bg) !important;
 }
