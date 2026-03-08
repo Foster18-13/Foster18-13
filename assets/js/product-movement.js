@@ -38,17 +38,17 @@ function viewProductMovement() {
       const received = asNumber(balance.received);
       const returns = asNumber(balance.returns);
       const damages = asNumber(balance.damages);
-      const loaded = recording.entries.reduce((sum, entry) => sum + asNumber(entry.qty || 0), 0);
+      const delivered = recording.entries.reduce((sum, entry) => sum + asNumber(entry.qty || 0), 0);
       const closing = asNumber(balance.closing);
 
-      if (opening > 0 || received > 0 || loaded > 0 || closing > 0) {
+      if (opening > 0 || received > 0 || delivered > 0 || closing > 0) {
         movements.push({
           date: date,
           shift: shift === 'day' ? 'Day' : 'Night',
           opening: opening,
           received: received,
           returns: returns,
-          loaded: loaded,
+          delivered: delivered,
           damages: damages,
           closing: closing
         });
@@ -70,7 +70,7 @@ function viewProductMovement() {
 
   // Calculate totals
   const totalReceived = movements.reduce((sum, m) => sum + m.received, 0);
-  const totalLoaded = movements.reduce((sum, m) => sum + m.loaded, 0);
+  const totalDelivered = movements.reduce((sum, m) => sum + m.delivered, 0);
   const totalDamages = movements.reduce((sum, m) => sum + m.damages, 0);
 
   resultsDiv.innerHTML = `
@@ -78,7 +78,7 @@ function viewProductMovement() {
       <h3 style="margin: 0 0 8px 0; font-size: 14px;">${product.name} - Movement Summary</h3>
       <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; font-size: 12px;">
         <div><strong>Total Received:</strong> ${totalReceived}</div>
-        <div><strong>Total Delivered:</strong> ${totalLoaded}</div>
+        <div><strong>Total Delivered:</strong> ${totalDelivered}</div>
         <div><strong>Total Damages:</strong> ${totalDamages}</div>
       </div>
     </div>
@@ -104,7 +104,7 @@ function viewProductMovement() {
               <td>${m.opening}</td>
               <td>${m.received}</td>
               <td>${m.returns}</td>
-              <td>${m.loaded}</td>
+              <td>${m.delivered}</td>
               <td>${m.damages}</td>
               <td>${m.closing}</td>
             </tr>

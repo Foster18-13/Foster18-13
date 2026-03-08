@@ -187,7 +187,7 @@ function calculatePeriodData(data, startDate, endDate) {
           if (!result.products[product.id]) {
             result.products[product.id] = {
               name: product.name,
-              totalLoaded: 0,
+              totalDelivered: 0,
               totalReceived: 0,
               totalDamages: 0,
               totalReturns: 0,
@@ -212,28 +212,28 @@ function calculatePeriodData(data, startDate, endDate) {
           result.products[product.id].totalDamages += damages;
           result.products[product.id].totalReturns += returns;
           
-          // Calculate loaded (sum of all entries)
+          // Calculate delivered quantity (sum of all entries)
           recording.entries.forEach(entry => {
-            const loaded = asNumber(entry.loaded);
-            result.products[product.id].totalLoaded += loaded;
+            const delivered = asNumber(entry.loaded);
+            result.products[product.id].totalDelivered += delivered;
             
             // Track by vehicle
             if (entry.vehicleId) {
               if (!result.vehicles[entry.vehicleId]) {
                 result.vehicles[entry.vehicleId] = {
                   name: entry.vehicleNumber || entry.vehicleId,
-                  totalLoaded: 0,
+                  totalDelivered: 0,
                   products: new Set()
                 };
               }
-              result.vehicles[entry.vehicleId].totalLoaded += loaded;
+              result.vehicles[entry.vehicleId].totalDelivered += delivered;
               result.vehicles[entry.vehicleId].products.add(product.id);
             }
           });
           
-          // Calculate sold (loaded - returned)
-          const totalLoadedForProduct = recording.entries.reduce((sum, e) => sum + asNumber(e.loaded), 0);
-          result.products[product.id].totalSold += (totalLoadedForProduct - returns);
+          // Calculate sold (delivered - returned)
+          const totalDeliveredForProduct = recording.entries.reduce((sum, e) => sum + asNumber(e.loaded), 0);
+          result.products[product.id].totalSold += (totalDeliveredForProduct - returns);
         });
       });
       
@@ -345,15 +345,15 @@ function renderReport(reportData, previousData, periodLabel, startDate, endDate)
   `;
   
   const sortedProducts = Object.entries(reportData.products)
-    .sort((a, b) => b[1].totalLoaded - a[1].totalLoaded);
+    .sort((a, b) => b[1].totalDelivered - a[1].totalDelivered);
   
   sortedProducts.forEach(([productId, stats]) => {
-    const avgDaily = stats.activeDays > 0 ? (stats.totalLoaded / stats.activeDays).toFixed(1) : '0.0';
+    const avgDaily = stats.activeDays > 0 ? (stats.totalDelivered / stats.activeDays).toFixed(1) : '0.0';
     html += `
       <tr>
         <td>${stats.name}</td>
         <td class="number">${stats.activeDays}</td>
-        <td class="number">${stats.totalLoaded.toLocaleString()}</td>
+        <td class="number">${stats.totalDelivered.toLocaleString()}</td>
         <td class="number">${stats.totalReceived.toLocaleString()}</td>
         <td class="number">${stats.totalSold.toLocaleString()}</td>
         <td class="number">${stats.totalReturns.toLocaleString()}</td>
@@ -431,14 +431,14 @@ function renderReport(reportData, previousData, periodLabel, startDate, endDate)
     `;
     
     const sortedVehicles = Object.entries(reportData.vehicles)
-      .sort((a, b) => b[1].totalLoaded - a[1].totalLoaded);
+      .sort((a, b) => b[1].totalDelivered - a[1].totalDelivered);
     
     sortedVehicles.forEach(([vehicleId, stats]) => {
-      const avgDaily = reportData.operatingDays > 0 ? (stats.totalLoaded / reportData.operatingDays).toFixed(1) : '0.0';
+      const avgDaily = reportData.operatingDays > 0 ? (stats.totalDelivered / reportData.operatingDays).toFixed(1) : '0.0';
       html += `
         <tr>
           <td>${stats.name}</td>
-          <td class="number">${stats.totalLoaded.toLocaleString()}</td>
+          <td class="number">${stats.totalDelivered.toLocaleString()}</td>
           <td class="number">${stats.products.size}</td>
           <td class="number">${avgDaily}</td>
         </tr>

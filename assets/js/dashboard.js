@@ -12,7 +12,7 @@ function renderDashboard() {
   let totalOpening = 0;
   let totalOutstanding = 0;
   let totalClosing = 0;
-  let totalLoaded = 0;
+  let totalDelivered = 0;
   let totalReceived = 0;
   let totalDamaged = 0;
   const lowStockProducts = [];
@@ -25,14 +25,14 @@ function renderDashboard() {
     const closing = asNumber(balance.closing);
     const opening = asNumber(balance.opening);
     const returns = asNumber(balance.returns);
-    const loaded = recording.entries.reduce((sum, entry) => sum + asNumber(entry.qty || 0), 0);
+    const delivered = recording.entries.reduce((sum, entry) => sum + asNumber(entry.qty || 0), 0);
     const damaged = asNumber(balance.damaged);
     const received = getGoodsReceivedForProduct(dayStore, product.id);
     const outstanding = computeBalanceValue({
       opening,
       returns,
       goodsReceived: received,
-      loading: loaded,
+      loading: delivered,
       damages: damaged
     });
 
@@ -40,7 +40,7 @@ function renderDashboard() {
     totalOpening += opening;
     totalOutstanding += outstanding;
     totalClosing += closing;
-    totalLoaded += loaded;
+    totalDelivered += delivered;
     totalDamaged += damaged;
 
     // Check for low stock (less than 10)
@@ -50,7 +50,7 @@ function renderDashboard() {
 
     productMovements.push({
       name: product.name,
-      loaded: loaded,
+      delivered: delivered,
       received: asNumber(balance.received),
       stock: closing
     });
@@ -67,7 +67,7 @@ function renderDashboard() {
   document.getElementById('totalOpening').textContent = totalOpening;
   document.getElementById('totalOutstanding').textContent = totalOutstanding;
   document.getElementById('totalClosing').textContent = totalClosing;
-  document.getElementById('totalLoaded').textContent = totalLoaded;
+  document.getElementById('totalLoaded').textContent = totalDelivered;
   document.getElementById('totalReceived').textContent = totalReceived;
   document.getElementById('totalDamaged').textContent = totalDamaged;
   document.getElementById('totalCustomers').textContent = totalCustomers;
@@ -91,8 +91,8 @@ function renderDashboard() {
 
   // Top products by movement
   const topProducts = productMovements
-    .filter(p => p.loaded > 0 || p.received > 0)
-    .sort((a, b) => (b.loaded + b.received) - (a.loaded + a.received))
+    .filter(p => p.delivered > 0 || p.received > 0)
+    .sort((a, b) => (b.delivered + b.received) - (a.delivered + a.received))
     .slice(0, 10);
 
   const topProductsTable = document.querySelector('#topProductsTable tbody');
@@ -102,7 +102,7 @@ function renderDashboard() {
     topProductsTable.innerHTML = topProducts.map(p => `
       <tr>
         <td>${p.name}</td>
-        <td>${p.loaded}</td>
+        <td>${p.delivered}</td>
         <td>${p.received}</td>
         <td>${p.stock}</td>
       </tr>
@@ -176,7 +176,7 @@ function renderMovementChart(productMovements) {
   const topFive = productMovements
     .map(product => ({
       name: product.name,
-      value: asNumber(product.loaded) + asNumber(product.received)
+      value: asNumber(product.delivered) + asNumber(product.received)
     }))
     .filter(product => product.value > 0)
     .sort((a, b) => b.value - a.value)

@@ -36,7 +36,7 @@ function generateReport() {
     productStats[product.id] = {
       name: product.name,
       totalReceived: 0,
-      totalLoaded: 0,
+      totalDelivered: 0,
       totalDamages: 0
     };
   });
@@ -68,7 +68,7 @@ function generateReport() {
 
           productStats[product.id].totalReceived += asNumber(balance.received);
           productStats[product.id].totalDamages += asNumber(balance.damages);
-          productStats[product.id].totalLoaded += recording.entries.reduce(
+          productStats[product.id].totalDelivered += recording.entries.reduce(
             (sum, entry) => sum + asNumber(entry.qty || 0), 
             0
           );
@@ -82,13 +82,13 @@ function generateReport() {
     return;
   }
 
-  // Sort products by total loaded (descending)
+  // Sort products by total delivered (descending)
   const sortedProducts = Object.values(productStats)
-    .filter(p => p.totalLoaded > 0 || p.totalReceived > 0)
-    .sort((a, b) => b.totalLoaded - a.totalLoaded);
+    .filter(p => p.totalDelivered > 0 || p.totalReceived > 0)
+    .sort((a, b) => b.totalDelivered - a.totalDelivered);
 
   const totalReceived = sortedProducts.reduce((sum, p) => sum + p.totalReceived, 0);
-  const totalLoaded = sortedProducts.reduce((sum, p) => sum + p.totalLoaded, 0);
+  const totalDelivered = sortedProducts.reduce((sum, p) => sum + p.totalDelivered, 0);
   const totalDamages = sortedProducts.reduce((sum, p) => sum + p.totalDamages, 0);
 
   resultsDiv.innerHTML = `
@@ -99,7 +99,7 @@ function generateReport() {
         <div><strong>Customer Orders:</strong> ${totalCustomers}</div>
         <div><strong>Purchase Orders:</strong> ${totalPurchases}</div>
         <div><strong>Total Received:</strong> ${totalReceived}</div>
-        <div><strong>Total Delivered:</strong> ${totalLoaded}</div>
+        <div><strong>Total Delivered:</strong> ${totalDelivered}</div>
         <div><strong>Total Damages:</strong> ${totalDamages}</div>
       </div>
     </div>
@@ -118,12 +118,12 @@ function generateReport() {
         </thead>
         <tbody>
           ${sortedProducts.map(p => {
-            const netMovement = p.totalReceived - p.totalLoaded - p.totalDamages;
+            const netMovement = p.totalReceived - p.totalDelivered - p.totalDamages;
             return `
               <tr>
                 <td>${p.name}</td>
                 <td>${p.totalReceived}</td>
-                <td>${p.totalLoaded}</td>
+                <td>${p.totalDelivered}</td>
                 <td>${p.totalDamages}</td>
                 <td class="${netMovement >= 0 ? 'text-success' : 'text-error'}">${netMovement}</td>
               </tr>
