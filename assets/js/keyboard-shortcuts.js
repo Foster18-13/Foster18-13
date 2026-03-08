@@ -1,6 +1,6 @@
 // Keyboard Shortcuts
 // Ctrl+B: Balance Sheet
-// Ctrl+R: Recording Sheet
+// Ctrl+R: Returns Sheet
 // Ctrl+S: Save current sheet
 // Ctrl+D: Dashboard
 // Ctrl+H: Home
@@ -17,10 +17,10 @@ document.addEventListener('keydown', (e) => {
     window.location.href = 'balance.html';
   }
 
-  // Ctrl+R: Recording Sheet
+  // Ctrl+R: Returns Sheet
   if (e.ctrlKey && e.key === 'r') {
     e.preventDefault();
-    window.location.href = 'recording.html';
+    window.location.href = 'returns.html';
   }
 
   // Ctrl+D: Dashboard
@@ -78,7 +78,7 @@ document.addEventListener('keydown', (e) => {
 Ctrl+H - Home
 Ctrl+D - Dashboard
 Ctrl+B - Balance Sheet
-Ctrl+R - Recording Sheet
+Ctrl+R - Returns Sheet
 Ctrl+S - Save current sheet
 Ctrl+P - Products
 Ctrl+C - Customers

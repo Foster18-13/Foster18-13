@@ -131,7 +131,7 @@ function searchInRecording(data, query) {
                 type: 'Recording',
                 title: `Waybill: ${entry.waybill} - ${productName}`,
                 details: `Date: ${date} (${shift}), Qty: ${entry.qty}`,
-                link: `recording.html?date=${date}&shift=${shift}`,
+                link: `returns.html?date=${date}&shift=${shift}`,
                 date: date,
                 shift: shift,
                 icon: '📝'

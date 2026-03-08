@@ -567,6 +567,7 @@ function ensureDayStore(data, date) {
         recordingColumns: 3,
         recording: {},
         balance: {},
+        returns: [],
         purchases: [],
         locked: false,
         lockedBy: "",
@@ -576,6 +577,7 @@ function ensureDayStore(data, date) {
         recordingColumns: 3,
         recording: {},
         balance: {},
+        returns: [],
         purchases: [],
         locked: false,
         lockedBy: "",
@@ -593,6 +595,7 @@ function ensureDayStore(data, date) {
         recordingColumns: 3,
         recording: {},
         balance: {},
+        returns: [],
         purchases: [],
         locked: false,
         lockedBy: "",
@@ -602,6 +605,7 @@ function ensureDayStore(data, date) {
     const shift = day[shiftId];
     if (!shift.recording || typeof shift.recording !== "object") shift.recording = {};
     if (!shift.balance || typeof shift.balance !== "object") shift.balance = {};
+    if (!Array.isArray(shift.returns)) shift.returns = [];
     if (!Array.isArray(shift.purchases)) shift.purchases = [];
     if (!Number.isInteger(shift.recordingColumns) || shift.recordingColumns < 1) shift.recordingColumns = 3;
     if (typeof shift.locked !== "boolean") shift.locked = false;
@@ -702,7 +706,7 @@ function getActiveProductsForDate(data, dateString) {
 
 function getCurrentWorkingDate() {
   const dateInput = document.getElementById('workingDate');
-  if (dateInput && dateInput.value) {
+  if (dateInput?.value) {
     return dateInput.value;
   }
   return todayISO();

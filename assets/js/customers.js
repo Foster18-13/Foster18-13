@@ -167,7 +167,7 @@ function addCustomerEntry(event) {
   document.getElementById("dateDelivered").value = date;
   renderCustomersTable();
   renderCustomerNameSuggestions();
-  setStatus("Customer entry added and synced to Recording Sheet!", "ok");
+  setStatus("Customer entry added and synced to dispatch records!", "ok");
 }
 
 function removeFromRecording(dayStore, productId, waybillNumber) {
@@ -305,7 +305,7 @@ function syncAllToRecording() {
   addAuditLog("Customer entries synced to recording", {
     count: dayStore.customers.length
   });
-  setStatus(`Synced ${dayStore.customers.length} customer entries to Recording Sheet!`, "ok");
+  setStatus(`Synced ${dayStore.customers.length} customer entries to dispatch records!`, "ok");
 }
 
 // Batch Entry Functions

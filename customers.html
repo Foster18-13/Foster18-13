@@ -37,7 +37,7 @@
         <a href="home.html">🏠 Home</a>
         <a href="dashboard.html">📊 Dashboard</a>
         <a href="balance.html">📋 Balance Sheet</a>
-        <a href="recording.html">📝 Recording Sheet</a>
+        <a href="returns.html">↩️ Returns Sheet</a>
         <a href="summary.html">📄 Summary Sheet</a>
         <a href="purchase.html">🛒 Purchase Sheet</a>
         <a href="customers.html">👥 Customers Entry</a>
@@ -53,7 +53,7 @@
       <section class="card">
         <h2 class="card-title">Customers Entry Sheet</h2>
         <p class="card-subtitle">Record customer orders and deliveries for the selected date. Entries are automatically
-          added to the Recording Sheet.</p>
+          added to dispatch records.</p>
         <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem; align-items: center;">
           <label for="shiftSelector" style="font-weight: bold;">Select Shift:</label>
           <select id="shiftSelector" class="input" style="width: auto;">
@@ -125,7 +125,7 @@
         </form>
 
         <div class="toolbar mt-12">
-          <button class="button button-primary" id="syncToRecording" type="button">Sync All to Recording Sheet</button>
+          <button class="button button-primary" id="syncToRecording" type="button">Sync All Dispatch Records</button>
           <button class="button" id="exportCustomers" type="button">Export CSV</button>
           <button class="button" id="exportCustomersPdf" type="button">Export PDF</button>
           <span id="status" class="status"></span>
