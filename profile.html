@@ -214,7 +214,7 @@
 
       <section class="card">
         <h2 class="card-title">Company Information</h2>
-        
+
         <div class="profile-grid">
           <div class="profile-card">
             <h3>Contact Details</h3>
@@ -259,7 +259,9 @@
           <div class="profile-card">
             <h3>About Us</h3>
             <p style="margin: 0; line-height: 1.6;">
-              Twellium Industrial Company Limited is a leading warehouse and distribution center specializing in beverage logistics and supply chain management. We pride ourselves on efficiency, accuracy, and dedication to serving our customers with excellence.
+              Twellium Industrial Company Limited is a leading warehouse and distribution center specializing in
+              beverage logistics and supply chain management. We pride ourselves on efficiency, accuracy, and dedication
+              to serving our customers with excellence.
             </p>
           </div>
         </div>
@@ -287,7 +289,7 @@
       <section class="card team-section">
         <h2 class="card-title">Our Team</h2>
         <p class="card-subtitle">Meet the dedicated professionals managing warehouse operations</p>
-        
+
         <div class="team-grid" id="teamGrid">
           <div class="team-member">
             <div class="team-avatar">⏳</div>
@@ -302,13 +304,15 @@
           <div class="profile-card">
             <h3>Our Mission</h3>
             <p style="margin: 0; line-height: 1.6;">
-              To provide efficient, reliable, and transparent warehouse management services that ensure product quality, timely distribution, and customer satisfaction across all operations.
+              To provide efficient, reliable, and transparent warehouse management services that ensure product quality,
+              timely distribution, and customer satisfaction across all operations.
             </p>
           </div>
           <div class="profile-card">
             <h3>Our Vision</h3>
             <p style="margin: 0; line-height: 1.6;">
-              To be the leading warehouse and distribution center in Ghana, recognized for innovation, operational excellence, and commitment to sustainable business practices.
+              To be the leading warehouse and distribution center in Ghana, recognized for innovation, operational
+              excellence, and commitment to sustainable business practices.
             </p>
           </div>
           <div class="profile-card">
@@ -383,7 +387,7 @@
 
           const roleName = getRoleName(user.role);
 
-          const approvalBadge = user.approved === false ? 
+          const approvalBadge = user.approved === false ?
             ' <span style="color: orange; font-size: 0.75rem;">(Pending Approval)</span>' : '';
 
           return `
@@ -408,7 +412,7 @@
     function loadStats() {
       if (typeof loadData === 'function') {
         const data = loadData();
-        
+
         // Count products
         const products = data.products || [];
         document.getElementById('totalProducts').textContent = products.length;
