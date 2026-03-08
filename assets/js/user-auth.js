@@ -4,7 +4,7 @@ const DEFAULT_USER_ROLE = "clerk";
 const FORCED_ADMIN_EMAILS = [
   "antwifosterfrimpong@gmail.com"
 ];
-const ROOT_ONLY_URL_MODE = false;
+const ROOT_ONLY_URL_MODE = true;
 const USER_ROLE_PRIORITY = {
   clerk: 1,
   supervisor: 2,
@@ -52,6 +52,9 @@ ensureSiteFavicon();
 function applyCleanUrlCanonicalPath() {
   try {
     if (!ROOT_ONLY_URL_MODE) return;
+    
+    // Prevent multiple executions
+    if (globalThis._urlCleanupApplied) return;
 
     const pathname = String(globalThis.location?.pathname || '');
     const currentUrl = globalThis.location?.href || '';
@@ -59,15 +62,18 @@ function applyCleanUrlCanonicalPath() {
     // Safety check: If URL is too long (>2000 chars), force clean it
     if (currentUrl.length > 2000) {
       globalThis.history?.replaceState?.({}, '', '/');
+      globalThis._urlCleanupApplied = true;
       return;
     }
     
     if (pathname === '/') {
+      globalThis._urlCleanupApplied = true;
       return;
     }
 
     // In ROOT_ONLY_URL_MODE, strip ALL query strings and hashes to show just "/"
     globalThis.history?.replaceState?.({}, '', '/');
+    globalThis._urlCleanupApplied = true;
   } catch (error) {
     console.debug('Failed to apply clean URL canonical path:', error);
   }
