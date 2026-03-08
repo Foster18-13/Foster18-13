@@ -24,6 +24,46 @@ function normalizeUserRole(role) {
   return USER_ROLE_PRIORITY[normalized] ? normalized : DEFAULT_USER_ROLE;
 }
 
+async function isUserApproved(user) {
+  if (!user?.uid || !globalThis.firebase?.firestore) return false;
+
+  try {
+    const doc = await firebase.firestore().collection('users').doc(user.uid).get();
+    const approved = doc.exists ? doc.data()?.approved : false;
+    return approved === true;
+  } catch (error) {
+    console.error('Failed to check user approval status:', error);
+    return false;
+  }
+}
+
+async function approveUser(userId) {
+  if (!userId || !globalThis.firebase?.firestore) return false;
+
+  try {
+    await firebase.firestore().collection('users').doc(userId).update({
+      approved: true,
+      updatedAt: new Date().toISOString()
+    });
+    return true;
+  } catch (error) {
+    console.error('Failed to approve user:', error);
+    return false;
+  }
+}
+
+async function rejectUser(userId) {
+  if (!userId || !globalThis.firebase?.firestore) return false;
+
+  try {
+    await firebase.firestore().collection('users').doc(userId).delete();
+    return true;
+  } catch (error) {
+    console.error('Failed to reject user:', error);
+    return false;
+  }
+}
+
 function hasRoleAccess(currentRole, minimumRole) {
   const current = USER_ROLE_PRIORITY[normalizeUserRole(currentRole)] || 0;
   const minimum = USER_ROLE_PRIORITY[normalizeUserRole(minimumRole)] || 0;
@@ -54,6 +94,7 @@ async function resolveUserRole(user) {
           email: user.email || '',
           uid: user.uid,
           role,
+          approved: forcedAdmin,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         }, { merge: true });
@@ -164,6 +205,7 @@ function setupRegistrationForm() {
         username: username,
         email: email,
         role,
+        approved: false,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         uid: userCredential.user.uid
@@ -172,22 +214,32 @@ function setupRegistrationForm() {
       // Save auth state
       saveUserAuthState(userCredential.user, role);
 
-      // Show success and redirect
+      // Show success message
       const successMsg = document.createElement('div');
       successMsg.className = 'auth-success';
-      successMsg.textContent = 'Account created successfully! Redirecting to home...';
       successMsg.style.display = 'block';
       successMsg.style.color = '#155724';
       successMsg.style.background = '#d4edda';
       successMsg.style.padding = '0.75rem';
       successMsg.style.borderRadius = '4px';
       successMsg.style.marginBottom = '1rem';
-      form.parentElement.insertBefore(successMsg, form);
-
-      // Redirect to home after 1 second
-      setTimeout(() => {
-        globalThis.location.href = 'home.html';
-      }, 1000);
+      
+      // Check if user is forced admin or regular user
+      if (isForcedAdminEmail(email)) {
+        successMsg.textContent = 'Admin account created successfully! Redirecting to home...';
+        form.parentElement.insertBefore(successMsg, form);
+        // Redirect to home after 1 second
+        setTimeout(() => {
+          globalThis.location.href = 'home.html';
+        }, 1000);
+      } else {
+        successMsg.textContent = 'Account created! Your account is pending admin approval. You will be notified once approved.';
+        form.parentElement.insertBefore(successMsg, form);
+        // Redirect to login after 3 seconds
+        setTimeout(() => {
+          globalThis.location.href = 'login.html';
+        }, 3000);
+      }
 
     } catch (error) {
       submitBtn.disabled = false;
@@ -268,6 +320,9 @@ globalThis.resolveUserRole = resolveUserRole;
 globalThis.normalizeUserRole = normalizeUserRole;
 globalThis.hasRoleAccess = hasRoleAccess;
 globalThis.clearUserAuthState = clearUserAuthState;
+globalThis.isUserApproved = isUserApproved;
+globalThis.approveUser = approveUser;
+globalThis.rejectUser = rejectUser;
 
 function protectPortalPageWithAuth() {
   // Don't protect auth pages

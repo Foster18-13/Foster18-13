@@ -203,6 +203,139 @@ async function initRoleManagement() {
   await loadUsersForRoleManagement();
 }
 
+async function loadPendingUsers() {
+  const tbody = document.querySelector('#pendingUsersTable tbody');
+  if (!tbody) return;
+
+  tbody.innerHTML = '<tr><td colspan="4">Loading pending users...</td></tr>';
+
+  try {
+    const snapshot = await firebase.firestore().collection('users').where('approved', '==', false).get();
+    const users = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    users.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
+    if (!users.length) {
+      tbody.innerHTML = '<tr><td colspan="4">No pending user approvals.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = users.map((user) => {
+      const createdDate = new Date(user.createdAt || Date.now()).toLocaleDateString();
+      return `
+        <tr>
+          <td>${user.email || user.username || 'Unknown'}</td>
+          <td>${user.username || '-'}</td>
+          <td>${createdDate}</td>
+          <td>
+            <button class="button button-small button-success" onclick="approveUserById('${user.id}', this)">Approve</button>
+            <button class="button button-small button-danger" onclick="rejectUserById('${user.id}', this)">Reject</button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  } catch (error) {
+    console.error('Failed to load pending users:', error);
+    tbody.innerHTML = '<tr><td colspan="4">Error loading pending users.</td></tr>';
+  }
+}
+
+async function approveUserById(userId, btnElement) {
+  try {
+    const btn = btnElement;
+    btn.disabled = true;
+    btn.textContent = 'Approving...';
+
+    const success = await approveUser(userId);
+    if (success) {
+      if (typeof addAuditLog === 'function') {
+        const userDoc = await firebase.firestore().collection('users').doc(userId).get();
+        addAuditLog('User approved', {
+          userId: userId,
+          email: userDoc.data()?.email || 'Unknown'
+        });
+      }
+      showAccountMessage('User approved successfully.', 'ok');
+      await loadPendingUsers();
+    } else {
+      throw new Error('Failed to approve user');
+    }
+  } catch (error) {
+    console.error('Failed to approve user:', error);
+    showAccountMessage('Failed to approve user.', 'error');
+    if (btnElement) {
+      btnElement.disabled = false;
+      btnElement.textContent = 'Approve';
+    }
+  }
+}
+
+async function rejectUserById(userId, btnElement) {
+  try {
+    const btn = btnElement;
+    btn.disabled = true;
+    btn.textContent = 'Rejecting...';
+
+    const success = await rejectUser(userId);
+    if (success) {
+      if (typeof addAuditLog === 'function') {
+        addAuditLog('User rejected', {
+          userId: userId
+        });
+      }
+      showAccountMessage('User rejected successfully.', 'ok');
+      await loadPendingUsers();
+    } else {
+      throw new Error('Failed to reject user');
+    }
+  } catch (error) {
+    console.error('Failed to reject user:', error);
+    showAccountMessage('Failed to reject user.', 'error');
+    if (btnElement) {
+      btnElement.disabled = false;
+      btnElement.textContent = 'Reject';
+    }
+  }
+}
+
+async function initPendingApprovals() {
+  const section = document.getElementById('pendingApprovalsSection');
+  if (!section) return;
+
+  const currentUser = firebase.auth().currentUser;
+  let fallbackRole = 'clerk';
+  if (typeof getCurrentUserRole === 'function') {
+    fallbackRole = getCurrentUserRole();
+  }
+
+  let resolvedRoleValue = fallbackRole;
+  if (typeof resolveUserRole === 'function' && currentUser) {
+    resolvedRoleValue = resolveUserRole(currentUser);
+  }
+
+  const role = await Promise.resolve(
+    resolvedRoleValue
+  );
+
+  if (currentUser && typeof saveUserAuthState === 'function') {
+    saveUserAuthState(currentUser, role);
+  }
+
+  const isAdmin = typeof hasRoleAccess === 'function' ? hasRoleAccess(role, 'admin') : role === 'admin';
+  if (!isAdmin) {
+    section.style.display = 'none';
+    return;
+  }
+
+  section.style.display = 'block';
+
+  const refreshButton = document.getElementById('refreshPendingUsersBtn');
+  if (refreshButton) {
+    refreshButton.addEventListener('click', loadPendingUsers);
+  }
+
+  await loadPendingUsers();
+}
+
 async function updateUserProfile(displayName, email) {
   try {
     const user = firebase.auth().currentUser;
@@ -537,6 +670,7 @@ function setupAccountManagement() {
 
   renderAuditLogTable();
   initRoleManagement();
+  initPendingApprovals();
   }); // Close onAuthStateChanged callback
 }
 

@@ -208,6 +208,21 @@ textarea {
   background: #9f1f15;
 }
 
+.button-success {
+  background: #28a745;
+  color: #fff;
+  border-color: #28a745;
+}
+
+.button-success:hover {
+  background: #218838;
+}
+
+.button-small {
+  padding: 0.4rem 0.8rem;
+  font-size: 12px;
+}
+
 .app-shell {
   max-width: 1280px;
   margin: 20px auto;
@@ -804,12 +819,21 @@ input[data-total] {
 [data-theme="dark"] .button-danger {
   background: var(--danger);
   border-color: var(--danger);
-  color: #ffffff;
+  color: white;
 }
 
 [data-theme="dark"] .button-danger:hover {
-  background: #d73a46;
-  color: #ffffff;
+  background: #d61c0e;
+}
+
+[data-theme="dark"] .button-success {
+  background: #28a745;
+  border-color: #28a745;
+  color: white;
+}
+
+[data-theme="dark"] .button-success:hover {
+  background: #218838;
 }
 
 [data-theme="dark"] h1,

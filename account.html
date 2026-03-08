@@ -140,6 +140,31 @@
           </div>
         </div>
 
+        <div class="section-container section-divider" id="pendingApprovalsSection" style="display:none;">
+          <h3 class="section-title">Pending User Approvals</h3>
+          <p class="section-description">Review and approve new user registrations.</p>
+          <div class="button-group">
+            <button class="button" id="refreshPendingUsersBtn" type="button">Refresh Pending Users</button>
+          </div>
+          <div class="table-wrap">
+            <table id="pendingUsersTable">
+              <thead>
+                <tr>
+                  <th>Email</th>
+                  <th>Username</th>
+                  <th>Registered</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colspan="4">Loading...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
         <div class="section-container section-divider" id="roleManagementSection" style="display:none;">
           <h3 class="section-title">Role Management</h3>
           <p class="section-description">Assign access roles for portal users.</p>
