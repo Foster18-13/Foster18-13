@@ -235,7 +235,13 @@ async function loadPendingUsers() {
     }).join('');
   } catch (error) {
     console.error('Failed to load pending users:', error);
-    tbody.innerHTML = '<tr><td colspan="4">Error loading pending users.</td></tr>';
+    const message = error?.code === 'permission-denied'
+      ? 'Cannot load pending users: Firestore permissions are blocking access.'
+      : 'Error loading pending users.';
+    tbody.innerHTML = `<tr><td colspan="4">${message}</td></tr>`;
+    if (typeof showAccountMessage === 'function') {
+      showAccountMessage(message, 'error');
+    }
   }
 }
 
@@ -323,6 +329,9 @@ async function initPendingApprovals() {
   const isAdmin = typeof hasRoleAccess === 'function' ? hasRoleAccess(role, 'admin') : role === 'admin';
   if (!isAdmin) {
     section.style.display = 'none';
+    if (typeof showAccountMessage === 'function') {
+      showAccountMessage('Pending approvals are visible to Admin users only. Your current role is ' + getRoleLabel(role) + '.', 'ok');
+    }
     return;
   }
 
