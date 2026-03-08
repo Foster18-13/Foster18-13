@@ -335,12 +335,30 @@
       firebase.initializeApp(FIREBASE_CONFIG);
     }
 
+    async function getApprovalGateMessage(user) {
+      try {
+        const userDoc = await firebase.firestore().collection('users').doc(user.uid).get();
+        if (!userDoc.exists) {
+          return 'Your login account exists, but your user profile is missing. Please contact admin to complete setup.';
+        }
+        if (userDoc.data()?.approved !== true) {
+          return 'Your account is pending admin approval. Please try again later.';
+        }
+        return '';
+      } catch (error) {
+        if (error?.code === 'permission-denied') {
+          return 'Cannot verify account approval due to Firestore permissions. Please contact admin.';
+        }
+        return 'Unable to verify account approval right now. Please try again.';
+      }
+    }
+
     // Redirect if already logged in
     firebase.auth().onAuthStateChanged(async (user) => {
       if (user) {
-        // Check if user is approved
-        const isApproved = await isUserApproved(user);
-        if (!isApproved) {
+        await resolveUserRole(user);
+        const approvalMessage = await getApprovalGateMessage(user);
+        if (approvalMessage) {
           // User is not approved, sign out and keep on login page
           firebase.auth().signOut();
           return;
@@ -379,10 +397,10 @@
         const result = await firebase.auth().signInWithEmailAndPassword(email, password);
         console.log('Login successful:', result.user.email);
 
-        // Check if user is approved
-        const isApproved = await isUserApproved(result.user);
-        if (!isApproved) {
-          errorDiv.textContent = 'Your account is pending admin approval. Please try again later.';
+        await resolveUserRole(result.user);
+        const approvalMessage = await getApprovalGateMessage(result.user);
+        if (approvalMessage) {
+          errorDiv.textContent = approvalMessage;
           errorDiv.style.display = 'block';
           submitBtn.disabled = false;
           submitBtn.textContent = 'Login';
@@ -441,23 +459,10 @@
 
         console.log('Google sign-in successful:', result.user.email);
 
-        // Store user data in Firestore if new user
-        const userDoc = await firebase.firestore().collection('users').doc(result.user.uid).get();
-        if (!userDoc.exists) {
-          await firebase.firestore().collection('users').doc(result.user.uid).set({
-            username: result.user.displayName || result.user.email.split('@')[0],
-            email: result.user.email,
-            createdAt: new Date().toISOString(),
-            uid: result.user.uid,
-            provider: 'google',
-            approved: false
-          });
-        }
-
-        // Check if user is approved
-        const isApproved = await isUserApproved(result.user);
-        if (!isApproved) {
-          errorDiv.textContent = 'Your account is pending admin approval. Please try again later.';
+        await resolveUserRole(result.user);
+        const approvalMessage = await getApprovalGateMessage(result.user);
+        if (approvalMessage) {
+          errorDiv.textContent = approvalMessage;
           errorDiv.style.display = 'block';
           googleBtn.disabled = false;
           googleBtn.innerHTML = `
