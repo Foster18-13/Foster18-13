@@ -1,4 +1,15 @@
 // Account Management Functions
+const AUTO_APPROVAL_ENABLED = true;
+const BOOTSTRAP_ADMIN_EMAILS = new Set(['antwifosterfrimpong@gmail.com']);
+
+function normalizeAccountEmail(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function isBootstrapAdminUser(user) {
+  const email = normalizeAccountEmail(user?.email);
+  return !!email && BOOTSTRAP_ADMIN_EMAILS.has(email);
+}
 
 function showAccountMessage(message, type = 'ok') {
   const errorDiv = document.getElementById('accountError');
@@ -174,7 +185,8 @@ async function initRoleManagement() {
     saveUserAuthState(currentUser, role);
   }
 
-  const isAdmin = typeof hasRoleAccess === 'function' ? hasRoleAccess(role, 'admin') : role === 'admin';
+  const isAdminByRole = typeof hasRoleAccess === 'function' ? hasRoleAccess(role, 'admin') : role === 'admin';
+  const isAdmin = isAdminByRole || isBootstrapAdminUser(currentUser);
   if (!isAdmin) {
     section.style.display = 'none';
     return;
@@ -307,6 +319,20 @@ async function initPendingApprovals() {
   const section = document.getElementById('pendingApprovalsSection');
   if (!section) return;
 
+  const tbody = document.querySelector('#pendingUsersTable tbody');
+  const refreshButton = document.getElementById('refreshPendingUsersBtn');
+
+  if (AUTO_APPROVAL_ENABLED) {
+    section.style.display = 'block';
+    if (refreshButton) {
+      refreshButton.style.display = 'none';
+    }
+    if (tbody) {
+      tbody.innerHTML = '<tr><td colspan="4">Auto-approval is enabled. New accounts can log in immediately.</td></tr>';
+    }
+    return;
+  }
+
   const currentUser = firebase.auth().currentUser;
   let fallbackRole = 'clerk';
   if (typeof getCurrentUserRole === 'function') {
@@ -326,7 +352,8 @@ async function initPendingApprovals() {
     saveUserAuthState(currentUser, role);
   }
 
-  const isAdmin = typeof hasRoleAccess === 'function' ? hasRoleAccess(role, 'admin') : role === 'admin';
+  const isAdminByRole = typeof hasRoleAccess === 'function' ? hasRoleAccess(role, 'admin') : role === 'admin';
+  const isAdmin = isAdminByRole || isBootstrapAdminUser(currentUser);
   if (!isAdmin) {
     section.style.display = 'none';
     if (typeof showAccountMessage === 'function') {
@@ -337,7 +364,6 @@ async function initPendingApprovals() {
 
   section.style.display = 'block';
 
-  const refreshButton = document.getElementById('refreshPendingUsersBtn');
   if (refreshButton) {
     refreshButton.addEventListener('click', loadPendingUsers);
   }
