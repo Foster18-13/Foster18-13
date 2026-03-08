@@ -156,10 +156,18 @@ async function initRoleManagement() {
   if (!section) return;
 
   const currentUser = firebase.auth().currentUser;
+  let fallbackRole = 'clerk';
+  if (typeof getCurrentUserRole === 'function') {
+    fallbackRole = getCurrentUserRole();
+  }
+
+  let resolvedRoleValue = fallbackRole;
+  if (typeof resolveUserRole === 'function' && currentUser) {
+    resolvedRoleValue = resolveUserRole(currentUser);
+  }
+
   const role = await Promise.resolve(
-    typeof resolveUserRole === 'function' && currentUser
-      ? resolveUserRole(currentUser)
-      : (typeof getCurrentUserRole === 'function' ? getCurrentUserRole() : 'clerk')
+    resolvedRoleValue
   );
 
   if (currentUser && typeof saveUserAuthState === 'function') {
@@ -314,6 +322,22 @@ async function deleteUserAccount() {
   }
 }
 
+function clearAllEntriesData() {
+  const data = loadData();
+
+  data.daily = {};
+  data.auditLogs = [];
+  data._meta = data._meta && typeof data._meta === 'object' ? data._meta : {};
+  data._meta.recoveredFromBackupAt = Date.now();
+  data._meta.recoveredBackupScore = 0;
+
+  saveData(data);
+
+  localStorage.removeItem('twellium_warehouse_portal_backup_v1');
+  localStorage.removeItem('dailyRecordingSheetData');
+  localStorage.removeItem('dailyBalanceSheetData');
+}
+
 function setupAccountManagement() {
   // Wait for Firebase auth to be ready
   firebase.auth().onAuthStateChanged((user) => {
@@ -375,6 +399,7 @@ function setupAccountManagement() {
   // Setup backup/restore
   const backupDataBtn = document.getElementById('backupDataBtn');
   const restoreDataBtn = document.getElementById('restoreDataBtn');
+  const clearAllEntriesBtn = document.getElementById('clearAllEntriesBtn');
   const restoreFileInput = document.getElementById('restoreFileInput');
 
   if (backupDataBtn) {
@@ -401,6 +426,22 @@ function setupAccountManagement() {
   if (restoreDataBtn) {
     restoreDataBtn.addEventListener('click', () => {
       restoreFileInput.click();
+    });
+  }
+
+  if (clearAllEntriesBtn) {
+    clearAllEntriesBtn.addEventListener('click', async () => {
+      const approved = confirm('This will clear ALL warehouse entries (daily records and logs). Products and user accounts will remain. Continue?');
+      if (!approved) return;
+
+      await withLoadingFeedback(clearAllEntriesBtn, 'Clearing...', () => {
+        clearAllEntriesData();
+        showAccountMessage('All entries cleared successfully.', 'ok');
+      }, { overlay: true });
+
+      setTimeout(() => {
+        globalThis.location.reload();
+      }, 400);
     });
   }
 
