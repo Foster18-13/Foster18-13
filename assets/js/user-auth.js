@@ -4,33 +4,7 @@ const DEFAULT_USER_ROLE = "clerk";
 const FORCED_ADMIN_EMAILS = [
   "antwifosterfrimpong@gmail.com"
 ];
-const CLEAN_URL_ROUTES = new Set([
-  'access',
-  'account',
-  'add-product',
-  'admin-setup',
-  'balance',
-  'customer-history',
-  'customers',
-  'damages',
-  'dashboard',
-  'force-admin-init',
-  'home',
-  'login',
-  'notebook',
-  'period-reports',
-  'product-movement',
-  'products',
-  'profile',
-  'purchase',
-  'register',
-  'reports',
-  'reset-products',
-  'returns',
-  'saved-sheets',
-  'summary',
-  'vehicles'
-]);
+const ROOT_ONLY_URL_MODE = true;
 const USER_ROLE_PRIORITY = {
   clerk: 1,
   supervisor: 2,
@@ -43,27 +17,16 @@ function normalizeEmail(value) {
 
 function applyCleanUrlCanonicalPath() {
   try {
+    if (!ROOT_ONLY_URL_MODE) return;
+
     const pathname = String(globalThis.location?.pathname || '');
-    if (!pathname.toLowerCase().endsWith('.html')) {
+    if (pathname === '/') {
       return;
-    }
-
-    const segments = pathname.split('/');
-    const fileName = segments.at(-1) || '';
-    const baseName = fileName.slice(0, -5).toLowerCase();
-
-    if (!baseName || (baseName !== 'index' && !CLEAN_URL_ROUTES.has(baseName))) {
-      return;
-    }
-
-    let cleanPath = pathname.slice(0, -5);
-    if (baseName === 'index') {
-      cleanPath = '/';
     }
 
     const query = globalThis.location?.search || '';
     const hash = globalThis.location?.hash || '';
-    globalThis.history?.replaceState?.({}, '', `${cleanPath}${query}${hash}`);
+    globalThis.history?.replaceState?.({}, '', `/${query}${hash}`);
   } catch (error) {
     console.debug('Failed to apply clean URL canonical path:', error);
   }
