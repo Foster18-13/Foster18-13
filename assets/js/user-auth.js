@@ -247,7 +247,9 @@ function setupRegistrationForm() {
 
       console.error('Registration error:', error.code, error.message);
 
-      if (error.code === 'auth/email-already-in-use') {
+      if (error.code === 'permission-denied' || String(error.message || '').toLowerCase().includes('insufficient permissions')) {
+        errorDiv.textContent = 'Your login account was created, but profile setup is blocked by database permissions. Please contact the administrator to update Firestore rules for users registration.';
+      } else if (error.code === 'auth/email-already-in-use') {
         errorDiv.textContent = 'Email already in use. Please use a different email or login.';
       } else if (error.code === 'auth/invalid-email') {
         errorDiv.textContent = 'Invalid email address format.';
