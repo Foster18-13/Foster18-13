@@ -450,9 +450,11 @@ function loadData() {
   }
 }
 
-function saveData(data) {
+function saveData(data, preserveTimestamp = false) {
   data._meta = data._meta && typeof data._meta === "object" ? data._meta : {};
-  data._meta.updatedAt = Date.now();
+  if (!preserveTimestamp) {
+    data._meta.updatedAt = Date.now();
+  }
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   addLocalBackupSnapshot(data);
 

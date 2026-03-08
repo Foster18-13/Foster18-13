@@ -102,6 +102,12 @@ async function pullFromCloudIfNewer() {
   const docRef = getCloudDocRef();
   if (!docRef) return;
 
+  // Check if we already synced this session to prevent refresh loops
+  const sessionKey = 'cloudSyncCompleted';
+  if (sessionStorage.getItem(sessionKey) === 'true') {
+    return;
+  }
+
   cloudSyncState.pullInProgress = true;
   try {
     const snapshot = await docRef.get();
@@ -120,14 +126,19 @@ async function pullFromCloudIfNewer() {
     const shouldRecoverFromCloud = !localHasData && cloudHasData;
 
     if (cloudUpdatedAt > localUpdatedAt || shouldRecoverFromCloud) {
-      saveData(cloudData);
+      saveData(cloudData, true); // Preserve timestamp to avoid sync loop
       setCloudStatus(
         shouldRecoverFromCloud ? "Cloud recovery: historical data loaded" : "Cloud sync: latest data loaded",
         "ok"
       );
+      // Mark sync as completed in this session
+      sessionStorage.setItem('cloudSyncCompleted', 'true');
       globalThis.setTimeout(() => {
         location.reload();
       }, 400);
+    } else {
+      // Data is up to date, mark as synced
+      sessionStorage.setItem('cloudSyncCompleted', 'true');
     }
   } catch (error) {
     setCloudStatus(getCloudSyncErrorMessage(error, "pull"), "error");
@@ -255,6 +266,7 @@ async function handleCloudSignOut() {
   if (!cloudSyncState.auth) return;
   try {
     await cloudSyncState.auth.signOut();
+    sessionStorage.removeItem('cloudSyncCompleted'); // Allow fresh sync on next sign in
     setCloudStatus("Signed out (local mode)");
   } catch {
     setCloudStatus("Sign out failed", "error");
@@ -302,6 +314,12 @@ function initCloudSync() {
 
     cloudSyncState.auth.onAuthStateChanged(async (user) => {
       cloudSyncState.user = user || null;
+      
+      // Clear sync flag when auth state changes to allow fresh sync
+      if (!user) {
+        sessionStorage.removeItem('cloudSyncCompleted');
+      }
+      
       renderCloudAuthState();
 
       if (cloudSyncState.user) {
