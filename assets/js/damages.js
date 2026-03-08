@@ -46,7 +46,7 @@ function addDamageRecord(event) {
   event.preventDefault();
 
   const productId = document.getElementById("productIdDamage").value;
-  const quantity = parseFloat(document.getElementById("damageQuantity").value);
+  const quantity = Number.parseFloat(document.getElementById("damageQuantity").value);
   const reason = document.getElementById("damageReason").value;
   const damageDate = document.getElementById("damageDate").value;
   const notes = document.getElementById("damageNotes").value.trim();
@@ -64,6 +64,7 @@ function addDamageRecord(event) {
   const data = loadData();
   const date = getSelectedDate();
   const dayStore = getShiftStore(data, date);
+  const product = getProductById(data, productId);
 
   if (!dayStore.damageReasons) {
     dayStore.damageReasons = [];
@@ -79,6 +80,13 @@ function addDamageRecord(event) {
   });
 
   saveData(data);
+  addAuditLog("Damage record added", {
+    productId,
+    productName: product?.name || "",
+    quantity,
+    reason,
+    damageDate
+  });
   event.target.reset();
   document.getElementById("damageDate").value = date;
   renderDamagesTable();
@@ -91,9 +99,17 @@ function deleteDamage(id) {
   const data = loadData();
   const date = getSelectedDate();
   const dayStore = getShiftStore(data, date);
+  const damage = (dayStore.damageReasons || []).find((d) => d.id === id);
+  const product = damage ? getProductById(data, damage.productId) : null;
 
   dayStore.damageReasons = dayStore.damageReasons.filter((d) => d.id !== id);
   saveData(data);
+  addAuditLog("Damage record deleted", {
+    productId: damage?.productId || "",
+    productName: product?.name || "",
+    quantity: damage?.quantity || "",
+    reason: damage?.reason || ""
+  });
   renderDamagesTable();
   setStatus("Damage record deleted.", "ok");
 }

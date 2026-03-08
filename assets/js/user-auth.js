@@ -1,5 +1,69 @@
 // User Account Authentication System
 const USER_AUTH_STORAGE_KEY = "warehousePortalUserAuth";
+const DEFAULT_USER_ROLE = "clerk";
+const USER_ROLE_PRIORITY = {
+  clerk: 1,
+  supervisor: 2,
+  admin: 3
+};
+
+function normalizeUserRole(role) {
+  const normalized = String(role || "").toLowerCase().trim();
+  return USER_ROLE_PRIORITY[normalized] ? normalized : DEFAULT_USER_ROLE;
+}
+
+function hasRoleAccess(currentRole, minimumRole) {
+  const current = USER_ROLE_PRIORITY[normalizeUserRole(currentRole)] || 0;
+  const minimum = USER_ROLE_PRIORITY[normalizeUserRole(minimumRole)] || 0;
+  return current >= minimum;
+}
+
+async function getDefaultRoleForNewUser() {
+  try {
+    const existingAdmin = await firebase.firestore()
+      .collection('users')
+      .where('role', '==', 'admin')
+      .limit(1)
+      .get();
+    return existingAdmin.empty ? 'admin' : DEFAULT_USER_ROLE;
+  } catch {
+    return DEFAULT_USER_ROLE;
+  }
+}
+
+async function resolveUserRole(user) {
+  if (!user?.uid || !globalThis.firebase?.firestore) return DEFAULT_USER_ROLE;
+
+  try {
+    const usersRef = firebase.firestore().collection('users').doc(user.uid);
+    const doc = await usersRef.get();
+
+    if (!doc.exists) {
+      await usersRef.set({
+        username: user.displayName || user.email || '',
+        email: user.email || '',
+        uid: user.uid,
+        role: DEFAULT_USER_ROLE,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+      return DEFAULT_USER_ROLE;
+    }
+
+    const role = normalizeUserRole(doc.data()?.role);
+    if (role !== doc.data()?.role) {
+      await usersRef.set({
+        role,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+    }
+
+    return role;
+  } catch (error) {
+    console.error('Failed to resolve user role:', error);
+    return DEFAULT_USER_ROLE;
+  }
+}
 
 function initializeUserAuth() {
   // Initialize Firebase if not already done
@@ -72,16 +136,20 @@ function setupRegistrationForm() {
         displayName: username
       });
 
+      const role = await getDefaultRoleForNewUser();
+
       // Store user data in Firestore
       await firebase.firestore().collection('users').doc(userCredential.user.uid).set({
         username: username,
         email: email,
+        role,
         createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
         uid: userCredential.user.uid
       });
 
       // Save auth state
-      saveUserAuthState(userCredential.user);
+      saveUserAuthState(userCredential.user, role);
 
       // Show success and redirect
       const successMsg = document.createElement('div');
@@ -97,7 +165,7 @@ function setupRegistrationForm() {
 
       // Redirect to home after 1 second
       setTimeout(() => {
-        window.location.href = 'home.html';
+        globalThis.location.href = 'home.html';
       }, 1000);
 
     } catch (error) {
@@ -122,13 +190,15 @@ function setupRegistrationForm() {
   });
 }
 
-function saveUserAuthState(user) {
+function saveUserAuthState(user, role = "") {
   try {
+    const resolvedRole = normalizeUserRole(role || getCurrentUserRole());
     const authState = {
       authenticated: true,
       uid: user.uid,
       email: user.email,
       displayName: user.displayName,
+      role: resolvedRole,
       time: new Date().toISOString()
     };
     sessionStorage.setItem(USER_AUTH_STORAGE_KEY, JSON.stringify(authState));
@@ -138,12 +208,18 @@ function saveUserAuthState(user) {
   }
 }
 
+function getCurrentUserRole() {
+  const current = getCurrentUser();
+  return normalizeUserRole(current?.role);
+}
+
 function getCurrentUser() {
   try {
     const raw = sessionStorage.getItem(USER_AUTH_STORAGE_KEY) || localStorage.getItem(USER_AUTH_STORAGE_KEY + "_persistent");
     if (!raw) return null;
     return JSON.parse(raw);
   } catch (e) {
+    console.debug('Failed to parse stored auth state:', e);
     return null;
   }
 }
@@ -156,18 +232,20 @@ function clearUserAuthState() {
 function logoutUser() {
   firebase.auth().signOut().then(() => {
     clearUserAuthState();
-    window.location.href = 'login.html';
+    globalThis.location.href = 'login.html';
   }).catch((error) => {
     console.error('Logout error:', error);
   });
 }
 
 // Expose to global scope for onclick handlers and other scripts
-window.logoutUser = logoutUser;
-window.saveUserAuthState = saveUserAuthState;
-window.clearUserAuthState = clearUserAuthState;
 globalThis.logoutUser = logoutUser;
 globalThis.saveUserAuthState = saveUserAuthState;
+globalThis.getCurrentUser = getCurrentUser;
+globalThis.getCurrentUserRole = getCurrentUserRole;
+globalThis.resolveUserRole = resolveUserRole;
+globalThis.normalizeUserRole = normalizeUserRole;
+globalThis.hasRoleAccess = hasRoleAccess;
 globalThis.clearUserAuthState = clearUserAuthState;
 
 function protectPortalPageWithAuth() {
@@ -181,14 +259,17 @@ function protectPortalPageWithAuth() {
 
   // Check if user is authenticated
   firebase.auth().onAuthStateChanged((user) => {
-    if (!user) {
-      // Not authenticated, redirect to login
-      const nextPage = `${currentPage}${location.search || ""}`;
-      window.location.replace(`login.html?next=${encodeURIComponent(nextPage)}`);
-    } else {
-      // User authenticated, save their info
-      saveUserAuthState(user);
+    if (user) {
+      // User authenticated, save their info with role
+      resolveUserRole(user).then((role) => {
+        saveUserAuthState(user, role);
+      });
+      return;
     }
+
+    // Not authenticated, redirect to login
+    const nextPage = `${currentPage}${location.search || ""}`;
+    globalThis.location.replace(`login.html?next=${encodeURIComponent(nextPage)}`);
   });
 }
 

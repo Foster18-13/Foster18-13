@@ -8,6 +8,9 @@ function renderDashboard() {
 
   // Calculate totals
   let totalStock = 0;
+  let totalOpening = 0;
+  let totalOutstanding = 0;
+  let totalClosing = 0;
   let totalLoaded = 0;
   let totalReceived = 0;
   let totalDamaged = 0;
@@ -19,10 +22,23 @@ function renderDashboard() {
     const recording = dayStore.recording[product.id] || { entries: [] };
     
     const closing = asNumber(balance.closing);
+    const opening = asNumber(balance.opening);
+    const returns = asNumber(balance.returns);
     const loaded = recording.entries.reduce((sum, entry) => sum + asNumber(entry.qty || 0), 0);
     const damaged = asNumber(balance.damaged);
+    const received = getGoodsReceivedForProduct(dayStore, product.id);
+    const outstanding = computeBalanceValue({
+      opening,
+      returns,
+      goodsReceived: received,
+      loading: loaded,
+      damages: damaged
+    });
 
     totalStock += closing;
+    totalOpening += opening;
+    totalOutstanding += outstanding;
+    totalClosing += closing;
     totalLoaded += loaded;
     totalDamaged += damaged;
 
@@ -47,6 +63,9 @@ function renderDashboard() {
 
   // Update stats
   document.getElementById('totalStock').textContent = totalStock;
+  document.getElementById('totalOpening').textContent = totalOpening;
+  document.getElementById('totalOutstanding').textContent = totalOutstanding;
+  document.getElementById('totalClosing').textContent = totalClosing;
   document.getElementById('totalLoaded').textContent = totalLoaded;
   document.getElementById('totalReceived').textContent = totalReceived;
   document.getElementById('totalDamaged').textContent = totalDamaged;

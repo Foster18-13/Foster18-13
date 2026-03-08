@@ -78,6 +78,12 @@ function addVehicle(event) {
   });
 
   saveData(data);
+  addAuditLog("Vehicle assignment added", {
+    vehicleNumber,
+    driverName,
+    destination,
+    status: vehicleStatus
+  });
   event.target.reset();
   renderVehiclesTable();
   setStatus("Vehicle assignment added.", "ok");
@@ -89,9 +95,15 @@ function deleteVehicle(id) {
   const data = loadData();
   const date = getSelectedDate();
   const dayStore = getShiftStore(data, date);
+  const existing = (dayStore.vehicles || []).find((v) => v.id === id);
 
   dayStore.vehicles = dayStore.vehicles.filter((v) => v.id !== id);
   saveData(data);
+  addAuditLog("Vehicle assignment deleted", {
+    vehicleNumber: existing?.vehicleNumber || "",
+    driverName: existing?.driverName || "",
+    destination: existing?.destination || ""
+  });
   renderVehiclesTable();
   setStatus("Vehicle assignment deleted.", "ok");
 }

@@ -58,6 +58,133 @@ function renderAuditLogTable() {
   }).join('');
 }
 
+function getRoleLabel(role) {
+  const normalized = typeof normalizeUserRole === 'function' ? normalizeUserRole(role) : String(role || 'clerk').toLowerCase();
+  if (normalized === 'admin') return 'Admin';
+  if (normalized === 'supervisor') return 'Supervisor';
+  return 'Clerk';
+}
+
+async function loadUsersForRoleManagement() {
+  const select = document.getElementById('roleUserSelect');
+  if (!select) return;
+
+  select.innerHTML = '<option value="">Loading users...</option>';
+
+  try {
+    const snapshot = await firebase.firestore().collection('users').limit(300).get();
+    const users = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    users.sort((a, b) => String(a.email || a.username || '').localeCompare(String(b.email || b.username || '')));
+
+    if (!users.length) {
+      select.innerHTML = '<option value="">No users found</option>';
+      return;
+    }
+
+    select.innerHTML = users
+      .map((entry) => {
+        const display = entry.email || entry.username || entry.id;
+        const role = getRoleLabel(entry.role);
+        return `<option value="${entry.id}" data-role="${entry.role || 'clerk'}">${display} (${role})</option>`;
+      })
+      .join('');
+
+    const roleSelect = document.getElementById('targetRoleSelect');
+    if (roleSelect) {
+      const selectedOption = select.options[select.selectedIndex];
+      roleSelect.value = selectedOption?.dataset?.role || 'clerk';
+    }
+  } catch (error) {
+    console.error('Failed to load users for role management:', error);
+    select.innerHTML = '<option value="">Failed to load users</option>';
+    showAccountMessage('Failed to load users for role management.', 'error');
+  }
+}
+
+async function saveSelectedUserRole() {
+  const select = document.getElementById('roleUserSelect');
+  const roleSelect = document.getElementById('targetRoleSelect');
+  if (!select || !roleSelect) return;
+
+  const userId = select.value;
+  const targetRole = typeof normalizeUserRole === 'function'
+    ? normalizeUserRole(roleSelect.value)
+    : String(roleSelect.value || 'clerk').toLowerCase();
+
+  if (!userId) {
+    showAccountMessage('Select a user first.', 'error');
+    return;
+  }
+
+  try {
+    await firebase.firestore().collection('users').doc(userId).set({
+      role: targetRole,
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+
+    const selectedOption = select.options[select.selectedIndex];
+    const targetLabel = selectedOption?.textContent || userId;
+
+    if (selectedOption) {
+      selectedOption.dataset.role = targetRole;
+      const withoutRole = targetLabel.replace(/\s+\([^)]*\)\s*$/, '');
+      selectedOption.textContent = `${withoutRole} (${getRoleLabel(targetRole)})`;
+    }
+
+    const currentUser = firebase.auth().currentUser;
+    if (currentUser && currentUser.uid === userId && typeof saveUserAuthState === 'function') {
+      saveUserAuthState(currentUser, targetRole);
+    }
+
+    if (typeof addAuditLog === 'function') {
+      addAuditLog('User role updated', {
+        targetUserId: userId,
+        target: targetLabel,
+        role: targetRole
+      });
+    }
+
+    showAccountMessage('User role updated successfully.', 'ok');
+  } catch (error) {
+    console.error('Failed to save user role:', error);
+    showAccountMessage('Failed to update user role.', 'error');
+  }
+}
+
+function initRoleManagement() {
+  const section = document.getElementById('roleManagementSection');
+  if (!section) return;
+
+  const role = typeof getCurrentUserRole === 'function' ? getCurrentUserRole() : 'clerk';
+  const isAdmin = typeof hasRoleAccess === 'function' ? hasRoleAccess(role, 'admin') : role === 'admin';
+  if (!isAdmin) {
+    section.style.display = 'none';
+    return;
+  }
+
+  section.style.display = 'block';
+
+  const refreshButton = document.getElementById('refreshRoleUsersBtn');
+  const saveButton = document.getElementById('saveRoleBtn');
+  const select = document.getElementById('roleUserSelect');
+  const roleSelect = document.getElementById('targetRoleSelect');
+
+  if (refreshButton) {
+    refreshButton.addEventListener('click', loadUsersForRoleManagement);
+  }
+  if (saveButton) {
+    saveButton.addEventListener('click', saveSelectedUserRole);
+  }
+  if (select && roleSelect) {
+    select.addEventListener('change', () => {
+      const selectedOption = select.options[select.selectedIndex];
+      roleSelect.value = selectedOption?.dataset?.role || 'clerk';
+    });
+  }
+
+  loadUsersForRoleManagement();
+}
+
 async function updateUserProfile(displayName, email) {
   try {
     const user = firebase.auth().currentUser;
@@ -358,6 +485,7 @@ function setupAccountManagement() {
   });
 
   renderAuditLogTable();
+  initRoleManagement();
   }); // Close onAuthStateChanged callback
 }
 

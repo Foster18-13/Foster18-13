@@ -16,6 +16,78 @@ function isHomePage(pageName) {
   return pageName === "home.html" || pageName === "index.html";
 }
 
+const PAGE_MIN_ROLE = {
+  "home.html": "clerk",
+  "index.html": "clerk",
+  "dashboard.html": "clerk",
+  "balance.html": "clerk",
+  "recording.html": "clerk",
+  "summary.html": "clerk",
+  "purchase.html": "clerk",
+  "customers.html": "clerk",
+  "customer-history.html": "clerk",
+  "damages.html": "clerk",
+  "product-movement.html": "clerk",
+  "reports.html": "clerk",
+  "notebook.html": "clerk",
+  "saved-sheets.html": "clerk",
+  "products.html": "supervisor",
+  "vehicles.html": "supervisor",
+  "account.html": "supervisor",
+  "add-product.html": "supervisor",
+  "access.html": "admin",
+  "login.html": "clerk",
+  "register.html": "clerk"
+};
+
+function getMinimumRoleForPage(pageName) {
+  const normalized = String(pageName || "").toLowerCase().trim();
+  return PAGE_MIN_ROLE[normalized] || "clerk";
+}
+
+function currentUserRole() {
+  if (typeof getCurrentUserRole === "function") {
+    return getCurrentUserRole();
+  }
+  return "clerk";
+}
+
+function roleAllowsPage(role, pageName) {
+  const minRole = getMinimumRoleForPage(pageName);
+  if (typeof hasRoleAccess === "function") {
+    return hasRoleAccess(role, minRole);
+  }
+  return true;
+}
+
+function applyRoleNavAccess(role) {
+  document.querySelectorAll(".main-nav a").forEach((link) => {
+    const target = String(link.getAttribute("href") || "").split("?")[0];
+    const allowed = roleAllowsPage(role, target);
+
+    if (allowed) {
+      link.style.display = "";
+      link.removeAttribute("aria-disabled");
+      return;
+    }
+
+    link.style.display = "none";
+    link.setAttribute("aria-disabled", "true");
+  });
+
+  document.querySelectorAll('[data-min-role]').forEach((element) => {
+    const minRole = element.dataset.minRole || 'clerk';
+    const allowed = typeof hasRoleAccess === 'function' ? hasRoleAccess(role, minRole) : true;
+    if (allowed) {
+      element.style.display = "";
+      element.removeAttribute("aria-disabled");
+    } else {
+      element.style.display = "none";
+      element.setAttribute("aria-disabled", "true");
+    }
+  });
+}
+
 function setHomeLoginStatus(message, type = "") {
   const element = document.getElementById("loginGateStatus");
   if (!element) return;
@@ -58,18 +130,44 @@ function initAuthAccessGuard() {
 
   const auth = globalThis.firebase.auth();
   auth.onAuthStateChanged((user) => {
-    if (user) {
-      if (onHome) {
-        toggleProtectedAccessLinks(false);
-        const label = user.email || user.displayName || "Signed in";
-        setHomeLoginStatus(`Access granted: ${label}`, "ok");
+    const pageMinRole = getMinimumRoleForPage(currentPage);
 
-        const params = new URLSearchParams(location.search);
-        const nextPage = params.get("next");
-        if (nextPage && nextPage !== "home.html" && nextPage !== "index.html") {
-          location.replace(nextPage);
+    if (user) {
+      Promise.resolve(
+        typeof globalThis.resolveUserRole === "function"
+          ? globalThis.resolveUserRole(user)
+          : currentUserRole()
+      ).then((resolvedRole) => {
+        const role = String(resolvedRole || currentUserRole());
+        applyRoleNavAccess(role);
+
+        if (!roleAllowsPage(role, currentPage)) {
+          location.replace(`home.html?unauthorized=1&requiredRole=${encodeURIComponent(pageMinRole)}`);
+          return;
         }
-      }
+
+        if (onHome) {
+          toggleProtectedAccessLinks(false);
+          const label = user.email || user.displayName || "Signed in";
+          setHomeLoginStatus(`Access granted: ${label} (${role})`, "ok");
+
+          const params = new URLSearchParams(location.search);
+          const nextPage = params.get("next");
+          const isNextAllowed = !nextPage || roleAllowsPage(role, nextPage);
+          if (nextPage && nextPage !== "home.html" && nextPage !== "index.html") {
+            if (!isNextAllowed) {
+              setHomeLoginStatus("Signed in, but your role cannot access that page.", "error");
+              return;
+            }
+            location.replace(nextPage);
+          }
+
+          const unauthorized = params.get("unauthorized");
+          if (unauthorized === "1") {
+            setHomeLoginStatus("Your role does not permit access to that page.", "error");
+          }
+        }
+      });
       return;
     }
 
@@ -86,6 +184,7 @@ function initAuthAccessGuard() {
 
 function initSharedHeader() {
   markActiveNav();
+  applyRoleNavAccess(currentUserRole());
 
   // Set print date
   const printDateElement = document.getElementById("printDate");

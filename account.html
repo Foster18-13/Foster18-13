@@ -139,6 +139,27 @@
           </div>
         </div>
 
+        <div class="section-container section-divider" id="roleManagementSection" style="display:none;">
+          <h3 class="section-title">Role Management</h3>
+          <p class="section-description">Assign access roles for portal users.</p>
+          <div class="form-group">
+            <label for="roleUserSelect" class="form-label">User</label>
+            <select class="select" id="roleUserSelect"></select>
+          </div>
+          <div class="form-group">
+            <label for="targetRoleSelect" class="form-label">Role</label>
+            <select class="select" id="targetRoleSelect">
+              <option value="clerk">Clerk</option>
+              <option value="supervisor">Supervisor</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <div class="button-group">
+            <button class="button" id="refreshRoleUsersBtn" type="button">Refresh Users</button>
+            <button class="button button-primary" id="saveRoleBtn" type="button">Save Role</button>
+          </div>
+        </div>
+
         <!-- Delete Account Section -->
         <div class="section-container section-divider">
           <h3 class="section-title section-title-danger">Delete Account</h3>

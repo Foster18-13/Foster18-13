@@ -483,6 +483,30 @@ function getCurrentUserLabel() {
   return "Unknown user";
 }
 
+function getCurrentUserRoleLabel() {
+  try {
+    if (typeof globalThis.getCurrentUserRole === "function") {
+      return globalThis.getCurrentUserRole();
+    }
+
+    const cachedUser = typeof globalThis.getCurrentUser === "function" ? globalThis.getCurrentUser() : null;
+    return String(cachedUser?.role || "clerk").toLowerCase();
+  } catch {
+    return "clerk";
+  }
+}
+
+function getCurrentPageForAudit() {
+  try {
+    if (typeof globalThis.getCurrentPageName === "function") {
+      return globalThis.getCurrentPageName();
+    }
+    return location.pathname.split("/").pop() || "";
+  } catch {
+    return "";
+  }
+}
+
 function ensureAuditLogStore(data) {
   if (!Array.isArray(data.auditLogs)) {
     data.auditLogs = [];
@@ -509,6 +533,8 @@ function pushAuditLogEntry(data, action, details = {}) {
     date: getSelectedDate(),
     shift: getSelectedShift(),
     user: getCurrentUserLabel(),
+    role: getCurrentUserRoleLabel(),
+    page: getCurrentPageForAudit(),
     timestamp: Date.now(),
     createdAt: new Date().toISOString()
   };
