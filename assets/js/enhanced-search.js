@@ -222,7 +222,7 @@ function displaySearchResults(query) {
     });
     
     resultsContainer.innerHTML = searchResults.map((result, index) => `
-      <div class="search-result-item" onclick="navigateToResult('${result.link.replace(/'/g, "\\'")}')">
+      <div class="search-result-item" onclick="navigateToResult('${result.link.replaceAll("'", "\\'")}')">
         <div class="search-result-icon">${result.icon}</div>
         <div class="search-result-content">
           <div class="search-result-type">${result.type}</div>
@@ -239,7 +239,7 @@ function displaySearchResults(query) {
 
 // Navigate to search result
 function navigateToResult(link) {
-  window.location.href = link;
+  globalThis.location.href = link;
 }
 
 // Show search suggestions
@@ -291,8 +291,8 @@ function closeSearchModal() {
 }
 
 // Make functions globally available
-window.navigateToResult = navigateToResult;
-window.closeSearchModal = closeSearchModal;
+globalThis.navigateToResult = navigateToResult;
+globalThis.closeSearchModal = closeSearchModal;
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {

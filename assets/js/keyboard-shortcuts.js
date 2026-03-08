@@ -14,25 +14,25 @@ document.addEventListener('keydown', (e) => {
   // Ctrl+B: Balance Sheet
   if (e.ctrlKey && e.key === 'b') {
     e.preventDefault();
-    window.location.href = 'balance.html';
+    globalThis.location.href = 'balance.html';
   }
 
   // Ctrl+R: Returns Sheet
   if (e.ctrlKey && e.key === 'r') {
     e.preventDefault();
-    window.location.href = 'returns.html';
+    globalThis.location.href = 'returns.html';
   }
 
   // Ctrl+D: Dashboard
   if (e.ctrlKey && e.key === 'd') {
     e.preventDefault();
-    window.location.href = 'dashboard.html';
+    globalThis.location.href = 'dashboard.html';
   }
 
   // Ctrl+H: Home
   if (e.ctrlKey && e.key === 'h') {
     e.preventDefault();
-    window.location.href = 'home.html';
+    globalThis.location.href = 'home.html';
   }
 
   // Ctrl+S: Save (if on sheets with save buttons)
@@ -53,19 +53,19 @@ document.addEventListener('keydown', (e) => {
   // Ctrl+P: Products
   if (e.ctrlKey && e.key === 'p') {
     e.preventDefault();
-    window.location.href = 'products.html';
+    globalThis.location.href = 'products.html';
   }
 
   // Ctrl+N: Notes for the Day
   if (e.ctrlKey && e.key === 'n') {
     e.preventDefault();
-    window.location.href = 'notebook.html';
+    globalThis.location.href = 'notebook.html';
   }
 
   // Ctrl+C: Customers
   if (e.ctrlKey && e.key === 'c') {
     e.preventDefault();
-    window.location.href = 'customers.html';
+    globalThis.location.href = 'customers.html';
   }
 });
 

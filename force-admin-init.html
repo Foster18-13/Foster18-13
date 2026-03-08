@@ -130,7 +130,7 @@
         showStatus('Redirecting to home...', 'info');
 
         setTimeout(() => {
-          window.location.href = 'home.html';
+          globalThis.location.href = 'home.html';
         }, 2000);
 
       } catch (error) {

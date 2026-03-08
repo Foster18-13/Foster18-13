@@ -209,9 +209,9 @@ textarea {
 }
 
 .button-success {
-  background: #28a745;
+  background: #1e7e34;
   color: #fff;
-  border-color: #28a745;
+  border-color: #1e7e34;
 }
 
 .button-success:hover {
@@ -829,8 +829,8 @@ input[data-total] {
 }
 
 [data-theme="dark"] .button-success {
-  background: #28a745;
-  border-color: #28a745;
+  background: #1e7e34;
+  border-color: #1e7e34;
   color: white;
 }
 

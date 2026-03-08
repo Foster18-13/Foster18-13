@@ -97,8 +97,14 @@
         users.sort((a, b) => (a.email || '').localeCompare(b.email || ''));
 
         usersList.innerHTML = users.map(user => {
-          const roleLabel = user.role === 'admin' ? 'Admin' : user.role === 'supervisor' ? 'Supervisor' : 'Clerk';
-          const roleClass = user.role === 'admin' ? 'ok' : user.role === 'supervisor' ? 'error' : '';
+          let roleLabel = 'Clerk';
+          if (user.role === 'admin') roleLabel = 'Admin';
+          else if (user.role === 'supervisor') roleLabel = 'Supervisor';
+
+          let roleClass = '';
+          if (user.role === 'admin') roleClass = 'ok';
+          else if (user.role === 'supervisor') roleClass = 'error';
+
           return `
             <div style="padding: 0.5rem; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
               <div>
@@ -161,7 +167,7 @@
 
         // Redirect after 2 seconds
         setTimeout(() => {
-          window.location.href = 'home.html';
+          globalThis.location.href = 'home.html';
         }, 2000);
 
       } catch (error) {
@@ -177,7 +183,7 @@
       if (!user) {
         showMessage('Please log in first to set up admin', 'error');
         setTimeout(() => {
-          window.location.href = 'login.html';
+          globalThis.location.href = 'login.html';
         }, 2000);
         return;
       }

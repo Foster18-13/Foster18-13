@@ -15,7 +15,7 @@ function searchCustomerHistory() {
     const dayStore = data.dailyStores[date];
     
     // Search day shift
-    if (dayStore.day && dayStore.day.customers) {
+    if (dayStore.day?.customers) {
       dayStore.day.customers.forEach(customer => {
         if (customer.customerName.toLowerCase().includes(searchTerm)) {
           const product = getProductById(data, customer.productId);

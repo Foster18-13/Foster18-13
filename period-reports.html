@@ -25,9 +25,12 @@
       padding: 0.75rem 1.5rem;
       border: 1px solid var(--border);
       background: var(--surface);
+      color: var(--text);
       cursor: pointer;
       border-radius: 6px;
       transition: all 0.2s;
+      font-size: 1rem;
+      font-family: inherit;
     }
 
     .period-tab.active {
@@ -178,9 +181,9 @@
 
     <div class="period-selector">
       <div class="period-tabs">
-        <div class="period-tab active" onclick="selectPeriodType('monthly')">Monthly</div>
-        <div class="period-tab" onclick="selectPeriodType('quarterly')">Quarterly</div>
-        <div class="period-tab" onclick="selectPeriodType('yearly')">Yearly</div>
+        <button class="period-tab active" onclick="selectPeriodType('monthly')">Monthly</button>
+        <button class="period-tab" onclick="selectPeriodType('quarterly')">Quarterly</button>
+        <button class="period-tab" onclick="selectPeriodType('yearly')">Yearly</button>
       </div>
 
       <div id="monthlySelector" class="period-options">
@@ -257,14 +260,14 @@
         const displayName = user.displayName || user.email || 'User';
         document.getElementById('currentUserName').textContent = displayName;
       } else {
-        window.location.href = 'login.html';
+        globalThis.location.href = 'login.html';
       }
     });
 
     document.getElementById('signOutButton').addEventListener('click', async () => {
       try {
         await signOut(auth);
-        window.location.href = 'login.html';
+        globalThis.location.href = 'login.html';
       } catch (error) {
         console.error('Sign out error:', error);
         alert('Error signing out. Please try again.');

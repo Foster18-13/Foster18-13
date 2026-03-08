@@ -85,4 +85,4 @@ globalThis.logoutPortal = function logoutPortal() {
 };
 
 protectPortalPage();
-window.addEventListener("DOMContentLoaded", setupAccessPage);
+globalThis.addEventListener("DOMContentLoaded", setupAccessPage);
