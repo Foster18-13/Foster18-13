@@ -15,6 +15,40 @@ function normalizeEmail(value) {
   return String(value || "").trim().toLowerCase();
 }
 
+function getSiteBasePath() {
+  try {
+    const currentScript = document.currentScript;
+    const scriptSrc = currentScript?.src || '';
+    const marker = '/assets/js/user-auth.js';
+    const index = scriptSrc.indexOf(marker);
+    if (index >= 0) {
+      return scriptSrc.slice(0, index + 1);
+    }
+  } catch (error) {
+    console.debug('Failed to resolve site base path from script:', error);
+  }
+  return '';
+}
+
+function ensureSiteFavicon() {
+  try {
+    const basePath = getSiteBasePath();
+    const href = `${basePath}assets/images/logo.png`;
+    let link = document.querySelector('link[rel="icon"]');
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'icon';
+      document.head.appendChild(link);
+    }
+    link.type = 'image/png';
+    link.href = href;
+  } catch (error) {
+    console.debug('Failed to set favicon:', error);
+  }
+}
+
+ensureSiteFavicon();
+
 function applyCleanUrlCanonicalPath() {
   try {
     if (!ROOT_ONLY_URL_MODE) return;
