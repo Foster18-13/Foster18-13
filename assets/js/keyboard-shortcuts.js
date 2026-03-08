@@ -56,7 +56,7 @@ document.addEventListener('keydown', (e) => {
     window.location.href = 'products.html';
   }
 
-  // Ctrl+N: Notebook
+  // Ctrl+N: Notes for the Day
   if (e.ctrlKey && e.key === 'n') {
     e.preventDefault();
     window.location.href = 'notebook.html';
@@ -82,7 +82,7 @@ Ctrl+R - Returns Sheet
 Ctrl+S - Save current sheet
 Ctrl+P - Products
 Ctrl+C - Customers
-Ctrl+N - Notebook
+Ctrl+N - Notes for the Day
 Ctrl+/ - Show this help`);
   }
 });
