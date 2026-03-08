@@ -129,8 +129,8 @@ async function pullFromCloudIfNewer() {
         location.reload();
       }, 400);
     }
-  } catch {
-    setCloudStatus("Cloud pull failed", "error");
+  } catch (error) {
+    setCloudStatus(getCloudSyncErrorMessage(error, "pull"), "error");
   } finally {
     cloudSyncState.pullInProgress = false;
   }
@@ -167,8 +167,8 @@ async function pushLocalToCloud() {
       { merge: true }
     );
     setCloudStatus("Cloud sync: up to date", "ok");
-  } catch {
-    setCloudStatus("Cloud push failed", "error");
+  } catch (error) {
+    setCloudStatus(getCloudSyncErrorMessage(error, "push"), "error");
   } finally {
     cloudSyncState.pushing = false;
   }
@@ -206,6 +206,19 @@ function getAuthErrorMessage(error) {
   }
 
   return error?.message ? `Sign in failed: ${error.message}` : "Sign in failed.";
+}
+
+function getCloudSyncErrorMessage(error, action = "sync") {
+  const code = error?.code || "";
+
+  if (code === "permission-denied") {
+    return `Cloud ${action} blocked: update Firestore rules for warehousePortal/twellium-main.`;
+  }
+  if (code === "unauthenticated") {
+    return `Cloud ${action} blocked: sign in to cloud first.`;
+  }
+
+  return `Cloud ${action} failed`;
 }
 
 async function finalizeRedirectResult() {
