@@ -54,13 +54,20 @@ function applyCleanUrlCanonicalPath() {
     if (!ROOT_ONLY_URL_MODE) return;
 
     const pathname = String(globalThis.location?.pathname || '');
+    const currentUrl = globalThis.location?.href || '';
+    
+    // Safety check: If URL is too long (>2000 chars), force clean it
+    if (currentUrl.length > 2000) {
+      globalThis.history?.replaceState?.({}, '', '/');
+      return;
+    }
+    
     if (pathname === '/') {
       return;
     }
 
-    const query = globalThis.location?.search || '';
-    const hash = globalThis.location?.hash || '';
-    globalThis.history?.replaceState?.({}, '', `/${query}${hash}`);
+    // In ROOT_ONLY_URL_MODE, strip ALL query strings and hashes to show just "/"
+    globalThis.history?.replaceState?.({}, '', '/');
   } catch (error) {
     console.debug('Failed to apply clean URL canonical path:', error);
   }
@@ -391,9 +398,8 @@ function protectPortalPageWithAuth() {
       return;
     }
 
-    // Not authenticated, redirect to login
-    const nextPage = `${currentPage}${location.search || ""}`;
-    globalThis.location.replace(`login.html?next=${encodeURIComponent(nextPage)}`);
+    // Not authenticated, redirect to login (strip query strings to avoid URI bloat)
+    globalThis.location.replace(`login.html?next=${encodeURIComponent(currentPage)}`);
   });
 }
 

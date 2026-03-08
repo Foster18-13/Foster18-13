@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Redirecting...</title>
 </head>
+
 <body>
   <script>
     (function () {
@@ -41,9 +43,8 @@
       const route = trimmed.split('/').pop();
 
       if (route && knownRoutes.has(route.toLowerCase())) {
-        const query = location.search || '';
-        const hash = location.hash || '';
-        location.replace('/' + route + '.html' + query + hash);
+        // Redirect without query strings to prevent URI bloat
+        location.replace('/' + route + '.html');
         return;
       }
 
@@ -52,4 +53,5 @@
   </script>
   Redirecting...
 </body>
+
 </html>
