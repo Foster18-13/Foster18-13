@@ -284,7 +284,8 @@ async function handleCloudSignOut() {
   if (!cloudSyncState.auth) return;
   try {
     await cloudSyncState.auth.signOut();
-    setch {
+    setCloudStatus("Signed out (local mode)");
+  } catch {
     setCloudStatus("Sign out failed", "error");
   }
 }
