@@ -27,8 +27,16 @@ function ensureCloudControls() {
   const current = location.pathname.split("/").pop() || "index.html";
   if (current !== "home.html" && current !== "index.html") return;
 
-  const controls = document.getElementById("homeCloudAuthMount") || document.querySelector(".topbar-controls");
-  if (!controls || document.getElementById("cloudAuthArea")) return;
+  // Try to find a place to put the controls
+  let controls = document.getElementById("homeCloudAuthMount");
+  if (!controls) {
+    controls = document.querySelector(".topbar-controls");
+  }
+  
+  if (!controls) return;
+  
+  // Check if controls already exist to avoid duplicates
+  if (document.getElementById("cloudAuthArea")) return;
 
   const wrapper = document.createElement("div");
   wrapper.id = "cloudAuthArea";
@@ -304,12 +312,16 @@ function initCloudSync() {
   }
   cloudSyncState.initialized = true;
 
+  // Debug: Log initialization
+  console.log("[Cloud Sync] Initializing...");
+  
   ensureCloudControls();
 
   if (!hasFirebaseConfig()) {
     cloudSyncState.enabled = false;
     setCloudStatus("Local mode (add Firebase config)");
     renderCloudAuthState();
+    console.log("[Cloud Sync] Firebase config missing");
     return;
   }
 
@@ -317,6 +329,7 @@ function initCloudSync() {
     cloudSyncState.enabled = false;
     setCloudStatus("Firebase SDK not loaded", "error");
     renderCloudAuthState();
+    console.log("[Cloud Sync] Firebase SDK not available");
     return;
   }
 
@@ -330,8 +343,8 @@ function initCloudSync() {
     cloudSyncState.enabled = true;
     cloudSyncState.ready = true;
 
+    console.log("[Cloud Sync] Initialized successfully");
     finalizeRedirectResult();
-
     wireCloudButtons();
     renderCloudAuthState();
 
@@ -374,3 +387,11 @@ function initCloudSync() {
 }
 
 document.addEventListener("DOMContentLoaded", initCloudSync);
+
+// Also try to initialize immediately in case DOM is already ready
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initCloudSync);
+} else {
+  // DOM is already ready
+  initCloudSync();
+}
