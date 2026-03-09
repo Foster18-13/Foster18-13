@@ -603,8 +603,22 @@ function exportTableAsPdfFile(tableId, title, filePrefix) {
     head: [headers],
     body: rows,
     startY: 70,
-    styles: { fontSize: 8, cellPadding: 2 },
-    headStyles: { fillColor: [18, 84, 161] }
+    styles: { 
+      fontSize: 8, 
+      cellPadding: 2,
+      lineColor: [0, 0, 0],
+      lineWidth: 0.5
+    },
+    headStyles: { 
+      fillColor: [18, 84, 161],
+      textColor: [255, 255, 255],
+      lineColor: [0, 0, 0],
+      lineWidth: 0.5
+    },
+    bodyStyles: {
+      lineColor: [0, 0, 0],
+      lineWidth: 0.5
+    }
   });
 
   doc.save(`${filePrefix}_${date}.pdf`);
