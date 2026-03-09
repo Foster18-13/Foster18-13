@@ -603,9 +603,11 @@ function exportTableAsPdfFile(tableId, title, filePrefix) {
     head: [headers],
     body: rows,
     startY: 70,
+    margin: { top: 70, right: 20, bottom: 20, left: 20 },
     styles: { 
-      fontSize: 8, 
-      cellPadding: 2,
+      fontSize: 9, 
+      cellPadding: 5,
+      minCellHeight: 8,
       lineColor: [0, 0, 0],
       lineWidth: 0.5
     },
@@ -613,11 +615,14 @@ function exportTableAsPdfFile(tableId, title, filePrefix) {
       fillColor: [18, 84, 161],
       textColor: [255, 255, 255],
       lineColor: [0, 0, 0],
-      lineWidth: 0.5
+      lineWidth: 0.5,
+      cellPadding: 6,
+      minCellHeight: 10
     },
     bodyStyles: {
       lineColor: [0, 0, 0],
-      lineWidth: 0.5
+      lineWidth: 0.5,
+      minCellHeight: 8
     }
   });
 
