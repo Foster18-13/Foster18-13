@@ -588,7 +588,7 @@ function exportTableAsPdfFile(tableId, title, filePrefix) {
     return false;
   }
 
-  const doc = new jsPdfClass({ orientation: "landscape", unit: "pt", format: "a4" });
+  const doc = new jsPdfClass({ orientation: "portrait", unit: "pt", format: "a4" });
 
   doc.setFontSize(14);
   doc.text(title, 40, 36);
@@ -603,7 +603,7 @@ function exportTableAsPdfFile(tableId, title, filePrefix) {
     head: [headers],
     body: rows,
     startY: 70,
-    styles: { fontSize: 8, cellPadding: 4 },
+    styles: { fontSize: 8, cellPadding: 2 },
     headStyles: { fillColor: [18, 84, 161] }
   });
 
@@ -640,9 +640,9 @@ function exportTableAsPdf(tableId, title, filePrefix) {
     h1 { margin: 0 0 6px; font-size: 20px; }
     p { margin: 0 0 14px; color: #4b5d73; font-size: 12px; }
     table { width: 100%; border-collapse: collapse; }
-    th, td { border: 1px solid #c7d2e2; padding: 6px 8px; font-size: 12px; text-align: left; }
+    th, td { border: 1px solid #c7d2e2; padding: 2px 4px; font-size: 11px; text-align: left; }
     th { background: #eef3fb; }
-    @page { size: A4 landscape; margin: 12mm; }
+    @page { size: A4 portrait; margin: 12mm; }
   `;
 
   const heading = doc.createElement("h1");
