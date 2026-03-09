@@ -281,6 +281,9 @@ function getCloudSyncErrorMessage(error, action = "sync") {
   if (code === "not-found") {
     return `Cloud ${action}: Document not found in cloud. It may not exist yet.`;
   }
+  if (message?.includes("quota") || message?.includes("QuotaExceedError")) {
+    return `Cloud ${action}: Local storage full. Old records have been cleaned up. Try again in a moment.`;
+  }
 
   return `Cloud ${action} failed: ${message || code || "Unknown error"}`;
 }

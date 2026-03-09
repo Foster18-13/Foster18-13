@@ -450,12 +450,93 @@ function loadData() {
   }
 }
 
+function pruneOldDailyRecords(data, daysToKeep = 180) {
+  if (!data?.daily || typeof data.daily !== "object") return 0;
+
+  const now = Date.now();
+  const cutoffTime = now - daysToKeep * 24 * 60 * 60 * 1000;
+  let removedCount = 0;
+  const datesToRemove = [];
+
+  Object.keys(data.daily).forEach((dateStr) => {
+    try {
+      // Parse ISO date (YYYY-MM-DD) to timestamp
+      const dateObj = new Date(dateStr + "T00:00:00Z");
+      const dateTime = dateObj.getTime();
+
+      if (dateTime < cutoffTime) {
+        datesToRemove.push(dateStr);
+      }
+    } catch {
+      // Skip unparseable dates
+    }
+  });
+
+  datesToRemove.forEach((dateStr) => {
+    delete data.daily[dateStr];
+    removedCount++;
+  });
+
+  if (removedCount > 0) {
+    console.log(`[Storage] Pruned ${removedCount} old daily records (older than ${daysToKeep} days)`);
+    data._meta = data._meta && typeof data._meta === "object" ? data._meta : {};
+    data._meta.lastPruneAt = Date.now();
+    data._meta.lastPruneCount = removedCount;
+  }
+
+  return removedCount;
+}
+
 function saveData(data, preserveTimestamp = false) {
   data._meta = data._meta && typeof data._meta === "object" ? data._meta : {};
   if (!preserveTimestamp) {
     data._meta.updatedAt = Date.now();
   }
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch (error) {
+    // Handle quota exceeded errors
+    if (error?.name === "QuotaExceededError" || error?.message?.includes("quota")) {
+      console.warn("[Storage] Quota exceeded, attempting to prune old records...");
+      const removed = pruneOldDailyRecords(data, 180);
+
+      if (removed > 0) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+          console.log("[Storage] Successfully saved after cleanup");
+          if (typeof globalThis.setStatus === "function") {
+            globalThis.setStatus(
+              `Storage: Cleaned up ${removed} old records. Data saved successfully.`,
+              "warning"
+            );
+          }
+        } catch (retryError) {
+          console.error("[Storage] Still over quota even after cleanup", retryError);
+          if (typeof globalThis.setStatus === "function") {
+            globalThis.setStatus(
+              "Storage: Critical - over quota even after cleanup. Archive old records in the reports section.",
+              "error"
+            );
+          }
+          throw retryError;
+        }
+      } else {
+        // No old records to prune, storage is critically full
+        console.error("[Storage] Over quota but no old records to prune");
+        if (typeof globalThis.setStatus === "function") {
+          globalThis.setStatus(
+            "Storage: Critical - no space available. Please archive records in reports section.",
+            "error"
+          );
+        }
+        throw error;
+      }
+    } else {
+      throw error;
+    }
+  }
+
   addLocalBackupSnapshot(data);
 
   // Only dispatch event for local changes, not cloud syncs
