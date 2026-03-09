@@ -79,13 +79,18 @@ function renderCloudAuthState() {
 }
 
 function getCloudDocRef() {
-  if (!cloudSyncState.firestore) return null;
+  if (!cloudSyncState.firestore) {
+    console.warn("[Cloud Sync] Firestore not initialized");
+    return null;
+  }
   if (cloudSyncState.docRef) return cloudSyncState.docRef;
 
   const location = globalThis.FIREBASE_CLOUD_DOC || {};
   const collection = location.collection || "warehousePortal";
   const documentId = location.document || "twellium-main";
+  
   cloudSyncState.docRef = cloudSyncState.firestore.collection(collection).doc(documentId);
+  console.log("[Cloud Sync] Document reference created:", collection, documentId);
   return cloudSyncState.docRef;
 }
 
@@ -111,7 +116,10 @@ function hasMeaningfulDailyData(data) {
 async function pullFromCloudIfNewer(forceCheck = false) {
   if (!cloudSyncState.user || cloudSyncState.pullInProgress) return;
   const docRef = getCloudDocRef();
-  if (!docRef) return;
+  if (!docRef) {
+    console.warn("[Cloud Sync] No document reference available for pull");
+    return;
+  }
 
   // Prevent too-frequent pulls (min 10 seconds between checks unless forced)
   const timeSinceLastPull = Date.now() - cloudSyncState.lastPullTime;
@@ -119,6 +127,7 @@ async function pullFromCloudIfNewer(forceCheck = false) {
     return;
   }
 
+  console.log("[Cloud Sync] Attempting to pull from cloud...");
   cloudSyncState.pullInProgress = true;
   try {
     // Clear any pending push operations
@@ -126,11 +135,17 @@ async function pullFromCloudIfNewer(forceCheck = false) {
     cloudSyncState.debounceTimer = null;
     
     const snapshot = await docRef.get();
-    if (!snapshot.exists) return;
+    if (!snapshot.exists) {
+      console.log("[Cloud Sync] Cloud document does not exist yet");
+      return;
+    }
 
     const payload = snapshot.data() || {};
     const cloudData = payload.data;
-    if (!cloudData || typeof cloudData !== "object") return;
+    if (!cloudData || typeof cloudData !== "object") {
+      console.warn("[Cloud Sync] Cloud data is invalid");
+      return;
+    }
 
     const localData = loadData();
     const localUpdatedAt = asNumber(localData?._meta?.updatedAt);
@@ -140,6 +155,8 @@ async function pullFromCloudIfNewer(forceCheck = false) {
 
     const shouldRecoverFromCloud = !localHasData && cloudHasData;
 
+    console.log("[Cloud Sync] Pull check:", {localUpdatedAt, cloudUpdatedAt, shouldRecover: shouldRecoverFromCloud});
+
     if (cloudUpdatedAt > localUpdatedAt || shouldRecoverFromCloud) {
       saveData(cloudData, true); // Preserve timestamp to avoid sync loop
       cloudSyncState.lastPullTime = Date.now(); // Record pull time
@@ -147,6 +164,7 @@ async function pullFromCloudIfNewer(forceCheck = false) {
         shouldRecoverFromCloud ? "Cloud recovery: historical data loaded" : "Cloud sync: latest data loaded",
         "ok"
       );
+      console.log("[Cloud Sync] Data pulled successfully from cloud");
       
       // Only reload if data actually changed significantly
       const hasSignificantChange = cloudUpdatedAt > localUpdatedAt + 1000; // More than 1 second difference
@@ -159,9 +177,12 @@ async function pullFromCloudIfNewer(forceCheck = false) {
       // Data is up to date
       cloudSyncState.lastPullTime = Date.now(); // Record check time
       setCloudStatus("Cloud sync: up to date", "ok");
+      console.log("[Cloud Sync] Data is already up to date");
     }
   } catch (error) {
-    setCloudStatus(getCloudSyncErrorMessage(error, "pull"), "error");
+    const errorMsg = getCloudSyncErrorMessage(error, "pull");
+    console.error("[Cloud Sync] Pull failed:", error?.code, error?.message);
+    setCloudStatus(errorMsg, "error");
   } finally {
     cloudSyncState.pullInProgress = false;
   }
@@ -205,7 +226,9 @@ async function pushLocalToCloud() {
     );
     setCloudStatus("Cloud sync: up to date", "ok");
   } catch (error) {
-    setCloudStatus(getCloudSyncErrorMessage(error, "push"), "error");
+    const errorMsg = getCloudSyncErrorMessage(error, "push");
+    console.error("[Cloud Sync] Push failed:", error?.code, error?.message);
+    setCloudStatus(errorMsg, "error");
   } finally {
     cloudSyncState.pushing = false;
   }
@@ -247,15 +270,19 @@ function getAuthErrorMessage(error) {
 
 function getCloudSyncErrorMessage(error, action = "sync") {
   const code = error?.code || "";
+  const message = error?.message || "";
 
   if (code === "permission-denied") {
-    return `Cloud ${action} blocked: update Firestore rules for warehousePortal/twellium-main.`;
+    return `Cloud ${action} blocked: Firestore permission denied. Administrator needs to update security rules for warehousePortal/twellium-main collection.`;
   }
   if (code === "unauthenticated") {
-    return `Cloud ${action} blocked: sign in to cloud first.`;
+    return `Cloud ${action} blocked: You need to sign in to cloud first.`;
+  }
+  if (code === "not-found") {
+    return `Cloud ${action}: Document not found in cloud. It may not exist yet.`;
   }
 
-  return `Cloud ${action} failed`;
+  return `Cloud ${action} failed: ${message || code || "Unknown error"}`;
 }
 
 async function finalizeRedirectResult() {
