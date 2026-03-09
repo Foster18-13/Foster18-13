@@ -547,6 +547,7 @@ input[data-total] {
     background: white;
     margin: 0;
     padding: 0;
+    size: A4 portrait;
   }
 
   .site-header {
@@ -655,9 +656,10 @@ input[data-total] {
 
   th, td {
     border: 1px solid #000;
-    padding: 8px;
+    padding: 4px;
     text-align: left;
     font-size: 10px;
+    white-space: nowrap;
   }
 
   .balance-table th,
