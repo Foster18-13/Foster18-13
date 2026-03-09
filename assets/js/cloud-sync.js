@@ -113,6 +113,53 @@ function hasMeaningfulDailyData(data) {
   });
 }
 
+function mergeProductLists(localProducts, cloudProducts) {
+  const byKey = new Map();
+
+  const register = (product) => {
+    if (!product || typeof product !== "object") return;
+    const idKey = product.id ? `id:${product.id}` : "";
+    const nameKey = product.name ? `name:${String(product.name).toLowerCase()}` : "";
+    const key = idKey || nameKey;
+    if (!key) return;
+    if (!byKey.has(key)) {
+      byKey.set(key, product);
+      return;
+    }
+
+    const current = byKey.get(key) || {};
+    byKey.set(key, {
+      ...current,
+      ...product
+    });
+  };
+
+  (Array.isArray(cloudProducts) ? cloudProducts : []).forEach(register);
+  (Array.isArray(localProducts) ? localProducts : []).forEach(register);
+
+  return Array.from(byKey.values());
+}
+
+function mergeCloudHistoryIfWindowedLocal(localData, cloudData) {
+  const localMeta = localData?._meta && typeof localData._meta === "object" ? localData._meta : {};
+  const shouldMergeHistory = !!localMeta.cloudPriorityCache;
+
+  if (!shouldMergeHistory) {
+    return localData;
+  }
+
+  const merged = {
+    ...localData,
+    daily: {
+      ...(cloudData?.daily && typeof cloudData.daily === "object" ? cloudData.daily : {}),
+      ...(localData?.daily && typeof localData.daily === "object" ? localData.daily : {})
+    },
+    products: mergeProductLists(localData?.products, cloudData?.products)
+  };
+
+  return merged;
+}
+
 async function pullFromCloudIfNewer(forceCheck = false) {
   if (!cloudSyncState.user || cloudSyncState.pullInProgress) return;
   const docRef = getCloudDocRef();
@@ -201,14 +248,14 @@ async function pushLocalToCloud() {
 
   cloudSyncState.pushing = true;
   try {
-    const data = loadData();
-    const localHasData = hasMeaningfulDailyData(data);
+    const localData = loadData();
+    const localHasData = hasMeaningfulDailyData(localData);
+    const existing = await docRef.get();
+    const cloudData = existing.exists ? existing.data()?.data : null;
+    const dataToUpload = mergeCloudHistoryIfWindowedLocal(localData, cloudData);
 
     if (!localHasData) {
-      const existing = await docRef.get();
       if (existing.exists) {
-        const payload = existing.data() || {};
-        const cloudData = payload.data;
         if (cloudData && hasMeaningfulDailyData(cloudData)) {
           setCloudStatus("Cloud sync paused: local data is empty", "error");
           return;
@@ -218,7 +265,7 @@ async function pushLocalToCloud() {
 
     await docRef.set(
       {
-        data,
+        data: dataToUpload,
         updatedAt: Date.now(),
         updatedBy: cloudSyncState.user.uid
       },
@@ -394,12 +441,10 @@ function initCloudSync() {
             }
           }, 30000);
         }
-      } else {
+      } else if (cloudSyncState.periodicCheckInterval) {
         // Clear periodic checks when signed out
-        if (cloudSyncState.periodicCheckInterval) {
-          clearInterval(cloudSyncState.periodicCheckInterval);
-          cloudSyncState.periodicCheckInterval = null;
-        }
+        clearInterval(cloudSyncState.periodicCheckInterval);
+        cloudSyncState.periodicCheckInterval = null;
       }
     });
 

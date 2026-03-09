@@ -3,6 +3,8 @@ const LEGACY_DAILY_RECORDS_KEY = "dailyRecordingSheetData";
 const LEGACY_DAILY_BALANCE_KEY = "dailyBalanceSheetData";
 const LOCAL_BACKUP_STORAGE_KEY = "twellium_warehouse_portal_backup_v1";
 const LOCAL_BACKUP_LIMIT = 40;
+const CLOUD_LOCAL_CACHE_DAYS = 45;
+const CLOUD_BACKUP_LIMIT = 5;
 const AUDIT_LOG_LIMIT = 500;
 const REQUIRED_PRODUCTS = [
   "BIGOO APPLE 350MLX20PCS",
@@ -232,10 +234,34 @@ function hasMeaningfulDailySnapshot(data) {
   return getDailySnapshotScore(data) > 0;
 }
 
+function isCloudSessionActive() {
+  try {
+    return !!globalThis.firebase?.auth?.()?.currentUser;
+  } catch {
+    return false;
+  }
+}
+
+function createCloudLocalCachePayload(data, daysToKeep = CLOUD_LOCAL_CACHE_DAYS) {
+  const snapshot = createWarehouseSnapshot(data);
+  pruneOldDailyRecords(snapshot, daysToKeep);
+
+  const logs = Array.isArray(snapshot.auditLogs) ? snapshot.auditLogs : [];
+  snapshot.auditLogs = logs.slice(0, Math.min(AUDIT_LOG_LIMIT, 120));
+
+  snapshot._meta = snapshot._meta && typeof snapshot._meta === "object" ? snapshot._meta : {};
+  snapshot._meta.cloudPriorityCache = true;
+  snapshot._meta.localCacheDays = daysToKeep;
+  snapshot._meta.localCachePreparedAt = Date.now();
+
+  return snapshot;
+}
+
 function addLocalBackupSnapshot(data, source = "auto-save") {
   const snapshot = createWarehouseSnapshot(data);
   const score = getDailySnapshotScore(snapshot);
   const history = safeReadBackupHistory();
+  const backupLimit = isCloudSessionActive() ? CLOUD_BACKUP_LIMIT : LOCAL_BACKUP_LIMIT;
   const backupItem = {
     timestamp: Date.now(),
     source,
@@ -244,7 +270,7 @@ function addLocalBackupSnapshot(data, source = "auto-save") {
   };
 
   history.unshift(backupItem);
-  const trimmed = history.slice(0, LOCAL_BACKUP_LIMIT);
+  const trimmed = history.slice(0, backupLimit);
   writeBackupHistory(trimmed);
 }
 
@@ -487,51 +513,63 @@ function pruneOldDailyRecords(data, daysToKeep = 180) {
   return removedCount;
 }
 
+function isQuotaExceededError(error) {
+  return error?.name === "QuotaExceededError" || String(error?.message || "").toLowerCase().includes("quota");
+}
+
+function setStorageStatus(message, level) {
+  if (typeof globalThis.setStatus === "function") {
+    globalThis.setStatus(message, level);
+  }
+}
+
+function writeStoragePayload(payload) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+}
+
+function retrySaveAfterPrune(payloadToStore, cloudPriorityMode, originalError) {
+  const daysToKeep = cloudPriorityMode ? 30 : 180;
+  const removed = pruneOldDailyRecords(payloadToStore, daysToKeep);
+
+  if (removed <= 0) {
+    console.error("[Storage] Over quota but no old records to prune");
+    setStorageStatus("Storage: Critical - no space available. Please archive records in reports section.", "error");
+    throw originalError;
+  }
+
+  try {
+    writeStoragePayload(payloadToStore);
+    console.log("[Storage] Successfully saved after cleanup");
+    setStorageStatus(`Storage: Cleaned up ${removed} old records. Data saved successfully.`, "warning");
+  } catch (retryError) {
+    console.error("[Storage] Still over quota even after cleanup", retryError);
+    setStorageStatus(
+      "Storage: Critical - over quota even after cleanup. Archive old records in the reports section.",
+      "error"
+    );
+    throw retryError;
+  }
+}
+
 function saveData(data, preserveTimestamp = false) {
   data._meta = data._meta && typeof data._meta === "object" ? data._meta : {};
   if (!preserveTimestamp) {
     data._meta.updatedAt = Date.now();
   }
 
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  } catch (error) {
-    // Handle quota exceeded errors
-    if (error?.name === "QuotaExceededError" || error?.message?.includes("quota")) {
-      console.warn("[Storage] Quota exceeded, attempting to prune old records...");
-      const removed = pruneOldDailyRecords(data, 180);
+  const cloudPriorityMode = isCloudSessionActive();
+  let payloadToStore = data;
 
-      if (removed > 0) {
-        try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-          console.log("[Storage] Successfully saved after cleanup");
-          if (typeof globalThis.setStatus === "function") {
-            globalThis.setStatus(
-              `Storage: Cleaned up ${removed} old records. Data saved successfully.`,
-              "warning"
-            );
-          }
-        } catch (retryError) {
-          console.error("[Storage] Still over quota even after cleanup", retryError);
-          if (typeof globalThis.setStatus === "function") {
-            globalThis.setStatus(
-              "Storage: Critical - over quota even after cleanup. Archive old records in the reports section.",
-              "error"
-            );
-          }
-          throw retryError;
-        }
-      } else {
-        // No old records to prune, storage is critically full
-        console.error("[Storage] Over quota but no old records to prune");
-        if (typeof globalThis.setStatus === "function") {
-          globalThis.setStatus(
-            "Storage: Critical - no space available. Please archive records in reports section.",
-            "error"
-          );
-        }
-        throw error;
-      }
+  if (cloudPriorityMode) {
+    payloadToStore = createCloudLocalCachePayload(data, CLOUD_LOCAL_CACHE_DAYS);
+  }
+
+  try {
+    writeStoragePayload(payloadToStore);
+  } catch (error) {
+    if (isQuotaExceededError(error)) {
+      console.warn("[Storage] Quota exceeded, attempting to prune old records...");
+      retrySaveAfterPrune(payloadToStore, cloudPriorityMode, error);
     } else {
       throw error;
     }
