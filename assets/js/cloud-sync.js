@@ -9,7 +9,8 @@ let cloudSyncState = {
   auth: null,
   docRef: null,
   lastPullTime: 0,
-  initialized: false
+  initialized: false,
+  periodicCheckInterval: null
 };
 
 function hasFirebaseConfig() {
@@ -99,14 +100,14 @@ function hasMeaningfulDailyData(data) {
   });
 }
 
-async function pullFromCloudIfNewer() {
+async function pullFromCloudIfNewer(forceCheck = false) {
   if (!cloudSyncState.user || cloudSyncState.pullInProgress) return;
   const docRef = getCloudDocRef();
   if (!docRef) return;
 
-  // Check if we already synced this session to prevent refresh loops
-  const sessionKey = 'cloudSyncCompleted';
-  if (sessionStorage.getItem(sessionKey) === 'true') {
+  // Prevent too-frequent pulls (min 10 seconds between checks unless forced)
+  const timeSinceLastPull = Date.now() - cloudSyncState.lastPullTime;
+  if (!forceCheck && timeSinceLastPull < 10000) {
     return;
   }
 
@@ -138,8 +139,6 @@ async function pullFromCloudIfNewer() {
         shouldRecoverFromCloud ? "Cloud recovery: historical data loaded" : "Cloud sync: latest data loaded",
         "ok"
       );
-      // Mark sync as completed in this session
-      sessionStorage.setItem('cloudSyncCompleted', 'true');
       
       // Only reload if data actually changed significantly
       const hasSignificantChange = cloudUpdatedAt > localUpdatedAt + 1000; // More than 1 second difference
@@ -149,9 +148,9 @@ async function pullFromCloudIfNewer() {
         }, 400);
       }
     } else {
-      // Data is up to date, mark as synced
+      // Data is up to date
       cloudSyncState.lastPullTime = Date.now(); // Record check time
-      sessionStorage.setItem('cloudSyncCompleted', 'true');
+      setCloudStatus("Cloud sync: up to date", "ok");
     }
   } catch (error) {
     setCloudStatus(getCloudSyncErrorMessage(error, "pull"), "error");
@@ -285,9 +284,7 @@ async function handleCloudSignOut() {
   if (!cloudSyncState.auth) return;
   try {
     await cloudSyncState.auth.signOut();
-    sessionStorage.removeItem('cloudSyncCompleted'); // Allow fresh sync on next sign in
-    setCloudStatus("Signed out (local mode)");
-  } catch {
+    setch {
     setCloudStatus("Sign out failed", "error");
   }
 }
@@ -339,17 +336,26 @@ function initCloudSync() {
 
     cloudSyncState.auth.onAuthStateChanged(async (user) => {
       cloudSyncState.user = user || null;
-      
-      // Clear sync flag when auth state changes to allow fresh sync
-      if (!user) {
-        sessionStorage.removeItem('cloudSyncCompleted');
-      }
-      
       renderCloudAuthState();
 
       if (cloudSyncState.user) {
-        await pullFromCloudIfNewer();
+        await pullFromCloudIfNewer(true); // Force initial check on sign-in
         // Don't push immediately after pull to avoid loops
+        
+        // Set up periodic cloud checks (every 30 seconds)
+        if (!cloudSyncState.periodicCheckInterval) {
+          cloudSyncState.periodicCheckInterval = setInterval(() => {
+            if (cloudSyncState.user && !cloudSyncState.pushing && !cloudSyncState.pullInProgress) {
+              pullFromCloudIfNewer();
+            }
+          }, 30000);
+        }
+      } else {
+        // Clear periodic checks when signed out
+        if (cloudSyncState.periodicCheckInterval) {
+          clearInterval(cloudSyncState.periodicCheckInterval);
+          cloudSyncState.periodicCheckInterval = null;
+        }
       }
     });
 

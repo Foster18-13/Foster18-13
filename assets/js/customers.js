@@ -79,8 +79,6 @@ function renderCustomersTable() {
 }
 
 function addCustomerEntry(event) {
-  event.preventDefault();
-
   const customerName = document.getElementById("customerName").value.trim();
   const waybillNumber = document.getElementById("waybillNumber").value.trim();
   const productId = document.getElementById("productId").value;
@@ -394,8 +392,6 @@ function removeBatchProductRow(rowId) {
 globalThis.removeBatchProductRow = removeBatchProductRow;
 
 function handleBatchCustomerEntry(event) {
-  event.preventDefault();
-  
   const customerName = document.getElementById("batchCustomerName").value.trim();
   const waybillNumber = document.getElementById("batchWaybillNumber").value.trim();
   const dateDelivered = document.getElementById("batchDateDelivered").value;
@@ -546,6 +542,7 @@ document.addEventListener("DOMContentLoaded", () => {
   
   if (batchForm) {
     batchForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
       const submitButton = batchForm.querySelector('button[type="submit"]');
       await withLoadingFeedback(submitButton, "Saving all...", () => handleBatchCustomerEntry(event));
     });
@@ -560,6 +557,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   
   form.addEventListener("submit", async (event) => {
+    event.preventDefault();
     const submitButton = form.querySelector('button[type="submit"]');
     await withLoadingFeedback(submitButton, "Adding...", () => addCustomerEntry(event));
   });

@@ -41,8 +41,6 @@ function renderPurchaseTable() {
 }
 
 function addPurchaseEntry(event) {
-  event.preventDefault();
-
   const productId = document.getElementById("productId").value;
   const waybill = document.getElementById("waybill").value.trim();
   const vehicleNumber = document.getElementById("vehicleNumber").value.trim();
@@ -146,8 +144,6 @@ function togglePurchaseBatchMode(forceMode) {
 }
 
 function addPurchaseBatchEntries(event) {
-  event.preventDefault();
-
   const waybill = document.getElementById("batchWaybill").value.trim();
   const vehicleNumber = document.getElementById("batchVehicleNumber").value.trim();
   const dateReceived = document.getElementById("batchDateReceived").value;
@@ -281,12 +277,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (batchForm) {
     batchForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
       const submitButton = batchForm.querySelector('button[type="submit"]');
       await withLoadingFeedback(submitButton, "Saving...", () => addPurchaseBatchEntries(event));
     });
   }
 
   form.addEventListener("submit", async (event) => {
+    event.preventDefault();
     const submitButton = form.querySelector('button[type="submit"]');
     await withLoadingFeedback(submitButton, "Adding...", () => addPurchaseEntry(event));
   });

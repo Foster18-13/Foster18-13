@@ -73,8 +73,6 @@ function renderReturnsTable() {
 }
 
 function addReturnEntry(event) {
-  event.preventDefault();
-
   const productId = document.getElementById("returnProductId").value;
   const waybill = document.getElementById("returnWaybill").value.trim();
   const quantityReturned = document.getElementById("returnQuantity").value;
@@ -165,6 +163,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const exportPdfButton = document.getElementById("exportReturnsPdf");
 
   form.addEventListener("submit", async (event) => {
+    event.preventDefault();
     await withLoadingFeedback(form.querySelector('button[type="submit"]'), "Saving...", () => addReturnEntry(event));
   });
 
