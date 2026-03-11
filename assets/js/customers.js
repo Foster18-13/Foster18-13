@@ -624,7 +624,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   const form = document.getElementById("customerForm");
-  const exportButton = document.getElementById("exportCustomers");
   const exportPdfButton = document.getElementById("exportCustomersPdf");
   const syncButton = document.getElementById("syncToRecording");
   
@@ -671,12 +670,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (syncButton) {
     syncButton.addEventListener("click", async () => {
       await withLoadingFeedback(syncButton, "Syncing...", () => syncAllToRecording());
-    });
-  }
-  
-  if (exportButton) {
-    exportButton.addEventListener("click", () => {
-      exportTableAsCsv("customersTable", "customers_entry");
     });
   }
   
