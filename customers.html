@@ -98,6 +98,7 @@
 
         <!-- Single Entry Form (Default) -->
         <form id="customerForm" class="grid-2">
+          <input type="hidden" id="editingEntryId" value="" />
           <div>
             <label for="customerName">Customer Name</label>
             <input class="input" id="customerName" list="customerNameList" required />
@@ -120,7 +121,8 @@
             <input class="input" id="dateDelivered" type="date" required />
           </div>
           <div class="align-end-row">
-            <button class="button button-primary" type="submit">Add Single Entry</button>
+            <button class="button button-primary" id="submitCustomerBtn" type="submit">Add Single Entry</button>
+            <button class="button" id="cancelEditBtn" type="button" style="display: none;">Cancel Edit</button>
           </div>
         </form>
 
@@ -140,7 +142,7 @@
                 <th>Product Name</th>
                 <th>Quantity</th>
                 <th>Date Delivered</th>
-                <th>Action</th>
+                <th colspan="2">Actions</th>
               </tr>
             </thead>
             <tbody></tbody>

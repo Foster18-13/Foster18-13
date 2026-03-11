@@ -65,17 +65,71 @@ function renderCustomersTable() {
           <td>${product ? product.name : "Unknown Product"}</td>
           <td>${customer.quantity}</td>
           <td>${customer.dateDelivered}</td>
+          <td><button class="button" data-edit-id="${customer.id}" type="button">Edit</button></td>
           <td><button class="button button-danger" data-delete-id="${customer.id}" type="button">Delete</button></td>
         </tr>
       `;
     })
     .join("");
 
-  tbody.querySelectorAll("button[data-delete-id]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      await withLoadingFeedback(button, "Deleting...", () => deleteCustomerEntry(button.dataset.deleteId));
+  tbody.querySelectorAll("button[data-edit-id]").forEach((button) => {
+    button.addEventListener("click", () => {
+      editCustomerEntry(button.dataset.editId);
     });
   });
+
+  tbody.querySelectorAll("button[data-delete-id]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const entryId = button.dataset.deleteId;
+      if (confirm("Are you sure you want to delete this entry? This action cannot be undone.")) {
+        withLoadingFeedback(button, "Deleting...", () => deleteCustomerEntry(entryId));
+      }
+    });
+  });
+}
+
+function editCustomerEntry(id) {
+  const data = loadData();
+  const date = getSelectedDate();
+  const dayStore = getShiftStore(data, date);
+
+  if (!dayStore.customers) {
+    return;
+  }
+
+  const customer = dayStore.customers.find(item => item.id === id);
+  
+  if (!customer) {
+    setStatus("Entry not found.", "error");
+    return;
+  }
+
+  // Populate the form with the customer data
+  document.getElementById("editingEntryId").value = id;
+  document.getElementById("customerName").value = customer.customerName;
+  document.getElementById("waybillNumber").value = customer.waybillNumber;
+  document.getElementById("productId").value = customer.productId;
+  document.getElementById("quantity").value = customer.quantity;
+  document.getElementById("dateDelivered").value = customer.dateDelivered;
+
+  // Update button text and show cancel button
+  document.getElementById("submitCustomerBtn").textContent = "💾 Update Entry";
+  document.getElementById("cancelEditBtn").style.display = "inline-block";
+
+  // Scroll to form
+  document.getElementById("customerForm").scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+function cancelEditCustomerEntry() {
+  // Reset form and UI
+  document.getElementById("editingEntryId").value = "";
+  document.getElementById("customerForm").reset();
+  document.getElementById("submitCustomerBtn").textContent = "Add Single Entry";
+  document.getElementById("cancelEditBtn").style.display = "none";
+  
+  const currentDate = getSelectedDate();
+  document.getElementById("dateDelivered").value = currentDate;
+  setStatus("", "ok");
 }
 
 function addCustomerEntry(event) {
@@ -154,18 +208,149 @@ function addCustomerEntry(event) {
     }
   }
 
-  saveData(data);
-  addAuditLog("Customer entry added", {
-    customerName,
-    waybillNumber,
-    quantity: quantityNum,
-    productId
-  });
+  const editingEntryId = document.getElementById("editingEntryId").value;
+
+  if (editingEntryId) {
+    // Update existing entry
+    const existingEntry = dayStore.customers.find(item => item.id === editingEntryId);
+    if (existingEntry) {
+      const oldProductId = existingEntry.productId;
+      const oldWaybillNumber = existingEntry.waybillNumber;
+
+      // Update the customer entry
+      existingEntry.customerName = customerName;
+      existingEntry.waybillNumber = waybillNumber;
+      existingEntry.productId = productId;
+      existingEntry.quantity = quantityNum;
+      existingEntry.dateDelivered = dateDelivered;
+
+      // Update recording - remove old entry and add new one
+      if (oldProductId !== productId || oldWaybillNumber !== waybillNumber) {
+        removeFromRecording(dayStore, oldProductId, oldWaybillNumber);
+      }
+
+      // Ensure new recording entry exists
+      if (!dayStore.recording[productId]) {
+        dayStore.recording[productId] = { entries: [] };
+      }
+
+      if (!dayStore.recording[productId].entries) {
+        dayStore.recording[productId].entries = [];
+      }
+
+      const entries = dayStore.recording[productId].entries;
+      let updated = false;
+
+      // Find and update the matching entry in recording
+      for (let i = 0; i < entries.length; i++) {
+        if (entries[i] && entries[i].waybill === oldWaybillNumber) {
+          entries[i] = {
+            waybill: waybillNumber,
+            qty: String(quantityNum)
+          };
+          updated = true;
+          break;
+        }
+      }
+
+      // If not found, add as new
+      if (!updated) {
+        const added = false;
+        for (let i = 0; i < entries.length; i++) {
+          if (!entries[i] || (typeof entries[i] === 'object' && !entries[i].waybill && !entries[i].qty)) {
+            entries[i] = {
+              waybill: waybillNumber,
+              qty: String(quantityNum)
+            };
+            break;
+          }
+        }
+        if (!added) {
+          entries.push({
+            waybill: waybillNumber,
+            qty: String(quantityNum)
+          });
+        }
+      }
+
+      if (entries.length > dayStore.recordingColumns) {
+        dayStore.recordingColumns = entries.length;
+      }
+
+      saveData(data);
+      addAuditLog("Customer entry updated", {
+        customerName,
+        waybillNumber,
+        quantity: quantityNum,
+        productId
+      });
+      setStatus("Customer entry updated successfully!", "ok");
+      cancelEditCustomerEntry();
+    }
+  } else {
+    // Add new entry
+    dayStore.customers.push({
+      id: generateId("customer"),
+      customerName,
+      waybillNumber,
+      productId,
+      quantity: quantityNum,
+      dateDelivered
+    });
+
+    // Initialize recording for this product if it doesn't exist
+    if (!dayStore.recording[productId]) {
+      dayStore.recording[productId] = { entries: [] };
+    }
+
+    // Ensure entries array exists
+    if (!dayStore.recording[productId].entries) {
+      dayStore.recording[productId].entries = [];
+    }
+
+    // Find the next empty slot or add to the end
+    const entries = dayStore.recording[productId].entries;
+    let added = false;
+    
+    // Look for an empty slot
+    for (let i = 0; i < entries.length; i++) {
+      if (!entries[i] || (typeof entries[i] === 'object' && !entries[i].waybill && !entries[i].qty)) {
+        entries[i] = {
+          waybill: waybillNumber,
+          qty: String(quantityNum)
+        };
+        added = true;
+        break;
+      }
+    }
+
+    // If no empty slot found, add a new entry
+    if (!added) {
+      entries.push({
+        waybill: waybillNumber,
+        qty: String(quantityNum)
+      });
+    }
+    
+    // Update column count if we've added beyond current columns
+    if (entries.length > dayStore.recordingColumns) {
+      dayStore.recordingColumns = entries.length;
+    }
+
+    saveData(data);
+    addAuditLog("Customer entry added", {
+      customerName,
+      waybillNumber,
+      quantity: quantityNum,
+      productId
+    });
+    setStatus("Customer entry added and synced to dispatch records!", "ok");
+  }
+
   event.target.reset();
   document.getElementById("dateDelivered").value = date;
   renderCustomersTable();
   renderCustomerNameSuggestions();
-  setStatus("Customer entry added and synced to dispatch records!", "ok");
 }
 
 function removeFromRecording(dayStore, productId, waybillNumber) {
@@ -554,6 +739,14 @@ document.addEventListener("DOMContentLoaded", () => {
   
   if (cancelBatchBtn) {
     cancelBatchBtn.addEventListener("click", toggleBatchMode);
+  }
+
+  const cancelEditBtn = document.getElementById("cancelEditBtn");
+  if (cancelEditBtn) {
+    cancelEditBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      cancelEditCustomerEntry();
+    });
   }
   
   form.addEventListener("submit", async (event) => {
