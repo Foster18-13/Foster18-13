@@ -24,7 +24,7 @@
         <input class="input" type="date" id="workingDate" />
         <button class="button" id="jumpToday" type="button">Today</button>
         <button class="button" id="themeToggle" type="button">🌙 Dark</button>
-        <div id="userControls" style="display: flex; gap: 1rem; align-items: center;"></div>
+        <div id="userControls" class="topbar-user-controls"></div>
       </div>
     </div>
   </header>
@@ -54,8 +54,8 @@
         <h2 class="card-title">Damage Reasons & Details</h2>
         <p class="card-subtitle">Track detailed reasons for damaged goods</p>
 
-        <form id="damageForm" style="margin-bottom: 20px; padding: 16px; background: #f8f9fa; border-radius: 8px;">
-          <h3 style="font-size: 14px; margin: 0 0 12px 0;">Record Damage</h3>
+        <form id="damageForm" class="form-panel">
+          <h3 class="form-panel-title">Record Damage</h3>
           <div class="grid-2">
             <div>
               <label for="productIdDamage">Product:</label>
@@ -83,12 +83,12 @@
               <input class="input" type="date" id="damageDate" required />
             </div>
           </div>
-          <div style="margin-top: 12px;">
+          <div class="mt-12px">
             <label for="damageNotes">Additional Notes:</label>
             <textarea class="input" id="damageNotes" rows="3"
               placeholder="Additional details about the damage..."></textarea>
           </div>
-          <div style="margin-top: 12px;">
+          <div class="mt-12px">
             <button class="button button-primary" type="submit">Record Damage</button>
           </div>
         </form>

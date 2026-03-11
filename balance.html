@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, orientation=landscape" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Balance Sheet | Twellium Warehouse Portal</title>
   <link rel="stylesheet" href="assets/css/style.css?v=20260224_v2" />
 </head>
@@ -16,7 +16,7 @@
         <div class="brand-text">
           <h1>Twellium Industrial Company Limited</h1>
           <p>Warehouse Daily Recording Portal</p>
-          <p id="printDate" style="display: none; margin: 5px 0 0 0; font-size: 14px;"></p>
+          <p id="printDate" class="print-date"></p>
         </div>
       </div>
       <div class="topbar-controls">
@@ -27,8 +27,8 @@
         <input class="input search-input" id="globalSearchInput" placeholder="Search item" />
         <button class="button" id="globalSearchBtn" type="button">Search</button>
         <button class="button" id="themeToggle" type="button">🌙 Dark</button>
-        <span id="autoSaveStatus" style="font-size: 10px; color: #027a48;">✓ Saved</span>
-        <div id="userControls" style="display: flex; gap: 1rem; align-items: center;"></div>
+        <span id="autoSaveStatus" class="auto-save-status">✓ Saved</span>
+        <div id="userControls" class="topbar-user-controls"></div>
       </div>
     </div>
   </header>
@@ -55,14 +55,14 @@
     <main class="page">
       <section class="card">
         <h2 class="card-title">Daily Balance Sheet</h2>
-        <p class="card-subtitle" style="display: none;">Formula: Balance = Opening Stock + Goods Returned + Goods
+        <p class="card-subtitle hidden-helper-text">Formula: Balance = Opening Stock + Goods Returned + Goods
           Received - Goods Delivered -
           Damages.
           Opening
           stock auto-carries from previous day closing when empty, and closing stock is entered manually.</p>
-        <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem; align-items: center;">
-          <label for="shiftSelector" style="font-weight: bold;">Select Shift:</label>
-          <select id="shiftSelector" class="input" style="width: auto;">
+        <div class="shift-toolbar">
+          <label for="shiftSelector" class="shift-label">Select Shift:</label>
+          <select id="shiftSelector" class="input shift-select">
             <option value="day">Day</option>
             <option value="night">Night</option>
           </select>

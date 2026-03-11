@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, orientation=landscape" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Customers Entry | Twellium Warehouse Portal</title>
   <link rel="stylesheet" href="assets/css/style.css?v=20260224_v2" />
 </head>
@@ -16,7 +16,7 @@
         <div class="brand-text">
           <h1>Twellium Industrial Company Limited</h1>
           <p>Warehouse Daily Recording Portal</p>
-          <p id="printDate" style="display: none; margin: 5px 0 0 0; font-size: 14px;"></p>
+          <p id="printDate" class="print-date"></p>
         </div>
       </div>
       <div class="topbar-controls">
@@ -27,7 +27,7 @@
         <input class="input search-input" id="globalSearchInput" placeholder="Search customer or item" />
         <button class="button" id="globalSearchBtn" type="button">Search</button> <button class="button"
           id="themeToggle" type="button">🌙 Dark</button>
-        <div id="userControls" style="display: flex; gap: 1rem; align-items: center;"></div>
+        <div id="userControls" class="topbar-user-controls"></div>
       </div>
     </div>
   </header>
@@ -56,9 +56,9 @@
         <h2 class="card-title">Customers Entry Sheet</h2>
         <p class="card-subtitle">Record customer orders and deliveries for the selected date. Entries are automatically
           added to dispatch records.</p>
-        <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem; align-items: center;">
-          <label for="shiftSelector" style="font-weight: bold;">Select Shift:</label>
-          <select id="shiftSelector" class="input" style="width: auto;">
+        <div class="shift-toolbar">
+          <label for="shiftSelector" class="shift-label">Select Shift:</label>
+          <select id="shiftSelector" class="input shift-select">
             <option value="day">Day</option>
             <option value="night">Night</option>
           </select>
@@ -82,12 +82,12 @@
             </div>
           </div>
 
-          <div id="customerProductRows" style="margin-top: 1rem;"></div>
+          <div id="customerProductRows" class="customer-product-rows"></div>
 
-          <div style="display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap;">
+          <div class="actions-row-wrap">
             <button class="button" id="addCustomerProductRow" type="button">+ Add Product</button>
             <button class="button button-primary" id="submitCustomerBtn" type="submit">💾 Save Entries</button>
-            <button class="button" id="cancelEditBtn" type="button" style="display: none;">Cancel Edit</button>
+            <button class="button hidden-button" id="cancelEditBtn" type="button">Cancel Edit</button>
           </div>
         </form>
 

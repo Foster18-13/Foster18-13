@@ -90,6 +90,151 @@ body {
   flex-wrap: wrap;
 }
 
+.print-date {
+  display: none;
+  margin: 5px 0 0 0;
+  font-size: 14px;
+}
+
+.topbar-user-controls {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.shift-toolbar {
+  margin-bottom: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.shift-label {
+  font-weight: bold;
+}
+
+.shift-select {
+  width: auto;
+}
+
+.auto-save-status {
+  font-size: 10px;
+  color: #027a48;
+}
+
+.hidden-helper-text {
+  display: none;
+}
+
+.section-top-spacing {
+  margin-top: 1rem;
+}
+
+.actions-row-wrap {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.hidden-button {
+  display: none;
+}
+
+.toolbar-note {
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.purchase-toggle-spacer {
+  margin-left: auto;
+}
+
+.panel-muted {
+  display: none;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+}
+
+.panel-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.mb-075 {
+  margin-bottom: 0.75rem;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.text-note-muted {
+  margin-top: 1rem;
+  font-size: 12px;
+  color: #666;
+  text-align: center;
+}
+
+.floating-theme-toggle {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1000;
+}
+
+.customer-product-rows {
+  margin-top: 1rem;
+}
+
+.hidden-section {
+  display: none;
+}
+
+.block-margin-bottom-16 {
+  margin-bottom: 16px;
+}
+
+.text-small-muted {
+  font-size: 13px;
+}
+
+.form-panel {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.form-panel-title {
+  font-size: 14px;
+  margin: 0 0 12px 0;
+}
+
+.mt-12px {
+  margin-top: 12px;
+}
+
+.paragraph-relaxed {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.list-relaxed {
+  margin: 0;
+  padding-left: 1.5rem;
+  line-height: 2;
+}
+
+.align-end-flex {
+  display: flex;
+  align-items: flex-end;
+}
+
 .hidden-file-input {
   display: none;
 }

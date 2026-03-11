@@ -24,7 +24,7 @@
         <input class="input" type="date" id="workingDate" />
         <button class="button" id="jumpToday" type="button">Today</button>
         <button class="button" id="themeToggle" type="button">🌙 Dark</button>
-        <div id="userControls" style="display: flex; gap: 1rem; align-items: center;"></div>
+        <div id="userControls" class="topbar-user-controls"></div>
       </div>
     </div>
   </header>
@@ -54,8 +54,8 @@
         <h2 class="card-title">Vehicle Tracking</h2>
         <p class="card-subtitle">Track vehicles and their delivery assignments</p>
 
-        <form id="vehicleForm" style="margin-bottom: 20px; padding: 16px; background: #f8f9fa; border-radius: 8px;">
-          <h3 style="font-size: 14px; margin: 0 0 12px 0;">Add Vehicle Assignment</h3>
+        <form id="vehicleForm" class="form-panel">
+          <h3 class="form-panel-title">Add Vehicle Assignment</h3>
           <div class="grid-2">
             <div>
               <label for="vehicleNumber">Vehicle Number:</label>
@@ -87,7 +87,7 @@
               </select>
             </div>
           </div>
-          <div style="margin-top: 12px;">
+          <div class="mt-12px">
             <button class="button button-primary" type="submit">Add Vehicle</button>
           </div>
         </form>

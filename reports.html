@@ -21,7 +21,7 @@
       <div class="topbar-controls">
         <button class="sidebar-toggle" id="sidebarToggle" type="button" title="Toggle Navigation">☰</button>
         <button class="button" id="themeToggle" type="button">🌙 Dark</button>
-        <div id="userControls" style="display: flex; gap: 1rem; align-items: center;"></div>
+        <div id="userControls" class="topbar-user-controls"></div>
       </div>
     </div>
   </header>
@@ -53,7 +53,7 @@
         <h2 class="card-title">Date Range Reports</h2>
         <p class="card-subtitle">Generate reports for specific date ranges</p>
 
-        <div style="margin-bottom: 16px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+        <div class="block-margin-bottom-16 grid-2">
           <div>
             <label for="startDate">Start Date:</label>
             <input class="input" type="date" id="startDate" />
@@ -64,14 +64,14 @@
           </div>
         </div>
 
-        <div style="margin-bottom: 16px;">
+        <div class="block-margin-bottom-16">
           <button class="button" id="generateReportButton" type="button">Generate Report</button>
           <button class="button" id="quickWeek" type="button">Last 7 Days</button>
           <button class="button" id="quickMonth" type="button">Last 30 Days</button>
         </div>
 
         <div id="reportResults">
-          <p class="text-muted" style="font-size: 13px;">Select a date range to generate a report.</p>
+          <p class="text-muted text-small-muted">Select a date range to generate a report.</p>
         </div>
       </section>
     </main>

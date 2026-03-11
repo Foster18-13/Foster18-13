@@ -21,7 +21,7 @@
       <div class="topbar-controls">
         <button class="sidebar-toggle" id="sidebarToggle" type="button" title="Toggle Navigation">☰</button>
         <button class="button" id="themeToggle" type="button">🌙 Dark</button>
-        <div id="userControls" style="display: flex; gap: 1rem; align-items: center;"></div>
+        <div id="userControls" class="topbar-user-controls"></div>
       </div>
     </div>
   </header>
@@ -52,7 +52,7 @@
         <h2 class="card-title">Product Movement Timeline</h2>
         <p class="card-subtitle">View product stock movement across all dates</p>
 
-        <div style="margin-bottom: 16px;">
+        <div class="block-margin-bottom-16">
           <label for="productSelect">Select Product:</label>
           <select class="input" id="productSelect">
             <option value="">-- Select a product --</option>
@@ -61,7 +61,7 @@
         </div>
 
         <div id="movementResults">
-          <p class="text-muted" style="font-size: 13px;">Select a product to view its movement history.</p>
+          <p class="text-muted text-small-muted">Select a product to view its movement history.</p>
         </div>
       </section>
     </main>
