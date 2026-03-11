@@ -72,7 +72,12 @@ function addPurchaseBatchRow() {
 function initPurchaseBatchMode() {
   const rowsContainer = document.getElementById("purchaseBatchRows");
   const batchDate = document.getElementById("batchDateReceived");
+  const batchSection = document.getElementById("purchaseBatchSection");
   if (!rowsContainer || !batchDate) return;
+
+  if (batchSection) {
+    batchSection.style.display = "block";
+  }
 
   rowsContainer.innerHTML = "";
   addPurchaseBatchRow();

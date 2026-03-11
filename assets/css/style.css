@@ -1565,3 +1565,237 @@ input[data-total] {
     max-width: none;
   }
 }
+
+@media screen {
+  body {
+    font-size: 14px;
+    line-height: 1.45;
+    background: var(--surface-alt);
+  }
+
+  .site-header {
+    background: var(--surface);
+    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.08);
+  }
+
+  .header-inner {
+    max-width: 1360px;
+    padding: 16px 20px;
+  }
+
+  .brand h1 {
+    font-size: 14px;
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: var(--primary-soft);
+    color: var(--primary);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+  }
+
+  .brand p {
+    font-size: 12px;
+    margin-top: 6px;
+  }
+
+  .input,
+  .select,
+  .textarea {
+    min-height: 40px;
+    font-size: 13px;
+    border-radius: 10px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .input:focus,
+  .select:focus,
+  .textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-soft);
+  }
+
+  .button {
+    min-height: 38px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 10px;
+    transition: transform 0.15s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+  }
+
+  .app-shell {
+    max-width: 1360px;
+    margin: 22px auto;
+    padding: 0 20px 28px;
+  }
+
+  .sidebar {
+    border-radius: 0 14px 14px 0;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+  }
+
+  .main-nav {
+    gap: 10px;
+  }
+
+  .main-nav a {
+    font-size: 13px;
+    padding: 11px 12px;
+    border-radius: 10px;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  }
+
+  .main-nav a:hover {
+    background: var(--primary-soft);
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+
+  .card {
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+  }
+
+  .card + .card {
+    margin-top: 16px;
+  }
+
+  .card-title {
+    font-size: 18px;
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: transparent;
+    color: var(--text);
+    border: none;
+    padding: 0;
+    border-radius: 0;
+    margin: 0 0 8px;
+    display: block;
+  }
+
+  .card-subtitle {
+    font-size: 13px;
+    margin: 0 0 14px;
+  }
+
+  .toolbar {
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .status {
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .table-wrap {
+    border-radius: 12px;
+    background: var(--surface);
+  }
+
+  table {
+    background: var(--surface);
+  }
+
+  th,
+  td {
+    min-height: 0;
+    font-size: 13px;
+    padding: 12px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    text-align: left;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    padding: 12px 10px;
+  }
+
+  tbody tr:hover {
+    background: var(--primary-soft);
+  }
+
+  td:first-child {
+    font-size: 13px;
+    min-width: 200px;
+    background: var(--surface);
+  }
+
+  .grid-2 {
+    gap: 12px;
+  }
+
+  .panel-muted {
+    border-color: var(--border);
+    border-radius: 12px;
+    background: var(--surface-alt);
+  }
+
+  .search-input {
+    min-width: 240px;
+  }
+
+  #themeToggle {
+    font-size: 12px;
+  }
+
+  [data-theme="dark"] .site-header {
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+  }
+
+  [data-theme="dark"] .brand h1 {
+    background: var(--surface-alt);
+    border-color: var(--border);
+    color: var(--text);
+  }
+
+  [data-theme="dark"] .button:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  }
+
+  [data-theme="dark"] .card {
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  [data-theme="dark"] tbody tr:hover {
+    background: var(--surface-alt);
+  }
+
+  @media (max-width: 720px) {
+    .header-inner {
+      padding: 12px 14px;
+    }
+
+    .app-shell {
+      padding: 0 12px 20px;
+      margin: 14px auto;
+    }
+
+    .card {
+      padding: 14px;
+    }
+
+    .card-title {
+      font-size: 16px;
+    }
+
+    .search-input {
+      min-width: 100%;
+    }
+
+    .toolbar {
+      gap: 8px;
+    }
+
+    .main-nav a {
+      font-size: 12px;
+    }
+  }
+}
