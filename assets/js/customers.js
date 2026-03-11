@@ -47,6 +47,19 @@ function renderCustomersTable() {
     saveData(data);
   }
 
+  // Deduplicate by ID — clean up any duplicates that may exist in storage
+  const seen = new Set();
+  const deduplicated = dayStore.customers.filter((c) => {
+    if (seen.has(c.id)) return false;
+    seen.add(c.id);
+    return true;
+  });
+
+  if (deduplicated.length !== dayStore.customers.length) {
+    dayStore.customers = deduplicated;
+    saveData(data);
+  }
+
   if (!dayStore.customers.length) {
     tbody.innerHTML = `<tr><td colspan="6">No customer entries for this date.</td></tr>`;
     return;
