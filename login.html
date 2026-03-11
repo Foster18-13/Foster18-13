@@ -7,7 +7,7 @@
   <title>Login | Twellium Warehouse Portal</title>
   <link rel="stylesheet" href="assets/css/style.css?v=20260224_v2" />
   <style>
-    .auth-container {
+    .auth-page .auth-container {
       display: flex;
       justify-content: center;
       align-items: center;
@@ -17,7 +17,7 @@
       padding: 1rem;
     }
 
-    .auth-card {
+    .auth-page .auth-card {
       background: white;
       padding: 2rem;
       border-radius: 8px;
@@ -26,13 +26,13 @@
       max-width: 400px;
     }
 
-    .auth-card h2 {
+    .auth-page .auth-card h2 {
       margin-bottom: 1.5rem;
       text-align: center;
       color: #333;
     }
 
-    .auth-card h3 {
+    .auth-page .auth-card h3 {
       margin-bottom: 1rem;
       text-align: center;
       color: #666;
@@ -42,13 +42,13 @@
       margin-bottom: 1rem;
     }
 
-    .form-group label {
+    .auth-page .form-group label {
       display: block;
       margin-bottom: 0.5rem;
       font-weight: 500;
     }
 
-    .form-group input {
+    .auth-page .form-group input {
       width: 100%;
       padding: 0.75rem;
       border: 1px solid #ddd;
@@ -57,7 +57,7 @@
       font-size: 14px;
     }
 
-    .form-group input:focus {
+    .auth-page .form-group input:focus {
       outline: none;
       border-color: #007bff;
     }
@@ -246,10 +246,123 @@
       background-color: #30363d;
       border-color: #484f58;
     }
+
+    .auth-container {
+      background:
+        linear-gradient(135deg, rgba(18, 84, 161, 0.18), rgba(15, 23, 42, 0.35)),
+        url('assets/images/login-background.jpg') no-repeat center center;
+      background-size: cover;
+      padding: 1.5rem;
+    }
+
+    .auth-card {
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 14px;
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.25);
+      -webkit-backdrop-filter: blur(4px);
+      backdrop-filter: blur(4px);
+    }
+
+    .auth-card h2 {
+      font-size: 1.4rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .auth-card h3 {
+      font-size: 1rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .form-group label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .form-group input {
+      border-radius: 10px;
+      min-height: 42px;
+      border-color: var(--border);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .form-group input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-soft);
+    }
+
+    .auth-page button[type="submit"],
+    .auth-page .google-signin-btn {
+      border-radius: 10px;
+      min-height: 42px;
+      font-weight: 600;
+      transition: transform 0.15s ease, box-shadow 0.2s ease;
+    }
+
+    .auth-page button[type="submit"]:hover,
+    .auth-page .google-signin-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.14);
+    }
+
+    .auth-page .auth-error,
+    .auth-page .auth-success {
+      border-radius: 10px;
+      font-size: 13px;
+      border: 1px solid transparent;
+    }
+
+    .auth-page .auth-error {
+      border-color: rgba(180, 35, 24, 0.25);
+    }
+
+    .auth-page .auth-success {
+      border-color: rgba(2, 122, 72, 0.25);
+    }
+
+    .auth-page #resetPasswordModal {
+      background: rgba(15, 23, 42, 0.6) !important;
+      -webkit-backdrop-filter: blur(4px);
+      backdrop-filter: blur(4px);
+    }
+
+    .auth-page #resetPasswordModal>div {
+      border-radius: 14px !important;
+      border: 1px solid var(--border);
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.28);
+    }
+
+    [data-theme="dark"] .auth-page .auth-card {
+      border-color: rgba(99, 110, 123, 0.45);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+    }
+
+    [data-theme="dark"] .auth-page .form-group input:focus {
+      box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.2);
+    }
+
+    [data-theme="dark"] .auth-page button[type="submit"]:hover,
+    [data-theme="dark"] .auth-page .google-signin-btn:hover {
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4);
+    }
+
+    [data-theme="dark"] .auth-page #resetPasswordModal {
+      background: rgba(0, 0, 0, 0.7) !important;
+    }
+
+    @media (max-width: 520px) {
+      .auth-page .auth-container {
+        padding: 1rem;
+      }
+
+      .auth-page .auth-card {
+        padding: 1.25rem;
+      }
+    }
   </style>
 </head>
 
-<body>
+<body class="auth-page">
   <button class="button" id="themeToggle" type="button"
     style="position: fixed; top: 1rem; right: 1rem; z-index: 1000;">🌙 Dark</button>
   <div class="auth-container">
