@@ -148,92 +148,38 @@ function addCustomerEntry(event) {
   const date = getSelectedDate();
   const dayStore = getShiftStore(data, date);
 
-  // Initialize customers array if it doesn't exist
   if (!dayStore.customers) {
     dayStore.customers = [];
   }
 
-  // Validate quantity is positive
   const quantityNum = Number.parseFloat(quantity);
   if (quantityNum <= 0) {
     setStatus("Quantity must be greater than zero.", "error");
     return;
   }
 
-  dayStore.customers.push({
-    id: generateId("customer"),
-    customerName,
-    waybillNumber,
-    productId,
-    quantity: quantityNum,
-    dateDelivered
-  });
-
-  // Initialize recording for this product if it doesn't exist
-  if (!dayStore.recording[productId]) {
-    dayStore.recording[productId] = { entries: [] };
-  }
-
-  // Ensure entries array exists
-  if (!dayStore.recording[productId].entries) {
-    dayStore.recording[productId].entries = [];
-  }
-
-  // Find the next empty slot or add to the end
-  const entries = dayStore.recording[productId].entries;
-  let added = false;
-  
-  // Look for an empty slot
-  for (let i = 0; i < entries.length; i++) {
-    if (!entries[i] || (typeof entries[i] === 'object' && !entries[i].waybill && !entries[i].qty)) {
-      entries[i] = {
-        waybill: waybillNumber,
-        qty: String(quantityNum)
-      };
-      added = true;
-      break;
-    }
-  }
-
-  // If no empty slot found, add a new entry
-  if (!added) {
-    entries.push({
-      waybill: waybillNumber,
-      qty: String(quantityNum)
-    });
-    
-    // Update column count if we've added beyond current columns
-    if (entries.length > dayStore.recordingColumns) {
-      dayStore.recordingColumns = entries.length;
-    }
-  }
-
   const editingEntryId = document.getElementById("editingEntryId").value;
 
   if (editingEntryId) {
-    // Update existing entry
+    // --- UPDATE EXISTING ENTRY ---
     const existingEntry = dayStore.customers.find(item => item.id === editingEntryId);
     if (existingEntry) {
       const oldProductId = existingEntry.productId;
       const oldWaybillNumber = existingEntry.waybillNumber;
 
-      // Update the customer entry
       existingEntry.customerName = customerName;
       existingEntry.waybillNumber = waybillNumber;
       existingEntry.productId = productId;
       existingEntry.quantity = quantityNum;
       existingEntry.dateDelivered = dateDelivered;
 
-      // Update recording - remove old entry and add new one
       if (oldProductId !== productId || oldWaybillNumber !== waybillNumber) {
         removeFromRecording(dayStore, oldProductId, oldWaybillNumber);
       }
 
-      // Ensure new recording entry exists
       if (!dayStore.recording[productId]) {
         dayStore.recording[productId] = { entries: [] };
       }
-
       if (!dayStore.recording[productId].entries) {
         dayStore.recording[productId].entries = [];
       }
@@ -241,35 +187,25 @@ function addCustomerEntry(event) {
       const entries = dayStore.recording[productId].entries;
       let updated = false;
 
-      // Find and update the matching entry in recording
       for (let i = 0; i < entries.length; i++) {
         if (entries[i] && entries[i].waybill === oldWaybillNumber) {
-          entries[i] = {
-            waybill: waybillNumber,
-            qty: String(quantityNum)
-          };
+          entries[i] = { waybill: waybillNumber, qty: String(quantityNum) };
           updated = true;
           break;
         }
       }
 
-      // If not found, add as new
       if (!updated) {
-        const added = false;
+        let slotFilled = false;
         for (let i = 0; i < entries.length; i++) {
           if (!entries[i] || (typeof entries[i] === 'object' && !entries[i].waybill && !entries[i].qty)) {
-            entries[i] = {
-              waybill: waybillNumber,
-              qty: String(quantityNum)
-            };
+            entries[i] = { waybill: waybillNumber, qty: String(quantityNum) };
+            slotFilled = true;
             break;
           }
         }
-        if (!added) {
-          entries.push({
-            waybill: waybillNumber,
-            qty: String(quantityNum)
-          });
+        if (!slotFilled) {
+          entries.push({ waybill: waybillNumber, qty: String(quantityNum) });
         }
       }
 
@@ -278,17 +214,12 @@ function addCustomerEntry(event) {
       }
 
       saveData(data);
-      addAuditLog("Customer entry updated", {
-        customerName,
-        waybillNumber,
-        quantity: quantityNum,
-        productId
-      });
+      addAuditLog("Customer entry updated", { customerName, waybillNumber, quantity: quantityNum, productId });
       setStatus("Customer entry updated successfully!", "ok");
       cancelEditCustomerEntry();
     }
   } else {
-    // Add new entry
+    // --- ADD NEW ENTRY ---
     dayStore.customers.push({
       id: generateId("customer"),
       customerName,
@@ -298,52 +229,34 @@ function addCustomerEntry(event) {
       dateDelivered
     });
 
-    // Initialize recording for this product if it doesn't exist
     if (!dayStore.recording[productId]) {
       dayStore.recording[productId] = { entries: [] };
     }
-
-    // Ensure entries array exists
     if (!dayStore.recording[productId].entries) {
       dayStore.recording[productId].entries = [];
     }
 
-    // Find the next empty slot or add to the end
     const entries = dayStore.recording[productId].entries;
     let added = false;
-    
-    // Look for an empty slot
+
     for (let i = 0; i < entries.length; i++) {
       if (!entries[i] || (typeof entries[i] === 'object' && !entries[i].waybill && !entries[i].qty)) {
-        entries[i] = {
-          waybill: waybillNumber,
-          qty: String(quantityNum)
-        };
+        entries[i] = { waybill: waybillNumber, qty: String(quantityNum) };
         added = true;
         break;
       }
     }
 
-    // If no empty slot found, add a new entry
     if (!added) {
-      entries.push({
-        waybill: waybillNumber,
-        qty: String(quantityNum)
-      });
+      entries.push({ waybill: waybillNumber, qty: String(quantityNum) });
     }
-    
-    // Update column count if we've added beyond current columns
+
     if (entries.length > dayStore.recordingColumns) {
       dayStore.recordingColumns = entries.length;
     }
 
     saveData(data);
-    addAuditLog("Customer entry added", {
-      customerName,
-      waybillNumber,
-      quantity: quantityNum,
-      productId
-    });
+    addAuditLog("Customer entry added", { customerName, waybillNumber, quantity: quantityNum, productId });
     setStatus("Customer entry added and synced to dispatch records!", "ok");
   }
 
