@@ -6,6 +6,35 @@ function renderDamageProductOptions() {
   productSelect.innerHTML = '<option value="">-- Select product --</option>' + createProductOptions(activeProducts);
 }
 
+function syncDamageTotalsToBalance(dayStore) {
+  if (!dayStore.balance) {
+    dayStore.balance = {};
+  }
+
+  const totalsByProduct = (dayStore.damageReasons || []).reduce((totals, damage) => {
+    const productId = damage?.productId;
+    if (!productId) return totals;
+    totals[productId] = (totals[productId] || 0) + asNumber(damage.quantity);
+    return totals;
+  }, {});
+
+  Object.keys(dayStore.balance).forEach((productId) => {
+    const currentBalance = dayStore.balance[productId] || {};
+    dayStore.balance[productId] = {
+      ...currentBalance,
+      damaged: totalsByProduct[productId] || 0
+    };
+  });
+
+  Object.entries(totalsByProduct).forEach(([productId, total]) => {
+    const currentBalance = dayStore.balance[productId] || {};
+    dayStore.balance[productId] = {
+      ...currentBalance,
+      damaged: total
+    };
+  });
+}
+
 function renderDamagesTable() {
   const tbody = document.querySelector("#damagesTable tbody");
   const data = loadData();
@@ -81,6 +110,8 @@ function addDamageRecord(event) {
     notes
   });
 
+  syncDamageTotalsToBalance(dayStore);
+
   saveData(data);
   addAuditLog("Damage record added", {
     productId,
@@ -105,6 +136,7 @@ function deleteDamage(id) {
   const product = damage ? getProductById(data, damage.productId) : null;
 
   dayStore.damageReasons = dayStore.damageReasons.filter((d) => d.id !== id);
+  syncDamageTotalsToBalance(dayStore);
   saveData(data);
   addAuditLog("Damage record deleted", {
     productId: damage?.productId || "",

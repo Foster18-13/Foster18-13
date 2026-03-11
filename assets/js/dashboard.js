@@ -3,6 +3,12 @@ function renderDashboard() {
   const date = getSelectedDate();
   const dayStore = getShiftStore(data, date);
   const activeProducts = getActiveProductsForDate(data, date);
+  const damageTotalsByProduct = (dayStore.damageReasons || []).reduce((totals, damage) => {
+    const productId = damage?.productId;
+    if (!productId) return totals;
+    totals[productId] = (totals[productId] || 0) + asNumber(damage.quantity);
+    return totals;
+  }, {});
 
   // Total products
   document.getElementById('totalProducts').textContent = activeProducts.length;
@@ -26,7 +32,9 @@ function renderDashboard() {
     const opening = asNumber(balance.opening);
     const returns = asNumber(balance.returns);
     const delivered = recording.entries.reduce((sum, entry) => sum + asNumber(entry.qty || 0), 0);
-    const damaged = asNumber(balance.damaged);
+    const damagedFromBalance = asNumber(balance.damaged);
+    const damagedFromRecords = asNumber(damageTotalsByProduct[product.id]);
+    const damaged = Math.max(damagedFromBalance, damagedFromRecords);
     const received = getGoodsReceivedForProduct(dayStore, product.id);
     const outstanding = computeBalanceValue({
       opening,
@@ -58,6 +66,10 @@ function renderDashboard() {
 
   // Count purchases
   totalReceived = dayStore.purchases.reduce((sum, p) => sum + asNumber(p.quantityReceived || p.pallets), 0);
+
+  if (totalDamaged === 0 && dayStore.damageReasons?.length) {
+    totalDamaged = dayStore.damageReasons.reduce((sum, damage) => sum + asNumber(damage.quantity), 0);
+  }
 
   // Count customers
   const totalCustomers = dayStore.customers ? dayStore.customers.length : 0;
