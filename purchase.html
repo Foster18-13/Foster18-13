@@ -61,8 +61,6 @@
             <option value="day">Day</option>
             <option value="night">Night</option>
           </select>
-          <button class="button purchase-toggle-spacer" id="togglePurchaseBatchMode" type="button">📦 Multiple
-            Entry</button>
         </div>
 
         <div id="purchaseBatchSection" class="panel-muted">
@@ -86,37 +84,10 @@
 
             <div class="panel-actions">
               <button class="button" id="addPurchaseBatchRow" type="button">+ Add Product</button>
-              <button class="button button-primary" type="submit">Save Multiple Entries</button>
-              <button class="button" id="cancelPurchaseBatchMode" type="button">Cancel</button>
+              <button class="button button-primary" type="submit">Save Entries</button>
             </div>
           </form>
         </div>
-
-        <form id="purchaseForm" class="grid-2">
-          <div>
-            <label for="productId">Product Name</label>
-            <select class="select" id="productId" required></select>
-          </div>
-          <div>
-            <label for="waybill">Waybill Number</label>
-            <input class="input" id="waybill" required />
-          </div>
-          <div>
-            <label for="vehicleNumber">Vehicle Number</label>
-            <input class="input" id="vehicleNumber" required />
-          </div>
-          <div>
-            <label for="quantityReceived">Quantity Received</label>
-            <input class="input" id="quantityReceived" type="number" min="0" step="any" required />
-          </div>
-          <div>
-            <label for="dateReceived">Date Received</label>
-            <input class="input" id="dateReceived" type="date" required />
-          </div>
-          <div class="align-end-row">
-            <button class="button button-primary" type="submit">Add Single Entry</button>
-          </div>
-        </form>
 
         <div class="toolbar mt-12">
           <button class="button" id="exportPurchase" type="button">Export CSV</button>

@@ -3,7 +3,9 @@ function renderPurchaseProductOptions() {
   const data = loadData();
   const currentDate = document.getElementById('workingDate')?.value || todayISO();
   const activeProducts = getActiveProductsForDate(data, currentDate);
-  productSelect.innerHTML = createProductOptions(activeProducts);
+  if (productSelect) {
+    productSelect.innerHTML = createProductOptions(activeProducts);
+  }
 }
 
 function renderPurchaseTable() {
@@ -38,47 +40,6 @@ function renderPurchaseTable() {
       await withLoadingFeedback(button, "Deleting...", () => deletePurchase(button.dataset.deleteId));
     });
   });
-}
-
-function addPurchaseEntry(event) {
-  const productId = document.getElementById("productId").value;
-  const waybill = document.getElementById("waybill").value.trim();
-  const vehicleNumber = document.getElementById("vehicleNumber").value.trim();
-  const quantityReceived = document.getElementById("quantityReceived").value;
-  const goodsReceived = asNumber(quantityReceived);
-  const dateReceived = document.getElementById("dateReceived").value;
-
-  if (!productId || !waybill || !vehicleNumber || !dateReceived) {
-    setStatus("All fields are required.", "error");
-    return;
-  }
-
-  const data = loadData();
-  const date = getSelectedDate();
-  const dayStore = getShiftStore(data, date);
-
-  dayStore.purchases.push({
-    id: generateId("purchase"),
-    productId,
-    waybill,
-    vehicleNumber,
-    quantityReceived,
-    pallets: quantityReceived,
-    goodsReceived,
-    dateReceived
-  });
-
-  saveData(data);
-  addAuditLog("Purchase entry added", {
-    productId,
-    waybill,
-    vehicleNumber,
-    quantityReceived
-  });
-  event.target.reset();
-  document.getElementById("dateReceived").value = date;
-  renderPurchaseTable();
-  setStatus("Purchase entry added.", "ok");
 }
 
 function createPurchaseBatchRow() {
@@ -116,31 +77,6 @@ function initPurchaseBatchMode() {
   rowsContainer.innerHTML = "";
   addPurchaseBatchRow();
   batchDate.value = getSelectedDate();
-}
-
-function togglePurchaseBatchMode(forceMode) {
-  const batchSection = document.getElementById("purchaseBatchSection");
-  const singleForm = document.getElementById("purchaseForm");
-  const toggleButton = document.getElementById("togglePurchaseBatchMode");
-  if (!batchSection || !singleForm || !toggleButton) return;
-
-  let shouldShowBatch = batchSection.style.display === "none";
-  if (forceMode === "batch") {
-    shouldShowBatch = true;
-  } else if (forceMode === "single") {
-    shouldShowBatch = false;
-  }
-
-  if (shouldShowBatch) {
-    batchSection.style.display = "block";
-    singleForm.style.display = "none";
-    toggleButton.textContent = "📝 Single Entry";
-    initPurchaseBatchMode();
-  } else {
-    batchSection.style.display = "none";
-    singleForm.style.display = "grid";
-    toggleButton.textContent = "📦 Multiple Entry";
-  }
 }
 
 function addPurchaseBatchEntries(event) {
@@ -203,7 +139,7 @@ function addPurchaseBatchEntries(event) {
   event.target.reset();
   initPurchaseBatchMode();
   renderPurchaseTable();
-  setStatus(`${entries.length} purchase entries added.`, "ok");
+  setStatus(`${entries.length} purchase entr${entries.length === 1 ? "y" : "ies"} added.`, "ok");
 }
 
 function deletePurchase(id) {
@@ -234,25 +170,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   renderPurchaseProductOptions();
   renderPurchaseTable();
-  const currentDate = getSelectedDate();
-  document.getElementById("dateReceived").value = currentDate;
+  initPurchaseBatchMode();
 
-  const form = document.getElementById("purchaseForm");
   const batchForm = document.getElementById("purchaseBatchForm");
-  const toggleBatchButton = document.getElementById("togglePurchaseBatchMode");
-  const cancelBatchButton = document.getElementById("cancelPurchaseBatchMode");
   const addBatchRowButton = document.getElementById("addPurchaseBatchRow");
   const batchRowsContainer = document.getElementById("purchaseBatchRows");
   const exportButton = document.getElementById("exportPurchase");
   const exportPdfButton = document.getElementById("exportPurchasePdf");
-
-  if (toggleBatchButton) {
-    toggleBatchButton.addEventListener("click", () => togglePurchaseBatchMode());
-  }
-
-  if (cancelBatchButton) {
-    cancelBatchButton.addEventListener("click", () => togglePurchaseBatchMode("single"));
-  }
 
   if (addBatchRowButton) {
     addBatchRowButton.addEventListener("click", addPurchaseBatchRow);
@@ -283,11 +207,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const submitButton = form.querySelector('button[type="submit"]');
-    await withLoadingFeedback(submitButton, "Adding...", () => addPurchaseEntry(event));
-  });
   if (exportButton) {
     exportButton.addEventListener("click", () => {
       exportTableAsCsv("purchaseTable", "purchase_sheet");

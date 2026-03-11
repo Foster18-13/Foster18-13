@@ -10,7 +10,8 @@ let cloudSyncState = {
   docRef: null,
   lastPullTime: 0,
   initialized: false,
-  realtimeUnsubscribe: null
+  realtimeUnsubscribe: null,
+  lastSeenCloudUpdatedAt: 0
 };
 
 function hasFirebaseConfig() {
@@ -160,31 +161,6 @@ function mergeCloudHistoryIfWindowedLocal(localData, cloudData) {
   return merged;
 }
 
-function getCloudApplyDecision(localData, cloudData) {
-  const localUpdatedAt = asNumber(localData?._meta?.updatedAt);
-  const cloudUpdatedAt = asNumber(cloudData?._meta?.updatedAt);
-  const localHasData = hasMeaningfulDailyData(localData);
-  const cloudHasData = hasMeaningfulDailyData(cloudData);
-  const shouldRecoverFromCloud = !localHasData && cloudHasData;
-  const shouldApply = cloudUpdatedAt > localUpdatedAt || shouldRecoverFromCloud;
-
-  return {
-    shouldApply,
-    shouldRecoverFromCloud,
-    localUpdatedAt,
-    cloudUpdatedAt
-  };
-}
-
-function notifyCloudDataApplied(cloudData) {
-  if (typeof globalThis.dispatchEvent !== "function") return;
-  globalThis.dispatchEvent(
-    new CustomEvent("warehouse:data-saved", {
-      detail: { data: cloudData, fromCloud: true }
-    })
-  );
-}
-
 async function pullFromCloudIfNewer(forceCheck = false) {
   if (!cloudSyncState.user || cloudSyncState.pullInProgress) return;
   const docRef = getCloudDocRef();
@@ -220,23 +196,32 @@ async function pullFromCloudIfNewer(forceCheck = false) {
     }
 
     const localData = loadData();
-    const decision = getCloudApplyDecision(localData, cloudData);
+    const localUpdatedAt = asNumber(localData?._meta?.updatedAt);
+    const cloudUpdatedAt = asNumber(cloudData?._meta?.updatedAt);
+    const localHasData = hasMeaningfulDailyData(localData);
+    const cloudHasData = hasMeaningfulDailyData(cloudData);
 
-    console.log("[Cloud Sync] Pull check:", {
-      localUpdatedAt: decision.localUpdatedAt,
-      cloudUpdatedAt: decision.cloudUpdatedAt,
-      shouldRecover: decision.shouldRecoverFromCloud
-    });
+    const shouldRecoverFromCloud = !localHasData && cloudHasData;
 
-    if (decision.shouldApply) {
+    console.log("[Cloud Sync] Pull check:", {localUpdatedAt, cloudUpdatedAt, shouldRecover: shouldRecoverFromCloud});
+
+    if (cloudUpdatedAt > localUpdatedAt || shouldRecoverFromCloud) {
       saveData(cloudData, true); // Preserve timestamp to avoid sync loop
       cloudSyncState.lastPullTime = Date.now(); // Record pull time
+      cloudSyncState.lastSeenCloudUpdatedAt = cloudUpdatedAt;
       setCloudStatus(
-        decision.shouldRecoverFromCloud ? "Cloud recovery: historical data loaded" : "Cloud sync: latest data loaded",
+        shouldRecoverFromCloud ? "Cloud recovery: historical data loaded" : "Cloud sync: latest data loaded",
         "ok"
       );
       console.log("[Cloud Sync] Data pulled successfully from cloud");
-      notifyCloudDataApplied(cloudData);
+
+      if (typeof globalThis.dispatchEvent === "function") {
+        globalThis.dispatchEvent(
+          new CustomEvent("warehouse:data-saved", {
+            detail: { data: cloudData, fromCloud: true }
+          })
+        );
+      }
     } else {
       // Data is up to date
       cloudSyncState.lastPullTime = Date.now(); // Record check time
@@ -260,15 +245,15 @@ function stopRealtimeCloudListener() {
 }
 
 function startRealtimeCloudListener() {
-  if (!cloudSyncState.user) return;
-  const docRef = getCloudDocRef();
-  if (!docRef || typeof docRef.onSnapshot !== "function") return;
+  if (!cloudSyncState.user || !cloudSyncState.firestore) return;
 
   stopRealtimeCloudListener();
 
+  const docRef = getCloudDocRef();
+  if (!docRef || typeof docRef.onSnapshot !== "function") return;
+
   cloudSyncState.realtimeUnsubscribe = docRef.onSnapshot(
     (snapshot) => {
-      if (!cloudSyncState.user || cloudSyncState.pullInProgress) return;
       if (!snapshot?.exists) return;
 
       const payload = snapshot.data() || {};
@@ -276,17 +261,33 @@ function startRealtimeCloudListener() {
       if (!cloudData || typeof cloudData !== "object") return;
 
       const localData = loadData();
-      const decision = getCloudApplyDecision(localData, cloudData);
-      if (!decision.shouldApply) return;
+      const localUpdatedAt = asNumber(localData?._meta?.updatedAt);
+      const cloudUpdatedAt = asNumber(cloudData?._meta?.updatedAt);
+      const cloudHasData = hasMeaningfulDailyData(cloudData);
+      const localHasData = hasMeaningfulDailyData(localData);
+      const shouldRecoverFromCloud = !localHasData && cloudHasData;
+      const wasAlreadyHandled = cloudUpdatedAt > 0 && cloudUpdatedAt <= cloudSyncState.lastSeenCloudUpdatedAt;
 
-      saveData(cloudData, true);
-      cloudSyncState.lastPullTime = Date.now();
-      setCloudStatus("Cloud sync: live update received", "ok");
-      notifyCloudDataApplied(cloudData);
+      if (wasAlreadyHandled) return;
+
+      if (cloudUpdatedAt > localUpdatedAt || shouldRecoverFromCloud) {
+        saveData(cloudData, true);
+        cloudSyncState.lastPullTime = Date.now();
+        cloudSyncState.lastSeenCloudUpdatedAt = cloudUpdatedAt;
+        setCloudStatus("Cloud sync: live update received", "ok");
+
+        if (typeof globalThis.dispatchEvent === "function") {
+          globalThis.dispatchEvent(
+            new CustomEvent("warehouse:data-saved", {
+              detail: { data: cloudData, fromCloud: true }
+            })
+          );
+        }
+      }
     },
     (error) => {
-      const errorMsg = getCloudSyncErrorMessage(error, "sync");
-      console.error("[Cloud Sync] Live listener failed:", error?.code, error?.message);
+      const errorMsg = getCloudSyncErrorMessage(error, "listen");
+      console.error("[Cloud Sync] Realtime listener failed:", error?.code, error?.message);
       setCloudStatus(errorMsg, "error");
     }
   );
@@ -494,8 +495,7 @@ function initCloudSync() {
       }
     });
 
-    globalThis.addEventListener("warehouse:data-saved", (event) => {
-      if (event?.detail?.fromCloud) return;
+    globalThis.addEventListener("warehouse:data-saved", () => {
       // Only push if user is signed in and not currently pulling
       if (cloudSyncState.user && !cloudSyncState.pullInProgress) {
         queueCloudPush();
