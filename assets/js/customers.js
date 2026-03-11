@@ -1,9 +1,148 @@
 function renderCustomerProductOptions() {
-  const productSelect = document.getElementById("productId");
   const data = loadData();
   const currentDate = document.getElementById('workingDate')?.value || todayISO();
   const activeProducts = getActiveProductsForDate(data, currentDate);
-  productSelect.innerHTML = createProductOptions(activeProducts);
+  const options = createProductOptions(activeProducts);
+
+  document.querySelectorAll(".customer-product").forEach((productSelect) => {
+    const selectedValue = productSelect.value;
+    productSelect.innerHTML = options;
+    if (selectedValue) {
+      productSelect.value = selectedValue;
+    }
+  });
+}
+
+let customerRowCounter = 0;
+
+function createCustomerProductRow(productId = "", quantity = "") {
+  const rowId = `customer-row-${customerRowCounter++}`;
+  const row = document.createElement("div");
+  row.className = "grid-2 customer-product-row";
+  row.dataset.rowId = rowId;
+  row.style.marginBottom = "0.5rem";
+  row.style.padding = "0.75rem";
+  row.style.border = "1px solid #ddd";
+  row.style.borderRadius = "8px";
+
+  row.innerHTML = `
+    <div>
+      <label>Product Name</label>
+      <select class="select customer-product" required></select>
+    </div>
+    <div style="display: flex; gap: 0.5rem; align-items: end;">
+      <div style="flex: 1;">
+        <label>Quantity</label>
+        <input class="input customer-quantity" type="number" min="0" step="any" required value="${quantity}" />
+      </div>
+      <button class="button button-danger remove-customer-row" type="button">Remove</button>
+    </div>
+  `;
+
+  row.querySelector(".remove-customer-row").addEventListener("click", () => removeCustomerProductRow(rowId));
+  document.getElementById("customerProductRows").appendChild(row);
+  renderCustomerProductOptions();
+
+  if (productId) {
+    row.querySelector(".customer-product").value = productId;
+  }
+
+  updateCustomerRowRemovalState();
+}
+
+function removeCustomerProductRow(rowId) {
+  const rows = document.querySelectorAll(".customer-product-row");
+  if (rows.length <= 1) {
+    setStatus("At least one product is required.", "error");
+    return;
+  }
+
+  const row = document.querySelector(`[data-row-id="${rowId}"]`);
+  if (row) {
+    row.remove();
+  }
+
+  updateCustomerRowRemovalState();
+}
+
+function updateCustomerRowRemovalState() {
+  const rows = document.querySelectorAll(".customer-product-row");
+  rows.forEach((row) => {
+    const button = row.querySelector(".remove-customer-row");
+    if (button) {
+      button.style.display = rows.length > 1 ? "inline-block" : "none";
+    }
+  });
+}
+
+function initCustomerEntryForm() {
+  const rowsContainer = document.getElementById("customerProductRows");
+  if (rowsContainer) {
+    rowsContainer.innerHTML = "";
+  }
+  createCustomerProductRow();
+  document.getElementById("dateDelivered").value = getSelectedDate();
+}
+
+function collectCustomerProducts() {
+  const rows = document.querySelectorAll(".customer-product-row");
+  const products = [];
+
+  for (let i = 0; i < rows.length; i++) {
+    const productId = rows[i].querySelector(".customer-product")?.value;
+    const quantity = Number.parseFloat(rows[i].querySelector(".customer-quantity")?.value);
+
+    if (!productId || !quantity || quantity <= 0) {
+      setStatus(`Product ${i + 1}: Please select a product and enter a valid quantity.`, "error");
+      return null;
+    }
+
+    products.push({ productId, quantity });
+  }
+
+  return products;
+}
+
+function ensureRecordingEntriesArray(dayStore, productId) {
+  if (!dayStore.recording[productId]) {
+    dayStore.recording[productId] = { entries: [] };
+  }
+
+  if (!dayStore.recording[productId].entries) {
+    dayStore.recording[productId].entries = [];
+  }
+
+  return dayStore.recording[productId].entries;
+}
+
+function findRecordingEntryIndex(entries, waybillNumber) {
+  return entries.findIndex((entry) => entry && entry.waybill === waybillNumber);
+}
+
+function findEmptyRecordingSlot(entries) {
+  return entries.findIndex((entry) => !entry || (typeof entry === 'object' && !entry.waybill && !entry.qty));
+}
+
+function ensureRecordingEntry(dayStore, productId, waybillNumber, quantityNum, previousWaybillNumber = null) {
+  const entries = ensureRecordingEntriesArray(dayStore, productId);
+  const matchWaybill = previousWaybillNumber || waybillNumber;
+  const payload = { waybill: waybillNumber, qty: String(quantityNum) };
+  const matchedIndex = findRecordingEntryIndex(entries, matchWaybill);
+
+  if (matchedIndex >= 0) {
+    entries[matchedIndex] = payload;
+  } else {
+    const emptyIndex = findEmptyRecordingSlot(entries);
+    if (emptyIndex >= 0) {
+      entries[emptyIndex] = payload;
+    } else {
+      entries.push(payload);
+    }
+  }
+
+  if (entries.length > dayStore.recordingColumns) {
+    dayStore.recordingColumns = entries.length;
+  }
 }
 
 function renderCustomerNameSuggestions() {
@@ -121,13 +260,15 @@ function editCustomerEntry(id) {
   document.getElementById("editingEntryId").value = id;
   document.getElementById("customerName").value = customer.customerName;
   document.getElementById("waybillNumber").value = customer.waybillNumber;
-  document.getElementById("productId").value = customer.productId;
-  document.getElementById("quantity").value = customer.quantity;
   document.getElementById("dateDelivered").value = customer.dateDelivered;
+  const rowsContainer = document.getElementById("customerProductRows");
+  rowsContainer.innerHTML = "";
+  createCustomerProductRow(customer.productId, customer.quantity);
 
   // Update button text and show cancel button
   document.getElementById("submitCustomerBtn").textContent = "💾 Update Entry";
   document.getElementById("cancelEditBtn").style.display = "inline-block";
+  document.getElementById("addCustomerProductRow").style.display = "none";
 
   // Scroll to form
   document.getElementById("customerForm").scrollIntoView({ behavior: "smooth", block: "center" });
@@ -137,22 +278,19 @@ function cancelEditCustomerEntry() {
   // Reset form and UI
   document.getElementById("editingEntryId").value = "";
   document.getElementById("customerForm").reset();
-  document.getElementById("submitCustomerBtn").textContent = "Add Single Entry";
+  document.getElementById("submitCustomerBtn").textContent = "💾 Save Entries";
   document.getElementById("cancelEditBtn").style.display = "none";
-  
-  const currentDate = getSelectedDate();
-  document.getElementById("dateDelivered").value = currentDate;
-  setStatus("", "ok");
+  document.getElementById("addCustomerProductRow").style.display = "inline-block";
+  initCustomerEntryForm();
 }
 
 function addCustomerEntry(event) {
   const customerName = document.getElementById("customerName").value.trim();
   const waybillNumber = document.getElementById("waybillNumber").value.trim();
-  const productId = document.getElementById("productId").value;
-  const quantity = document.getElementById("quantity").value;
   const dateDelivered = document.getElementById("dateDelivered").value;
+  const products = collectCustomerProducts();
 
-  if (!customerName || !waybillNumber || !productId || !quantity || !dateDelivered) {
+  if (!customerName || !waybillNumber || !dateDelivered || !products) {
     setStatus("All fields are required.", "error");
     return;
   }
@@ -165,18 +303,19 @@ function addCustomerEntry(event) {
     dayStore.customers = [];
   }
 
-  const quantityNum = Number.parseFloat(quantity);
-  if (quantityNum <= 0) {
-    setStatus("Quantity must be greater than zero.", "error");
-    return;
-  }
-
   const editingEntryId = document.getElementById("editingEntryId").value;
 
   if (editingEntryId) {
+    if (products.length !== 1) {
+      setStatus("Edit mode supports one product entry at a time.", "error");
+      return;
+    }
+
     // --- UPDATE EXISTING ENTRY ---
     const existingEntry = dayStore.customers.find(item => item.id === editingEntryId);
     if (existingEntry) {
+      const { productId, quantity } = products[0];
+      const quantityNum = Number.parseFloat(quantity);
       const oldProductId = existingEntry.productId;
       const oldWaybillNumber = existingEntry.waybillNumber;
 
@@ -190,91 +329,40 @@ function addCustomerEntry(event) {
         removeFromRecording(dayStore, oldProductId, oldWaybillNumber);
       }
 
-      if (!dayStore.recording[productId]) {
-        dayStore.recording[productId] = { entries: [] };
-      }
-      if (!dayStore.recording[productId].entries) {
-        dayStore.recording[productId].entries = [];
-      }
-
-      const entries = dayStore.recording[productId].entries;
-      let updated = false;
-
-      for (let i = 0; i < entries.length; i++) {
-        if (entries[i] && entries[i].waybill === oldWaybillNumber) {
-          entries[i] = { waybill: waybillNumber, qty: String(quantityNum) };
-          updated = true;
-          break;
-        }
-      }
-
-      if (!updated) {
-        let slotFilled = false;
-        for (let i = 0; i < entries.length; i++) {
-          if (!entries[i] || (typeof entries[i] === 'object' && !entries[i].waybill && !entries[i].qty)) {
-            entries[i] = { waybill: waybillNumber, qty: String(quantityNum) };
-            slotFilled = true;
-            break;
-          }
-        }
-        if (!slotFilled) {
-          entries.push({ waybill: waybillNumber, qty: String(quantityNum) });
-        }
-      }
-
-      if (entries.length > dayStore.recordingColumns) {
-        dayStore.recordingColumns = entries.length;
-      }
+      ensureRecordingEntry(dayStore, productId, waybillNumber, quantityNum, oldWaybillNumber);
 
       saveData(data);
       addAuditLog("Customer entry updated", { customerName, waybillNumber, quantity: quantityNum, productId });
       setStatus("Customer entry updated successfully!", "ok");
-      cancelEditCustomerEntry();
     }
   } else {
     // --- ADD NEW ENTRY ---
-    dayStore.customers.push({
-      id: generateId("customer"),
-      customerName,
-      waybillNumber,
-      productId,
-      quantity: quantityNum,
-      dateDelivered
+    products.forEach(({ productId, quantity }) => {
+      const quantityNum = Number.parseFloat(quantity);
+
+      dayStore.customers.push({
+        id: generateId("customer"),
+        customerName,
+        waybillNumber,
+        productId,
+        quantity: quantityNum,
+        dateDelivered
+      });
+
+      ensureRecordingEntry(dayStore, productId, waybillNumber, quantityNum);
     });
 
-    if (!dayStore.recording[productId]) {
-      dayStore.recording[productId] = { entries: [] };
-    }
-    if (!dayStore.recording[productId].entries) {
-      dayStore.recording[productId].entries = [];
-    }
-
-    const entries = dayStore.recording[productId].entries;
-    let added = false;
-
-    for (let i = 0; i < entries.length; i++) {
-      if (!entries[i] || (typeof entries[i] === 'object' && !entries[i].waybill && !entries[i].qty)) {
-        entries[i] = { waybill: waybillNumber, qty: String(quantityNum) };
-        added = true;
-        break;
-      }
-    }
-
-    if (!added) {
-      entries.push({ waybill: waybillNumber, qty: String(quantityNum) });
-    }
-
-    if (entries.length > dayStore.recordingColumns) {
-      dayStore.recordingColumns = entries.length;
-    }
-
     saveData(data);
-    addAuditLog("Customer entry added", { customerName, waybillNumber, quantity: quantityNum, productId });
-    setStatus("Customer entry added and synced to dispatch records!", "ok");
+    addAuditLog("Customer entry added", { customerName, waybillNumber, productsCount: products.length });
+    setStatus(
+      products.length === 1
+        ? "Customer entry added and synced to dispatch records!"
+        : `Added ${products.length} customer entries and synced them to dispatch records!`,
+      "ok"
+    );
   }
 
-  event.target.reset();
-  document.getElementById("dateDelivered").value = date;
+  cancelEditCustomerEntry();
   renderCustomersTable();
   renderCustomerNameSuggestions();
 }
@@ -417,200 +505,6 @@ function syncAllToRecording() {
   setStatus(`Synced ${dayStore.customers.length} customer entries to dispatch records!`, "ok");
 }
 
-// Batch Entry Functions
-function toggleBatchMode() {
-  const batchSection = document.getElementById("batchEntrySection");
-  const singleForm = document.getElementById("customerForm");
-  const toggleBtn = document.getElementById("toggleBatchMode");
-  
-  const isBatchVisible = batchSection.style.display !== "none";
-  
-  if (isBatchVisible) {
-    // Switch to single mode
-    batchSection.style.display = "none";
-    singleForm.style.display = "grid";
-    toggleBtn.textContent = "📦 Batch Entry Mode";
-  } else {
-    // Switch to batch mode
-    batchSection.style.display = "block";
-    singleForm.style.display = "none";
-    toggleBtn.textContent = "📝 Single Entry Mode";
-    initBatchEntry();
-  }
-}
-
-function initBatchEntry() {
-  const batchDateInput = document.getElementById("batchDateDelivered");
-  if (batchDateInput) {
-    batchDateInput.value = getSelectedDate();
-  }
-  
-  // Clear and add first product row
-  const container = document.getElementById("batchProductRows");
-  container.innerHTML = "";
-  addBatchProductRow();
-}
-
-let batchRowCounter = 0;
-
-function addBatchProductRow() {
-  const container = document.getElementById("batchProductRows");
-  const rowId = `batch-row-${batchRowCounter++}`;
-  
-  const data = loadData();
-  const currentDate = document.getElementById('workingDate')?.value || todayISO();
-  const activeProducts = getActiveProductsForDate(data, currentDate);
-  const productOptions = createProductOptions(activeProducts);
-  
-  const rowDiv = document.createElement("div");
-  rowDiv.className = "grid-2";
-  rowDiv.id = rowId;
-  rowDiv.style.marginBottom = "0.5rem";
-  rowDiv.style.padding = "0.5rem";
-  rowDiv.style.border = "1px solid #ddd";
-  rowDiv.style.borderRadius = "4px";
-  
-  rowDiv.innerHTML = `
-    <div>
-      <label>Product</label>
-      <select class="select batch-product" required>${productOptions}</select>
-    </div>
-    <div style="display: flex; gap: 0.5rem; align-items: end;">
-      <div style="flex: 1;">
-        <label>Quantity</label>
-        <input class="input batch-quantity" type="number" min="0" step="any" required />
-      </div>
-      <button class="button button-danger" type="button" onclick="removeBatchProductRow('${rowId}')">Remove</button>
-    </div>
-  `;
-  
-  container.appendChild(rowDiv);
-}
-
-function removeBatchProductRow(rowId) {
-  const row = document.getElementById(rowId);
-  if (row) {
-    const container = document.getElementById("batchProductRows");
-    if (container.children.length > 1) {
-      row.remove();
-    } else {
-      setStatus("At least one product is required.", "error");
-    }
-  }
-}
-
-// Make function globally accessible for inline onclick
-globalThis.removeBatchProductRow = removeBatchProductRow;
-
-function handleBatchCustomerEntry(event) {
-  const customerName = document.getElementById("batchCustomerName").value.trim();
-  const waybillNumber = document.getElementById("batchWaybillNumber").value.trim();
-  const dateDelivered = document.getElementById("batchDateDelivered").value;
-  
-  if (!customerName || !waybillNumber || !dateDelivered) {
-    setStatus("Customer name, waybill, and date are required.", "error");
-    return;
-  }
-  
-  // Collect all product rows
-  const productSelects = document.querySelectorAll(".batch-product");
-  const quantityInputs = document.querySelectorAll(".batch-quantity");
-  
-  const products = [];
-  for (let i = 0; i < productSelects.length; i++) {
-    const productId = productSelects[i].value;
-    const quantity = Number.parseFloat(quantityInputs[i].value);
-    
-    if (!productId || !quantity || quantity <= 0) {
-      setStatus(`Product ${i + 1}: Please select a product and enter a valid quantity.`, "error");
-      return;
-    }
-    
-    products.push({ productId, quantity });
-  }
-  
-  if (products.length === 0) {
-    setStatus("Add at least one product.", "error");
-    return;
-  }
-  
-  // Add all entries
-  const data = loadData();
-  const date = getSelectedDate();
-  const dayStore = getShiftStore(data, date);
-  
-  // Initialize customers array if it doesn't exist
-  if (!dayStore.customers) {
-    dayStore.customers = [];
-  }
-  
-  let addedCount = 0;
-  products.forEach(({ productId, quantity }) => {
-    // Add customer entry
-    dayStore.customers.push({
-      id: generateId("customer"),
-      customerName,
-      waybillNumber,
-      productId,
-      quantity,
-      dateDelivered
-    });
-    
-    // Add to recording sheet
-    if (!dayStore.recording[productId]) {
-      dayStore.recording[productId] = { entries: [] };
-    }
-    
-    if (!dayStore.recording[productId].entries) {
-      dayStore.recording[productId].entries = [];
-    }
-    
-    const entries = dayStore.recording[productId].entries;
-    let added = false;
-    
-    // Find an empty slot
-    for (let i = 0; i < entries.length; i++) {
-      if (!entries[i] || (typeof entries[i] === 'object' && !entries[i].waybill && !entries[i].qty)) {
-        entries[i] = {
-          waybill: waybillNumber,
-          qty: String(quantity)
-        };
-        added = true;
-        break;
-      }
-    }
-    
-    // If no empty slot, add new entry
-    if (!added) {
-      entries.push({
-        waybill: waybillNumber,
-        qty: String(quantity)
-      });
-    }
-    
-    // Update column count
-    if (entries.length > dayStore.recordingColumns) {
-      dayStore.recordingColumns = entries.length;
-    }
-    
-    addedCount++;
-  });
-  
-  saveData(data);
-  addAuditLog("Batch customer entry added", {
-    customerName,
-    waybillNumber,
-    productsCount: addedCount
-  });
-  
-  // Reset form
-  event.target.reset();
-  initBatchEntry();
-  renderCustomersTable();
-  renderCustomerNameSuggestions();
-  setStatus(`✓ Added ${addedCount} products for ${customerName} (Waybill: ${waybillNumber})`, "ok");
-}
-
 document.addEventListener("DOMContentLoaded", () => {
   const shiftSelector = document.getElementById("shiftSelector");
   if (shiftSelector) {
@@ -618,14 +512,14 @@ document.addEventListener("DOMContentLoaded", () => {
     shiftSelector.addEventListener("change", (e) => {
       setSelectedShift(e.target.value);
       renderCustomersTable();
+      renderCustomerProductOptions();
     });
   }
 
   renderCustomerProductOptions();
   renderCustomerNameSuggestions();
   renderCustomersTable();
-  const currentDate = getSelectedDate();
-  document.getElementById("dateDelivered").value = currentDate;
+  initCustomerEntryForm();
 
   // Initialize auto-save tracking
   if (typeof initAutoSave === 'function') {
@@ -637,33 +531,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   const form = document.getElementById("customerForm");
+  const addCustomerProductRowBtn = document.getElementById("addCustomerProductRow");
   const exportPdfButton = document.getElementById("exportCustomersPdf");
   const syncButton = document.getElementById("syncToRecording");
-  
-  // Batch entry event listeners
-  const toggleBatchBtn = document.getElementById("toggleBatchMode");
-  const batchForm = document.getElementById("batchCustomerForm");
-  const addBatchRowBtn = document.getElementById("addBatchProductRow");
-  const cancelBatchBtn = document.getElementById("cancelBatchEntry");
-  
-  if (toggleBatchBtn) {
-    toggleBatchBtn.addEventListener("click", toggleBatchMode);
-  }
-  
-  if (batchForm) {
-    batchForm.addEventListener("submit", async (event) => {
-      event.preventDefault();
-      const submitButton = batchForm.querySelector('button[type="submit"]');
-      await withLoadingFeedback(submitButton, "Saving all...", () => handleBatchCustomerEntry(event));
-    });
-  }
-  
-  if (addBatchRowBtn) {
-    addBatchRowBtn.addEventListener("click", addBatchProductRow);
-  }
-  
-  if (cancelBatchBtn) {
-    cancelBatchBtn.addEventListener("click", toggleBatchMode);
+
+  if (addCustomerProductRowBtn) {
+    addCustomerProductRowBtn.addEventListener("click", () => createCustomerProductRow());
   }
 
   const cancelEditBtn = document.getElementById("cancelEditBtn");

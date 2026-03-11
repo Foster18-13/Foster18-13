@@ -62,68 +62,31 @@
             <option value="day">Day</option>
             <option value="night">Night</option>
           </select>
-          <button class="button" id="toggleBatchMode" type="button" style="margin-left: auto;">📦 Batch Entry
-            Mode</button>
         </div>
 
-        <!-- Batch Entry Form (Hidden by default) -->
-        <div id="batchEntrySection"
-          style="display: none; margin-bottom: 2rem; padding: 1rem; border: 2px solid #027a48; border-radius: 8px; background: rgba(2, 122, 72, 0.05);">
-          <h3 style="margin-top: 0;">Batch Entry - Multiple Products for One Customer</h3>
-          <form id="batchCustomerForm">
-            <div class="grid-2" style="margin-bottom: 1rem;">
-              <div>
-                <label for="batchCustomerName">Customer Name</label>
-                <input class="input" id="batchCustomerName" list="customerNameList" required />
-              </div>
-              <div>
-                <label for="batchWaybillNumber">Waybill Number</label>
-                <input class="input" id="batchWaybillNumber" required />
-              </div>
-              <div>
-                <label for="batchDateDelivered">Date Delivered</label>
-                <input class="input" id="batchDateDelivered" type="date" required />
-              </div>
-            </div>
-
-            <div id="batchProductRows">
-              <!-- Product rows will be added here dynamically -->
-            </div>
-
-            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-              <button class="button" id="addBatchProductRow" type="button">+ Add Product</button>
-              <button class="button button-primary" type="submit">💾 Save All Products</button>
-              <button class="button" id="cancelBatchEntry" type="button">Cancel</button>
-            </div>
-          </form>
-        </div>
-
-        <!-- Single Entry Form (Default) -->
-        <form id="customerForm" class="grid-2">
+        <form id="customerForm">
           <input type="hidden" id="editingEntryId" value="" />
-          <div>
-            <label for="customerName">Customer Name</label>
-            <input class="input" id="customerName" list="customerNameList" required />
-            <datalist id="customerNameList"></datalist>
+          <div class="grid-2">
+            <div>
+              <label for="customerName">Customer Name</label>
+              <input class="input" id="customerName" list="customerNameList" required />
+              <datalist id="customerNameList"></datalist>
+            </div>
+            <div>
+              <label for="waybillNumber">Waybill Number</label>
+              <input class="input" id="waybillNumber" required />
+            </div>
+            <div>
+              <label for="dateDelivered">Date Delivered</label>
+              <input class="input" id="dateDelivered" type="date" required />
+            </div>
           </div>
-          <div>
-            <label for="waybillNumber">Waybill Number</label>
-            <input class="input" id="waybillNumber" required />
-          </div>
-          <div>
-            <label for="productId">Product Name</label>
-            <select class="select" id="productId" required></select>
-          </div>
-          <div>
-            <label for="quantity">Quantity</label>
-            <input class="input" id="quantity" type="number" min="0" step="any" required />
-          </div>
-          <div>
-            <label for="dateDelivered">Date Delivered</label>
-            <input class="input" id="dateDelivered" type="date" required />
-          </div>
-          <div class="align-end-row">
-            <button class="button button-primary" id="submitCustomerBtn" type="submit">Add Single Entry</button>
+
+          <div id="customerProductRows" style="margin-top: 1rem;"></div>
+
+          <div style="display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap;">
+            <button class="button" id="addCustomerProductRow" type="button">+ Add Product</button>
+            <button class="button button-primary" id="submitCustomerBtn" type="submit">💾 Save Entries</button>
             <button class="button" id="cancelEditBtn" type="button" style="display: none;">Cancel Edit</button>
           </div>
         </form>
