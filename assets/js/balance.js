@@ -64,6 +64,16 @@ function attachBalanceCalculations() {
     const goodsInput = row.querySelector("td:nth-child(4) input");
     const loadingInput = row.querySelector("td:nth-child(6) input");
 
+    const applyRemarkFlag = (remarkValue) => {
+      if (Math.abs(remarkValue) > 10) {
+        remarkInput.style.backgroundColor = '#fff3cd';
+        remarkInput.title = 'Variance over 10 detected';
+      } else {
+        remarkInput.style.backgroundColor = '';
+        remarkInput.title = '';
+      }
+    };
+
     const recalc = () => {
       const balanceValue = computeBalanceValue({
         opening: openingInput.value,
@@ -85,14 +95,10 @@ function attachBalanceCalculations() {
         closingInput.title = '';
       }
 
-      if (Math.abs(remarkValue) > 100) {
-        remarkInput.style.backgroundColor = '#fff3cd';
-        remarkInput.title = 'Large variance detected';
-      } else {
-        remarkInput.style.backgroundColor = '';
-        remarkInput.title = '';
-      }
+      applyRemarkFlag(remarkValue);
     };
+
+    applyRemarkFlag(asNumber(remarkInput.value));
 
     // Prevent negative values
     [openingInput, returnsInput, damagesInput, closingInput].forEach((input) => {
