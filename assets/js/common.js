@@ -723,27 +723,34 @@ function initGlobalSearch() {
 function initSidebarToggle() {
   const sidebarToggle = document.getElementById("sidebarToggle");
   const sidebar = document.querySelector(".sidebar");
-  
+  const overlay = document.getElementById("sidebarOverlay");
+
   if (!sidebarToggle || !sidebar) return;
+
+  function openSidebar() {
+    sidebar.classList.add("active");
+    if (overlay) overlay.classList.add("active");
+  }
+
+  function closeSidebar() {
+    sidebar.classList.remove("active");
+    if (overlay) overlay.classList.remove("active");
+  }
 
   sidebarToggle.addEventListener("click", (e) => {
     e.stopPropagation();
-    sidebar.classList.toggle("active");
+    sidebar.classList.contains("active") ? closeSidebar() : openSidebar();
   });
 
-  // Close sidebar when clicking on a navigation link
+  // Close when clicking a nav link
   sidebar.querySelectorAll(".main-nav a").forEach((link) => {
-    link.addEventListener("click", () => {
-      sidebar.classList.remove("active");
-    });
+    link.addEventListener("click", closeSidebar);
   });
 
-  // Close sidebar when clicking outside of it
-  document.addEventListener("click", (e) => {
-    if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target) && sidebar.classList.contains("active")) {
-      sidebar.classList.remove("active");
-    }
-  });
+  // Close when clicking the overlay
+  if (overlay) {
+    overlay.addEventListener("click", closeSidebar);
+  }
 }
 
 function initCommon() {
