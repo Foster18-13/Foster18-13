@@ -10,7 +10,7 @@ let cloudSyncState = {
   docRef: null,
   lastPullTime: 0,
   initialized: false,
-  periodicCheckInterval: null
+  realtimeUnsubscribe: null
 };
 
 function hasFirebaseConfig() {
@@ -160,6 +160,31 @@ function mergeCloudHistoryIfWindowedLocal(localData, cloudData) {
   return merged;
 }
 
+function getCloudApplyDecision(localData, cloudData) {
+  const localUpdatedAt = asNumber(localData?._meta?.updatedAt);
+  const cloudUpdatedAt = asNumber(cloudData?._meta?.updatedAt);
+  const localHasData = hasMeaningfulDailyData(localData);
+  const cloudHasData = hasMeaningfulDailyData(cloudData);
+  const shouldRecoverFromCloud = !localHasData && cloudHasData;
+  const shouldApply = cloudUpdatedAt > localUpdatedAt || shouldRecoverFromCloud;
+
+  return {
+    shouldApply,
+    shouldRecoverFromCloud,
+    localUpdatedAt,
+    cloudUpdatedAt
+  };
+}
+
+function notifyCloudDataApplied(cloudData) {
+  if (typeof globalThis.dispatchEvent !== "function") return;
+  globalThis.dispatchEvent(
+    new CustomEvent("warehouse:data-saved", {
+      detail: { data: cloudData, fromCloud: true }
+    })
+  );
+}
+
 async function pullFromCloudIfNewer(forceCheck = false) {
   if (!cloudSyncState.user || cloudSyncState.pullInProgress) return;
   const docRef = getCloudDocRef();
@@ -195,31 +220,23 @@ async function pullFromCloudIfNewer(forceCheck = false) {
     }
 
     const localData = loadData();
-    const localUpdatedAt = asNumber(localData?._meta?.updatedAt);
-    const cloudUpdatedAt = asNumber(cloudData?._meta?.updatedAt);
-    const localHasData = hasMeaningfulDailyData(localData);
-    const cloudHasData = hasMeaningfulDailyData(cloudData);
+    const decision = getCloudApplyDecision(localData, cloudData);
 
-    const shouldRecoverFromCloud = !localHasData && cloudHasData;
+    console.log("[Cloud Sync] Pull check:", {
+      localUpdatedAt: decision.localUpdatedAt,
+      cloudUpdatedAt: decision.cloudUpdatedAt,
+      shouldRecover: decision.shouldRecoverFromCloud
+    });
 
-    console.log("[Cloud Sync] Pull check:", {localUpdatedAt, cloudUpdatedAt, shouldRecover: shouldRecoverFromCloud});
-
-    if (cloudUpdatedAt > localUpdatedAt || shouldRecoverFromCloud) {
+    if (decision.shouldApply) {
       saveData(cloudData, true); // Preserve timestamp to avoid sync loop
       cloudSyncState.lastPullTime = Date.now(); // Record pull time
       setCloudStatus(
-        shouldRecoverFromCloud ? "Cloud recovery: historical data loaded" : "Cloud sync: latest data loaded",
+        decision.shouldRecoverFromCloud ? "Cloud recovery: historical data loaded" : "Cloud sync: latest data loaded",
         "ok"
       );
       console.log("[Cloud Sync] Data pulled successfully from cloud");
-      
-      // Only reload if data actually changed significantly
-      const hasSignificantChange = cloudUpdatedAt > localUpdatedAt + 1000; // More than 1 second difference
-      if (hasSignificantChange) {
-        globalThis.setTimeout(() => {
-          location.reload();
-        }, 400);
-      }
+      notifyCloudDataApplied(cloudData);
     } else {
       // Data is up to date
       cloudSyncState.lastPullTime = Date.now(); // Record check time
@@ -233,6 +250,46 @@ async function pullFromCloudIfNewer(forceCheck = false) {
   } finally {
     cloudSyncState.pullInProgress = false;
   }
+}
+
+function stopRealtimeCloudListener() {
+  if (typeof cloudSyncState.realtimeUnsubscribe === "function") {
+    cloudSyncState.realtimeUnsubscribe();
+  }
+  cloudSyncState.realtimeUnsubscribe = null;
+}
+
+function startRealtimeCloudListener() {
+  if (!cloudSyncState.user) return;
+  const docRef = getCloudDocRef();
+  if (!docRef || typeof docRef.onSnapshot !== "function") return;
+
+  stopRealtimeCloudListener();
+
+  cloudSyncState.realtimeUnsubscribe = docRef.onSnapshot(
+    (snapshot) => {
+      if (!cloudSyncState.user || cloudSyncState.pullInProgress) return;
+      if (!snapshot?.exists) return;
+
+      const payload = snapshot.data() || {};
+      const cloudData = payload.data;
+      if (!cloudData || typeof cloudData !== "object") return;
+
+      const localData = loadData();
+      const decision = getCloudApplyDecision(localData, cloudData);
+      if (!decision.shouldApply) return;
+
+      saveData(cloudData, true);
+      cloudSyncState.lastPullTime = Date.now();
+      setCloudStatus("Cloud sync: live update received", "ok");
+      notifyCloudDataApplied(cloudData);
+    },
+    (error) => {
+      const errorMsg = getCloudSyncErrorMessage(error, "sync");
+      console.error("[Cloud Sync] Live listener failed:", error?.code, error?.message);
+      setCloudStatus(errorMsg, "error");
+    }
+  );
 }
 
 async function pushLocalToCloud() {
@@ -431,24 +488,14 @@ function initCloudSync() {
 
       if (cloudSyncState.user) {
         await pullFromCloudIfNewer(true); // Force initial check on sign-in
-        // Don't push immediately after pull to avoid loops
-        
-        // Set up periodic cloud checks (every 30 seconds)
-        if (!cloudSyncState.periodicCheckInterval) {
-          cloudSyncState.periodicCheckInterval = setInterval(() => {
-            if (cloudSyncState.user && !cloudSyncState.pushing && !cloudSyncState.pullInProgress) {
-              pullFromCloudIfNewer();
-            }
-          }, 30000);
-        }
-      } else if (cloudSyncState.periodicCheckInterval) {
-        // Clear periodic checks when signed out
-        clearInterval(cloudSyncState.periodicCheckInterval);
-        cloudSyncState.periodicCheckInterval = null;
+        startRealtimeCloudListener();
+      } else {
+        stopRealtimeCloudListener();
       }
     });
 
-    globalThis.addEventListener("warehouse:data-saved", () => {
+    globalThis.addEventListener("warehouse:data-saved", (event) => {
+      if (event?.detail?.fromCloud) return;
       // Only push if user is signed in and not currently pulling
       if (cloudSyncState.user && !cloudSyncState.pullInProgress) {
         queueCloudPush();

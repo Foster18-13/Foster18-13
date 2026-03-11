@@ -753,10 +753,109 @@ function initSidebarToggle() {
   }
 }
 
+function invokeIfFunction(functionName) {
+  const candidate = globalThis[functionName];
+  if (typeof candidate !== "function") return false;
+  candidate();
+  return true;
+}
+
+function refreshCurrentPageInPlace() {
+  const currentPage = getCurrentPageName();
+
+  if (currentPage === "summary.html") {
+    invokeIfFunction("renderSummary");
+    return;
+  }
+
+  if (currentPage === "products.html") {
+    invokeIfFunction("renderProducts");
+    return;
+  }
+
+  if (currentPage === "purchase.html") {
+    invokeIfFunction("renderPurchaseProductOptions");
+    invokeIfFunction("renderPurchaseTable");
+    return;
+  }
+
+  if (currentPage === "recording.html") {
+    invokeIfFunction("renderRecordingTable");
+    return;
+  }
+
+  if (currentPage === "balance.html") {
+    invokeIfFunction("renderBalanceTable");
+    return;
+  }
+
+  if (currentPage === "returns.html") {
+    invokeIfFunction("renderReturnProductOptions");
+    invokeIfFunction("renderReturnsTable");
+    return;
+  }
+
+  if (currentPage === "damages.html") {
+    invokeIfFunction("renderDamageProductOptions");
+    invokeIfFunction("renderDamagesTable");
+    return;
+  }
+
+  if (currentPage === "vehicles.html") {
+    invokeIfFunction("renderVehiclesTable");
+    return;
+  }
+
+  if (currentPage === "customers.html") {
+    invokeIfFunction("renderCustomerProductOptions");
+    invokeIfFunction("renderCustomerNameSuggestions");
+    invokeIfFunction("renderCustomersTable");
+    return;
+  }
+
+  if (currentPage === "dashboard.html") {
+    invokeIfFunction("renderDashboard");
+    return;
+  }
+
+  if (currentPage === "reports.html") {
+    invokeIfFunction("generateReport");
+    return;
+  }
+
+  if (currentPage === "period-reports.html") {
+    invokeIfFunction("initializePage");
+    return;
+  }
+
+  if (currentPage === "product-movement.html") {
+    invokeIfFunction("populateProductSelect");
+    invokeIfFunction("viewProductMovement");
+    return;
+  }
+
+  if (currentPage === "customer-history.html") {
+    invokeIfFunction("searchCustomerHistory");
+  }
+}
+
+function initRealtimeInPlaceRefresh() {
+  globalThis.addEventListener("warehouse:data-saved", (event) => {
+    if (!event?.detail?.fromCloud) return;
+
+    globalThis.setTimeout(() => {
+      refreshCurrentPageInPlace();
+      renderDayLockControls();
+      setStatus("Live update received from cloud.", "ok");
+    }, 50);
+  });
+}
+
 function initCommon() {
   initSharedHeader();
   initAuthAccessGuard();
   initSidebarToggle();
+  initRealtimeInPlaceRefresh();
 }
 
 document.addEventListener("DOMContentLoaded", initCommon);
