@@ -720,9 +720,36 @@ function initGlobalSearch() {
   });
 }
 
+function initSidebarToggle() {
+  const sidebarToggle = document.getElementById("sidebarToggle");
+  const sidebar = document.querySelector(".sidebar");
+  
+  if (!sidebarToggle || !sidebar) return;
+
+  sidebarToggle.addEventListener("click", (e) => {
+    e.stopPropagation();
+    sidebar.classList.toggle("active");
+  });
+
+  // Close sidebar when clicking on a navigation link
+  sidebar.querySelectorAll(".main-nav a").forEach((link) => {
+    link.addEventListener("click", () => {
+      sidebar.classList.remove("active");
+    });
+  });
+
+  // Close sidebar when clicking outside of it
+  document.addEventListener("click", (e) => {
+    if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target) && sidebar.classList.contains("active")) {
+      sidebar.classList.remove("active");
+    }
+  });
+}
+
 function initCommon() {
   initSharedHeader();
   initAuthAccessGuard();
+  initSidebarToggle();
 }
 
 document.addEventListener("DOMContentLoaded", initCommon);
