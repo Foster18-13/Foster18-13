@@ -338,7 +338,7 @@ async function initRoleManagement() {
   let resolvedRoleValue = fallbackRole;
   if (typeof resolveUserRole === 'function' && currentUser) {
     try {
-      resolvedRoleValue = resolveUserRole(currentUser);
+      resolvedRoleValue = await Promise.resolve(resolveUserRole(currentUser));
     } catch {
       resolvedRoleValue = fallbackRole;
     }
