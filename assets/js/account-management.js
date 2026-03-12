@@ -92,25 +92,29 @@ async function loadUsersForRoleManagement() {
 
   try {
     let users = [];
+    let partialAccessOnly = false;
 
     try {
-      const approvedSnapshot = await firebase
+      const allUsersSnapshot = await firebase
         .firestore()
         .collection('users')
-        .where('approved', '==', true)
-        .limit(300)
+        .limit(500)
         .get();
 
-      users = approvedSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      users = allUsersSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
     } catch (queryError) {
-      const fallbackSnapshot = await firebase
-        .firestore()
-        .collection('users')
-        .limit(300)
-        .get();
+      partialAccessOnly = true;
+      const [approvedSnapshot, pendingSnapshot] = await Promise.all([
+        firebase.firestore().collection('users').where('approved', '==', true).limit(300).get(),
+        firebase.firestore().collection('users').where('approved', '==', false).limit(300).get()
+      ]);
 
-      users = fallbackSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      console.warn('Approved-users query failed, fallback query used for role management:', queryError);
+      const usersById = new Map();
+      [...approvedSnapshot.docs, ...pendingSnapshot.docs].forEach((doc) => {
+        usersById.set(doc.id, { id: doc.id, ...doc.data() });
+      });
+      users = Array.from(usersById.values());
+      console.warn('All-users query failed, fallback approved/pending queries used for role management:', queryError);
     }
 
     users.sort((a, b) => String(a.email || a.username || '').localeCompare(String(b.email || b.username || '')));
@@ -118,6 +122,10 @@ async function loadUsersForRoleManagement() {
     if (!users.length) {
       select.innerHTML = '<option value="">No users found</option>';
       return;
+    }
+
+    if (partialAccessOnly) {
+      showAccountMessage('Showing users available with current permissions. To see every user, update Firestore read rules for users collection.', 'error');
     }
 
     select.innerHTML = users
