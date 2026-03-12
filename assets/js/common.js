@@ -284,6 +284,131 @@ function formatApprovalTimestamp(timestamp) {
   return new Date(value).toLocaleString();
 }
 
+function getCurrentOperatorLabel() {
+  try {
+    const firebaseUser = globalThis.firebase?.auth?.()?.currentUser;
+    if (firebaseUser) {
+      return firebaseUser.displayName || firebaseUser.email || "Unknown user";
+    }
+  } catch {
+    // ignore and use fallback
+  }
+  return "Unknown user";
+}
+
+function hasValue(value) {
+  if (value === null || value === undefined) return false;
+  return String(value).trim() !== "";
+}
+
+function countRecordingEntries(shiftStore) {
+  if (!shiftStore?.recording || typeof shiftStore.recording !== "object") return 0;
+
+  return Object.values(shiftStore.recording).reduce((count, row) => {
+    const entries = Array.isArray(row?.entries) ? row.entries : [];
+    const filled = entries.filter((entry) => hasValue(entry?.qty) || hasValue(entry?.waybill)).length;
+    return count + filled;
+  }, 0);
+}
+
+function countBalanceEntries(shiftStore) {
+  if (!shiftStore?.balance || typeof shiftStore.balance !== "object") return 0;
+
+  return Object.values(shiftStore.balance).reduce((count, item) => {
+    if (!item || typeof item !== "object") return count;
+    const keys = [
+      "opening",
+      "goodsReceived",
+      "goodsReturn",
+      "goodsDamaged",
+      "goodsIssued",
+      "loaded",
+      "returns",
+      "closing",
+      "outstanding"
+    ];
+    const hasAny = keys.some((key) => hasValue(item[key]));
+    return hasAny ? count + 1 : count;
+  }, 0);
+}
+
+function evaluateDailyClosingChecklist(shiftStore) {
+  const recordingCount = countRecordingEntries(shiftStore);
+  const balanceCount = countBalanceEntries(shiftStore);
+  const purchaseCount = Array.isArray(shiftStore?.purchases) ? shiftStore.purchases.length : 0;
+
+  const missingItems = [];
+  if (purchaseCount === 0) {
+    missingItems.push("Add at least one purchase entry.");
+  }
+  if (recordingCount === 0) {
+    missingItems.push("Capture at least one recording entry.");
+  }
+  if (balanceCount === 0) {
+    missingItems.push("Fill at least one balance row.");
+  }
+
+  return {
+    passed: missingItems.length === 0,
+    missingItems,
+    recordingCount,
+    balanceCount,
+    purchaseCount
+  };
+}
+
+function updateChecklistSnapshot(dayStore, checklistResult, operator) {
+  dayStore.closingChecklist = dayStore.closingChecklist && typeof dayStore.closingChecklist === "object"
+    ? dayStore.closingChecklist
+    : {
+      lastRunAt: 0,
+      lastRunBy: "",
+      lastPassedAt: 0,
+      lastPassedBy: "",
+      lastIssues: []
+    };
+
+  dayStore.closingChecklist.lastRunAt = Date.now();
+  dayStore.closingChecklist.lastRunBy = operator;
+  dayStore.closingChecklist.lastIssues = checklistResult.missingItems.slice(0, 10);
+
+  if (checklistResult.passed) {
+    dayStore.closingChecklist.lastPassedAt = dayStore.closingChecklist.lastRunAt;
+    dayStore.closingChecklist.lastPassedBy = operator;
+  }
+}
+
+function renderDayLockApprovalInfo(approvalInfo, details, locked) {
+  if (!approvalInfo) return;
+
+  if (locked && details.lockedBy && details.lockedAt) {
+    approvalInfo.textContent = `Approved by ${details.lockedBy} on ${formatApprovalTimestamp(details.lockedAt)}`;
+    approvalInfo.className = "status";
+    return;
+  }
+
+  approvalInfo.textContent = "";
+  approvalInfo.className = "status";
+}
+
+function renderChecklistInfo(checklistState, checklistMeta, checklistResult, details) {
+  if (checklistState) {
+    checklistState.textContent = checklistResult.passed ? "Checklist: ready" : "Checklist: incomplete";
+    checklistState.className = `status ${checklistResult.passed ? "ok" : "error"}`;
+  }
+
+  if (!checklistMeta) return;
+
+  const snapshot = details.closingChecklist || {};
+  if (snapshot.lastRunAt) {
+    const who = snapshot.lastRunBy ? ` by ${snapshot.lastRunBy}` : "";
+    checklistMeta.textContent = `Last run${who} on ${formatApprovalTimestamp(snapshot.lastRunAt)}`;
+  } else {
+    checklistMeta.textContent = "Run checklist before locking the day.";
+  }
+  checklistMeta.className = "status";
+}
+
 function isAllowWhenLocked(element) {
   if (!element) return false;
   if (element.matches('[data-allow-locked="true"]')) return true;
@@ -316,23 +441,19 @@ function renderDayLockControls() {
   const toggleButton = document.getElementById("dayLockToggle");
   const lockState = document.getElementById("dayLockState");
   const approvalInfo = document.getElementById("dayLockApproval");
+  const checklistState = document.getElementById("dayChecklistState");
+  const checklistMeta = document.getElementById("dayChecklistMeta");
   if (!toggleButton || !lockState) return;
 
   const details = getCurrentDayLockDetails();
   const locked = !!details.locked;
+  const checklistResult = evaluateDailyClosingChecklist(details);
   toggleButton.textContent = locked ? "Unlock Day" : "Lock Day";
   lockState.textContent = locked ? "Day locked" : "Day open";
   lockState.className = `status ${locked ? "error" : "ok"}`;
 
-  if (approvalInfo) {
-    if (locked && details.lockedBy && details.lockedAt) {
-      approvalInfo.textContent = `Approved by ${details.lockedBy} on ${formatApprovalTimestamp(details.lockedAt)}`;
-      approvalInfo.className = "status";
-    } else {
-      approvalInfo.textContent = "";
-      approvalInfo.className = "status";
-    }
-  }
+  renderDayLockApprovalInfo(approvalInfo, details, locked);
+  renderChecklistInfo(checklistState, checklistMeta, checklistResult, details);
 
   applyDayLockState(locked);
 }
@@ -346,11 +467,36 @@ function initDayLockControls() {
     wrapper.id = "dayLockArea";
     wrapper.className = "day-lock-area";
     wrapper.innerHTML = `
+      <button class="button" id="dayChecklistRun" type="button">Run Checklist</button>
+      <span class="status" id="dayChecklistState"></span>
+      <span class="status" id="dayChecklistMeta"></span>
       <button class="button" id="dayLockToggle" type="button">Lock Day</button>
       <span class="status" id="dayLockState"></span>
       <span class="status" id="dayLockApproval"></span>
     `;
     controls.appendChild(wrapper);
+  }
+
+  const checklistButton = document.getElementById("dayChecklistRun");
+  if (checklistButton) {
+    checklistButton.addEventListener("click", () => {
+      const data = loadData();
+      const date = getSelectedDate();
+      const dayStore = getShiftStore(data, date);
+      const checklistResult = evaluateDailyClosingChecklist(dayStore);
+      const operator = getCurrentOperatorLabel();
+
+      updateChecklistSnapshot(dayStore, checklistResult, operator);
+      saveData(data);
+      renderDayLockControls();
+
+      if (checklistResult.passed) {
+        setStatus("Daily closing checklist passed. You can lock the day.", "ok");
+      } else {
+        const details = checklistResult.missingItems.join(" ");
+        setStatus(`Checklist incomplete: ${details}`, "error");
+      }
+    });
   }
 
   const toggleButton = document.getElementById("dayLockToggle");
@@ -363,6 +509,17 @@ function initDayLockControls() {
       if (dayStore.locked) {
         dayStore.locked = false;
       } else {
+        const operator = getCurrentOperatorLabel();
+        const checklistResult = evaluateDailyClosingChecklist(dayStore);
+        updateChecklistSnapshot(dayStore, checklistResult, operator);
+
+        if (!checklistResult.passed) {
+          saveData(data);
+          renderDayLockControls();
+          setStatus(`Cannot lock day: ${checklistResult.missingItems.join(" ")}`, "error");
+          return;
+        }
+
         const approverInput = prompt("Enter supervisor approval name:");
         const approver = String(approverInput || "").trim();
         if (!approver) {

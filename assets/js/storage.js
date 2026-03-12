@@ -682,6 +682,16 @@ function clearAuditLogs() {
   saveData(data);
 }
 
+function defaultClosingChecklist() {
+  return {
+    lastRunAt: 0,
+    lastRunBy: "",
+    lastPassedAt: 0,
+    lastPassedBy: "",
+    lastIssues: []
+  };
+}
+
 function ensureDayStore(data, date) {
   if (!data.daily[date]) {
     data.daily[date] = {
@@ -693,7 +703,8 @@ function ensureDayStore(data, date) {
         purchases: [],
         locked: false,
         lockedBy: "",
-        lockedAt: 0
+        lockedAt: 0,
+        closingChecklist: defaultClosingChecklist()
       },
       night: {
         recordingColumns: 3,
@@ -703,7 +714,8 @@ function ensureDayStore(data, date) {
         purchases: [],
         locked: false,
         lockedBy: "",
-        lockedAt: 0
+        lockedAt: 0,
+        closingChecklist: defaultClosingChecklist()
       }
     };
   }
@@ -721,7 +733,8 @@ function ensureDayStore(data, date) {
         purchases: [],
         locked: false,
         lockedBy: "",
-        lockedAt: 0
+        lockedAt: 0,
+        closingChecklist: defaultClosingChecklist()
       };
     }
     const shift = day[shiftId];
@@ -733,6 +746,14 @@ function ensureDayStore(data, date) {
     if (typeof shift.locked !== "boolean") shift.locked = false;
     if (typeof shift.lockedBy !== "string") shift.lockedBy = "";
     shift.lockedAt = asNumber(shift.lockedAt);
+    if (!shift.closingChecklist || typeof shift.closingChecklist !== "object") {
+      shift.closingChecklist = defaultClosingChecklist();
+    }
+    if (!Array.isArray(shift.closingChecklist.lastIssues)) shift.closingChecklist.lastIssues = [];
+    shift.closingChecklist.lastRunAt = asNumber(shift.closingChecklist.lastRunAt);
+    shift.closingChecklist.lastPassedAt = asNumber(shift.closingChecklist.lastPassedAt);
+    if (typeof shift.closingChecklist.lastRunBy !== "string") shift.closingChecklist.lastRunBy = "";
+    if (typeof shift.closingChecklist.lastPassedBy !== "string") shift.closingChecklist.lastPassedBy = "";
   });
 
   return day;
