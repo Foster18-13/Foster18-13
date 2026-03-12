@@ -45,7 +45,7 @@ function renderReturnsTable() {
   ensureReturnsStore(dayStore);
 
   if (!dayStore.returns.length) {
-    tbody.innerHTML = `<tr><td colspan="6">No return entries for this date.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7">No return entries for this date.</td></tr>`;
     return;
   }
 
@@ -55,6 +55,7 @@ function renderReturnsTable() {
       return `
         <tr>
           <td>${product ? product.name : "Unknown Product"}</td>
+          <td>${entry.customerName || ""}</td>
           <td>${entry.waybill}</td>
           <td>${entry.quantityReturned}</td>
           <td>${entry.dateReturned}</td>
@@ -77,12 +78,13 @@ function addReturnEntry(event) {
     return;
   }
   const productId = document.getElementById("returnProductId").value;
+  const customerName = document.getElementById("returnCustomerName").value.trim();
   const waybill = document.getElementById("returnWaybill").value.trim();
   const quantityReturned = document.getElementById("returnQuantity").value;
   const dateReturned = document.getElementById("returnDate").value;
   const reason = document.getElementById("returnReason").value.trim();
 
-  if (!productId || !waybill || !quantityReturned || !dateReturned) {
+  if (!productId || !customerName || !waybill || !quantityReturned || !dateReturned) {
     setStatus("All required fields are needed.", "error");
     return;
   }
@@ -101,6 +103,7 @@ function addReturnEntry(event) {
   dayStore.returns.push({
     id: generateId("return"),
     productId,
+    customerName,
     waybill,
     quantityReturned,
     dateReturned,
@@ -111,6 +114,7 @@ function addReturnEntry(event) {
   saveData(data);
   addAuditLog("Return entry added", {
     productId,
+    customerName,
     waybill,
     quantityReturned,
     dateReturned,
@@ -139,6 +143,7 @@ function deleteReturn(id) {
   saveData(data);
   addAuditLog("Return entry deleted", {
     productId: record?.productId || "",
+    customerName: record?.customerName || "",
     waybill: record?.waybill || "",
     quantityReturned: record?.quantityReturned || ""
   });
