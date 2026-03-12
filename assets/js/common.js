@@ -59,10 +59,44 @@ function currentUserCanMakeEntries() {
   return true;
 }
 
+const CLERK_ENTRY_AUTO_LOCK_DAYS = 2;
+
+function isAdminRole(role) {
+  if (typeof hasRoleAccess === "function") {
+    return hasRoleAccess(role, "admin");
+  }
+  return String(role || "").toLowerCase() === "admin";
+}
+
+function getRecordAgeInDays(dateString) {
+  const selected = new Date(`${dateString}T00:00:00`);
+  if (Number.isNaN(selected.getTime())) return 0;
+
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const selectedDay = new Date(selected.getFullYear(), selected.getMonth(), selected.getDate());
+  const millisPerDay = 24 * 60 * 60 * 1000;
+  return Math.floor((today.getTime() - selectedDay.getTime()) / millisPerDay);
+}
+
+function isClerkEntryDateAutoLocked(dateString = getSelectedDate(), role = currentUserRole()) {
+  if (isAdminRole(role)) return false;
+  const ageInDays = getRecordAgeInDays(dateString);
+  return ageInDays >= CLERK_ENTRY_AUTO_LOCK_DAYS;
+}
+
 function ensureEntryPermission(actionLabel = "perform this action") {
-  if (currentUserCanMakeEntries()) return true;
-  setStatus(`You are not allowed to ${actionLabel}. Contact an admin to enable entry permission.`, "error");
-  return false;
+  if (!currentUserCanMakeEntries()) {
+    setStatus(`You are not allowed to ${actionLabel}. Contact an admin to enable entry permission.`, "error");
+    return false;
+  }
+
+  if (isClerkEntryDateAutoLocked()) {
+    setStatus(`Entries older than ${CLERK_ENTRY_AUTO_LOCK_DAYS} days are locked. Only admin can ${actionLabel}.`, "error");
+    return false;
+  }
+
+  return true;
 }
 
 function roleAllowsPage(role, pageName) {
@@ -241,7 +275,7 @@ function initSharedHeader() {
 
 function enforceSectorShiftRules() {
   const currentSector = typeof getCurrentWorkSector === "function" ? getCurrentWorkSector() : "water";
-  if (currentSector !== "hh") return;
+  if (currentSector !== "hh" && currentSector !== "mcberry") return;
 
   if (typeof setSelectedShift === "function") {
     setSelectedShift("day");
@@ -486,15 +520,24 @@ function renderDayLockControls() {
 
   const details = getCurrentDayLockDetails();
   const locked = !!details.locked;
+  const autoLocked = isClerkEntryDateAutoLocked();
+  const effectiveLocked = locked || autoLocked;
   const checklistResult = evaluateDailyClosingChecklist(details);
   toggleButton.textContent = locked ? "Unlock Day" : "Lock Day";
-  lockState.textContent = locked ? "Day locked" : "Day open";
-  lockState.className = `status ${locked ? "error" : "ok"}`;
+  toggleButton.disabled = autoLocked;
+
+  if (autoLocked) {
+    lockState.textContent = `Auto-locked (older than ${CLERK_ENTRY_AUTO_LOCK_DAYS} days)`;
+    lockState.className = "status error";
+  } else {
+    lockState.textContent = locked ? "Day locked" : "Day open";
+    lockState.className = `status ${locked ? "error" : "ok"}`;
+  }
 
   renderDayLockApprovalInfo(approvalInfo, details, locked);
   renderChecklistInfo(checklistState, checklistMeta, checklistResult, details);
 
-  applyDayLockState(locked);
+  applyDayLockState(effectiveLocked);
 }
 
 function initDayLockControls() {

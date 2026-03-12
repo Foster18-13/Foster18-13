@@ -285,6 +285,10 @@ function cancelEditCustomerEntry() {
 }
 
 function addCustomerEntry(event) {
+  if (typeof ensureEntryPermission === 'function' && !ensureEntryPermission('save customer entries')) {
+    return;
+  }
+
   const customerName = document.getElementById("customerName").value.trim();
   const waybillNumber = document.getElementById("waybillNumber").value.trim();
   const dateDelivered = document.getElementById("dateDelivered").value;
@@ -388,6 +392,10 @@ function removeFromRecording(dayStore, productId, waybillNumber) {
 // Delete a customer entry from the current day/shift ONLY
 // This does NOT affect the same item in other days or shifts
 function deleteCustomerEntry(id) {
+  if (typeof ensureEntryPermission === 'function' && !ensureEntryPermission('delete customer entries')) {
+    return;
+  }
+
   const data = loadData();
   const date = getSelectedDate();
   const shift = getSelectedShift();
@@ -423,6 +431,10 @@ function deleteCustomerEntry(id) {
 }
 
 function syncAllToRecording() {
+  if (typeof ensureEntryPermission === 'function' && !ensureEntryPermission('sync customer entries to dispatch records')) {
+    return;
+  }
+
   const data = loadData();
   const date = getSelectedDate();
   const dayStore = getShiftStore(data, date);

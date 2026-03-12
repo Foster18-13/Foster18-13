@@ -101,7 +101,8 @@ function getCurrentSectorId() {
 }
 
 function isDayOnlySector() {
-  return getCurrentSectorId() === "hh";
+  const sector = getCurrentSectorId();
+  return sector === "hh" || sector === "mcberry";
 }
 
 function getSectorScopedKey(baseKey) {

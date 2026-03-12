@@ -17,6 +17,7 @@ function searchCustomerHistory() {
   }
 
   const currentSector = typeof getCurrentWorkSector === "function" ? getCurrentWorkSector() : "water";
+  const isDayOnlySector = currentSector === "hh" || currentSector === "mcberry";
 
   const collectShiftResults = (date, shiftLabel, shiftStore) => {
     if (!Array.isArray(shiftStore?.customers)) return;
@@ -42,7 +43,7 @@ function searchCustomerHistory() {
   Object.keys(dailyStores).forEach((date) => {
     const dayStore = dailyStores[date] || {};
     collectShiftResults(date, 'Day', dayStore.day);
-    if (currentSector !== "hh") {
+    if (!isDayOnlySector) {
       collectShiftResults(date, 'Night', dayStore.night);
     }
   });
