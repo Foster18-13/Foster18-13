@@ -42,6 +42,9 @@
       padding: 12px;
       cursor: pointer;
       font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .sector-btn:hover {
@@ -53,6 +56,21 @@
       margin-top: 10px;
       color: var(--text-muted);
       font-size: 13px;
+    }
+
+    .sector-logo {
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
+      border-radius: 6px;
+      background: #fff;
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .sector-label {
+      display: block;
+      line-height: 1.3;
     }
   </style>
 </head>
@@ -87,13 +105,22 @@
           { id: 'mcberry', label: 'Mcberry Products' }
         ];
 
+      const sectorImages = {
+        water: 'assets/images/sector-water.png',
+        hh: 'assets/images/sector-hh.png',
+        mcberry: 'assets/images/sector-mcberry.png'
+      };
+
       const nextRaw = new URL(globalThis.location.href).searchParams.get('next');
       const nextPage = nextRaw && !nextRaw.includes('://') && !nextRaw.startsWith('javascript:')
         ? nextRaw
         : 'home.html';
 
       grid.innerHTML = sectors.map((sector) => (
-        `<button class="sector-btn" type="button" data-sector="${sector.id}">${sector.label}</button>`
+        `<button class="sector-btn" type="button" data-sector="${sector.id}">
+          <img class="sector-logo" src="${sectorImages[sector.id] || 'assets/images/logo.png'}" alt="${sector.label} logo" />
+          <span class="sector-label">${sector.label}</span>
+        </button>`
       )).join('');
 
       grid.querySelectorAll('[data-sector]').forEach((btn) => {
