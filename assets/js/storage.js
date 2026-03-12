@@ -100,6 +100,10 @@ function getCurrentSectorId() {
   return "water";
 }
 
+function isDayOnlySector() {
+  return getCurrentSectorId() === "hh";
+}
+
 function getSectorScopedKey(baseKey) {
   const sector = getCurrentSectorId();
   if (!sector || sector === "water") {
@@ -866,11 +870,18 @@ function setSelectedDate(date) {
 }
 
 function getSelectedShift() {
+  if (isDayOnlySector()) {
+    return "day";
+  }
   const shift = localStorage.getItem(getSelectedShiftStorageKey()) || localStorage.getItem(SELECTED_SHIFT_STORAGE_KEY);
   return shift === "night" ? "night" : "day";
 }
 
 function setSelectedShift(shift) {
+  if (isDayOnlySector()) {
+    localStorage.setItem(getSelectedShiftStorageKey(), "day");
+    return;
+  }
   const normalized = shift === "night" ? "night" : "day";
   localStorage.setItem(getSelectedShiftStorageKey(), normalized);
 }

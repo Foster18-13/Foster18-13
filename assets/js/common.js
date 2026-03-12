@@ -199,6 +199,8 @@ function initSharedHeader() {
   markActiveNav();
   applyRoleNavAccess(currentUserRole());
 
+  enforceSectorShiftRules();
+
   // Set print date
   const printDateElement = document.getElementById("printDate");
   if (printDateElement) {
@@ -235,6 +237,28 @@ function initSharedHeader() {
 
   initDayLockControls();
   initGlobalSearch();
+}
+
+function enforceSectorShiftRules() {
+  const currentSector = typeof getCurrentWorkSector === "function" ? getCurrentWorkSector() : "water";
+  if (currentSector !== "hh") return;
+
+  if (typeof setSelectedShift === "function") {
+    setSelectedShift("day");
+  }
+
+  document.querySelectorAll('#shiftSelector, select[id*="shiftSelector"]').forEach((selector) => {
+    const nightOption = selector.querySelector('option[value="night"]');
+    if (nightOption) {
+      nightOption.disabled = true;
+      nightOption.hidden = true;
+    }
+    selector.value = "day";
+  });
+
+  document.querySelectorAll('[data-shift-key="night"], [data-shift="night"], .shift-card.night').forEach((element) => {
+    element.style.display = "none";
+  });
 }
 
 globalThis.ensureEntryPermission = ensureEntryPermission;
