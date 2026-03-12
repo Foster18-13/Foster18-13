@@ -217,7 +217,7 @@ async function loadUsersForRoleManagement() {
     console.error('Failed to load users for role management:', error);
     select.innerHTML = '<option value="">Failed to load users</option>';
     const message = error?.code === 'permission-denied'
-      ? 'Failed to load users: Firestore permissions are blocking access to user records.'
+      ? 'Failed to load users: Firestore permissions are blocking access to user records. Deploy firestore.rules to allow admin user listing.'
       : 'Failed to load users for role management.';
     showAccountMessage(message, 'error');
   }
