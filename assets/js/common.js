@@ -234,6 +234,7 @@ function initSharedHeader() {
   applyRoleNavAccess(currentUserRole());
 
   enforceSectorShiftRules();
+  initSectorHeaderBadge();
   initSectorSwitcher();
 
   // Set print date
@@ -272,6 +273,52 @@ function initSharedHeader() {
 
   initDayLockControls();
   initGlobalSearch();
+}
+
+function initSectorHeaderBadge() {
+  const controls = document.querySelector(".topbar-controls");
+  if (!controls) return;
+
+  const sectors = Array.isArray(globalThis.WAREHOUSE_SECTORS) && globalThis.WAREHOUSE_SECTORS.length
+    ? globalThis.WAREHOUSE_SECTORS
+    : [
+      { id: "water", label: "Water & Beverages" },
+      { id: "hh", label: "H&H Products" },
+      { id: "mcberry", label: "Mcberry Products" }
+    ];
+
+  const sectorImages = {
+    water: "assets/images/sector-water.png",
+    hh: "assets/images/sector-hh.png",
+    mcberry: "assets/images/sector-mcberry.png"
+  };
+
+  const currentSector = typeof getCurrentWorkSector === "function" ? getCurrentWorkSector() : "water";
+  const sectorMeta = sectors.find((sector) => sector.id === currentSector) || { id: currentSector, label: currentSector };
+  const logoSrc = sectorImages[sectorMeta.id] || "assets/images/logo.png";
+
+  let badge = document.getElementById("activeSectorBadge");
+  if (!badge) {
+    badge = document.createElement("div");
+    badge.id = "activeSectorBadge";
+    badge.className = "sector-header-badge";
+    badge.innerHTML = `
+      <img class="sector-header-logo" alt="Active sector logo" />
+      <span class="sector-header-label"></span>
+    `;
+
+    const dateLabel = controls.querySelector('label[for="workingDate"]');
+    if (dateLabel) {
+      dateLabel.before(badge);
+    } else {
+      controls.prepend(badge);
+    }
+  }
+
+  const logo = badge.querySelector(".sector-header-logo");
+  const label = badge.querySelector(".sector-header-label");
+  if (logo) logo.src = logoSrc;
+  if (label) label.textContent = sectorMeta.label || currentSector;
 }
 
 function initSectorSwitcher() {
