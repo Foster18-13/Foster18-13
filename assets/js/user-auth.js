@@ -561,16 +561,17 @@ function protectPortalPageWithAuth() {
         const normalizedPage = String(currentPage || '').toLowerCase();
         const currentUrl = new URL(globalThis.location.href);
         const nextParam = String(currentUrl.searchParams.get('next') || '').trim();
+        const forceSectorSelection = currentUrl.searchParams.get('forceSector') === '1';
         const safeNext = nextParam && !nextParam.includes('://') && !nextParam.startsWith('javascript:')
           ? nextParam
           : 'home.html';
 
         if (normalizedPage !== 'sector-select.html' && !hasSelectedWorkSector()) {
-          globalThis.location.replace(`sector-select.html?next=${encodeURIComponent(currentPage)}`);
+          globalThis.location.replace(`sector-select.html?next=${encodeURIComponent(currentPage)}&forceSector=1`);
           return;
         }
 
-        if (normalizedPage === 'sector-select.html' && hasSelectedWorkSector()) {
+        if (normalizedPage === 'sector-select.html' && hasSelectedWorkSector() && !forceSectorSelection) {
           globalThis.location.replace(safeNext);
         }
       });

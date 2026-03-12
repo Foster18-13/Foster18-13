@@ -535,7 +535,7 @@
         if (typeof clearCurrentWorkSector === 'function') {
           clearCurrentWorkSector();
         }
-        globalThis.location.href = 'sector-select.html';
+        globalThis.location.href = 'sector-select.html?next=home.html&forceSector=1';
       }
     });
 
@@ -579,7 +579,7 @@
 
         // Redirect to home after 1 second
         setTimeout(() => {
-          globalThis.location.href = 'sector-select.html';
+          globalThis.location.href = 'sector-select.html?next=home.html&forceSector=1';
         }, 1000);
       } catch (error) {
         submitBtn.disabled = false;
@@ -635,7 +635,7 @@
 
         // Redirect to home after 1 second
         setTimeout(() => {
-          globalThis.location.href = 'sector-select.html';
+          globalThis.location.href = 'sector-select.html?next=home.html&forceSector=1';
         }, 1000);
       } catch (error) {
         googleBtn.disabled = false;
