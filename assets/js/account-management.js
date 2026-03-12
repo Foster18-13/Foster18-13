@@ -8,7 +8,12 @@ function normalizeAccountEmail(value) {
 
 function isBootstrapAdminUser(user) {
   const email = normalizeAccountEmail(user?.email);
-  return !!email && BOOTSTRAP_ADMIN_EMAILS.has(email);
+  if (!email) return false;
+  if (BOOTSTRAP_ADMIN_EMAILS.has(email)) return true;
+  if (typeof isForcedAdminEmail === 'function') {
+    return !!isForcedAdminEmail(email);
+  }
+  return false;
 }
 
 function showAccountMessage(message, type = 'ok') {
@@ -91,10 +96,15 @@ function normalizeEntryPermissionValue(value) {
 async function isCurrentUserAdminForRoleChanges() {
   const currentUser = firebase.auth().currentUser;
   if (!currentUser) return false;
+  if (isBootstrapAdminUser(currentUser)) return true;
 
   let role = typeof getCurrentUserRole === 'function' ? getCurrentUserRole() : 'clerk';
   if (typeof resolveUserRole === 'function') {
-    role = await Promise.resolve(resolveUserRole(currentUser));
+    try {
+      role = await Promise.resolve(resolveUserRole(currentUser));
+    } catch {
+      // keep fallback role from local auth state
+    }
   }
 
   const isAdminByRole = typeof hasRoleAccess === 'function' ? hasRoleAccess(role, 'admin') : role === 'admin';
@@ -277,14 +287,18 @@ async function initRoleManagement() {
   if (!section) return;
 
   const currentUser = firebase.auth().currentUser;
-  let fallbackRole = 'clerk';
+  let fallbackRole = isBootstrapAdminUser(currentUser) ? 'admin' : 'clerk';
   if (typeof getCurrentUserRole === 'function') {
     fallbackRole = getCurrentUserRole();
   }
 
   let resolvedRoleValue = fallbackRole;
   if (typeof resolveUserRole === 'function' && currentUser) {
-    resolvedRoleValue = resolveUserRole(currentUser);
+    try {
+      resolvedRoleValue = resolveUserRole(currentUser);
+    } catch {
+      resolvedRoleValue = fallbackRole;
+    }
   }
 
   const role = await Promise.resolve(

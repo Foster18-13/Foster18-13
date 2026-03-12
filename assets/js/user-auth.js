@@ -95,6 +95,20 @@ function normalizeCanMakeEntries(value) {
   return value !== false;
 }
 
+function getRoleFallbackForUser(user) {
+  const email = user?.email;
+  if (isForcedAdminEmail(email)) {
+    return 'admin';
+  }
+
+  const cachedRole = getCurrentUserRole();
+  if (cachedRole && ['admin', 'supervisor', 'clerk'].includes(cachedRole)) {
+    return cachedRole;
+  }
+
+  return DEFAULT_USER_ROLE;
+}
+
 async function isUserApproved(user) {
   if (!user?.uid || !globalThis.firebase?.firestore) return false;
 
@@ -214,10 +228,15 @@ async function resolveUserRole(user) {
     return role;
   } catch (error) {
     console.error('Failed to resolve user role:', error);
-    if (isForcedAdminEmail(user?.email)) {
-      return "admin";
-    }
-    return DEFAULT_USER_ROLE;
+    const role = getRoleFallbackForUser(user);
+    const canMakeEntries = normalizeCanMakeEntries(getCurrentUserCanMakeEntries());
+    saveUserAuthState({
+      uid: user.uid,
+      email: user.email,
+      role,
+      canMakeEntries,
+    });
+    return role;
   }
 }
 
