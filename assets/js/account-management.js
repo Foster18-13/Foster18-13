@@ -93,6 +93,62 @@ function normalizeEntryPermissionValue(value) {
   return value !== false;
 }
 
+async function loadUsersFromDirectory() {
+  try {
+    const col = (globalThis.FIREBASE_CLOUD_DOC?.collection) || 'warehousePortal';
+    const dirRef = firebase.firestore().collection(col).doc('userDirectory');
+    const doc = await dirRef.get();
+    if (!doc.exists) return [];
+    return Object.values(doc.data() ?? {}).filter((u) => !!u?.uid);
+  } catch (e) {
+    console.debug('Could not read user directory:', e);
+    return [];
+  }
+}
+
+async function fetchAllUsersFromFirestore(fetchUsersByQuery) {
+  return fetchUsersByQuery((pageSize) =>
+    firebase
+      .firestore()
+      .collection('users')
+      .orderBy(firebase.firestore.FieldPath.documentId())
+      .limit(pageSize)
+  );
+}
+
+async function fetchUsersByApprovalFallback(fetchUsersByQuery) {
+  const [approvedUsers, pendingUsers] = await Promise.all([
+    fetchUsersByQuery((pageSize) =>
+      firebase.firestore().collection('users').where('approved', '==', true)
+        .orderBy(firebase.firestore.FieldPath.documentId()).limit(pageSize)
+    ),
+    fetchUsersByQuery((pageSize) =>
+      firebase.firestore().collection('users').where('approved', '==', false)
+        .orderBy(firebase.firestore.FieldPath.documentId()).limit(pageSize)
+    )
+  ]);
+  const usersById = new Map();
+  [...approvedUsers, ...pendingUsers].forEach((entry) => usersById.set(entry.id, entry));
+  return Array.from(usersById.values());
+}
+
+async function resolveUserListWithFallbacks(fetchUsersByQuery) {
+  try {
+    const users = await fetchAllUsersFromFirestore(fetchUsersByQuery);
+    return { users, partial: false };
+  } catch {
+    // fall through
+  }
+  try {
+    const users = await fetchUsersByApprovalFallback(fetchUsersByQuery);
+    return { users, partial: true };
+  } catch {
+    // fall through
+  }
+  const users = await loadUsersFromDirectory();
+  return { users, partial: users.length > 0 };
+}
+
 async function isCurrentUserAdminForRoleChanges() {
   const currentUser = firebase.auth().currentUser;
   if (!currentUser) return false;
@@ -146,41 +202,22 @@ async function loadUsersForRoleManagement() {
     let users = [];
     let partialAccessOnly = false;
 
-    try {
-      users = await fetchUsersByQuery((pageSize) =>
-        firebase
-          .firestore()
-          .collection('users')
-          .orderBy(firebase.firestore.FieldPath.documentId())
-          .limit(pageSize)
-      );
-    } catch (queryError) {
-      partialAccessOnly = true;
-      const [approvedUsers, pendingUsers] = await Promise.all([
-        fetchUsersByQuery((pageSize) =>
-          firebase
-            .firestore()
-            .collection('users')
-            .where('approved', '==', true)
-            .orderBy(firebase.firestore.FieldPath.documentId())
-            .limit(pageSize)
-        ),
-        fetchUsersByQuery((pageSize) =>
-          firebase
-            .firestore()
-            .collection('users')
-            .where('approved', '==', false)
-            .orderBy(firebase.firestore.FieldPath.documentId())
-            .limit(pageSize)
-        )
-      ]);
+    const result = await resolveUserListWithFallbacks(fetchUsersByQuery);
+    users = result.users;
+    partialAccessOnly = result.partial;
 
-      const usersById = new Map();
-      [...approvedUsers, ...pendingUsers].forEach((entry) => {
-        usersById.set(entry.id, entry);
+    // Always ensure the current admin is in the list
+    const currentUser = firebase.auth().currentUser;
+    if (currentUser && !users.some((u) => (u.id || u.uid) === currentUser.uid)) {
+      const selfRole = typeof getCurrentUserRole === 'function' ? getCurrentUserRole() : 'admin';
+      users.push({
+        id: currentUser.uid,
+        uid: currentUser.uid,
+        email: currentUser.email || '',
+        displayName: currentUser.displayName || '',
+        role: selfRole,
+        canMakeEntries: true
       });
-      users = Array.from(usersById.values());
-      console.warn('All-users query failed, fallback approved/pending queries used for role management:', queryError);
     }
 
     users.sort((a, b) => String(a.email || a.username || '').localeCompare(String(b.email || b.username || '')));
@@ -191,7 +228,7 @@ async function loadUsersForRoleManagement() {
     }
 
     if (partialAccessOnly) {
-      showAccountMessage('Showing users available with current permissions. To see every user, update Firestore read rules for users collection.', 'error');
+      showAccountMessage('Some users may not appear due to Firestore permission rules. To see all users, deploy firestore.rules via Firebase CLI or paste them in the Firebase Console → Firestore → Rules.', 'error');
     }
 
     select.innerHTML = users
@@ -259,6 +296,12 @@ async function saveSelectedUserRole() {
       selectedOption.dataset.canMakeEntries = targetCanMakeEntries ? '1' : '0';
       const withoutRole = targetLabel.replace(/\s+\([^)]*\)\s*$/, '');
       selectedOption.textContent = `${withoutRole} (${getRoleLabel(targetRole)})`;
+    }
+
+    // Keep directory in sync so admins see updated roles next load
+    if (typeof writeUserToDirectory === 'function') {
+      const displayEmail = selectedOption?.text?.split(' (')[0] || userId;
+      writeUserToDirectory({ uid: userId, email: displayEmail, displayName: displayEmail }, targetRole, targetCanMakeEntries);
     }
 
     const currentUser = firebase.auth().currentUser;

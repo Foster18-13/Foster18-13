@@ -202,6 +202,26 @@ async function syncRoleAndEntryPermission(usersRef, docData, role, canMakeEntrie
   }
 }
 
+async function writeUserToDirectory(user, role, canMakeEntries) {
+  if (!user?.uid || !globalThis.firebase?.firestore) return;
+  try {
+    const col = globalThis.FIREBASE_CLOUD_DOC?.collection || 'warehousePortal';
+    const dirRef = firebase.firestore().collection(col).doc('userDirectory');
+    await dirRef.set({
+      [user.uid]: {
+        uid: user.uid,
+        email: user.email || '',
+        displayName: user.displayName || '',
+        role,
+        canMakeEntries,
+        updatedAt: new Date().toISOString()
+      }
+    }, { merge: true });
+  } catch (e) {
+    console.debug('Could not write to user directory:', e);
+  }
+}
+
 async function resolveUserRole(user) {
   if (!user?.uid || !globalThis.firebase?.firestore) return DEFAULT_USER_ROLE;
 
@@ -215,6 +235,7 @@ async function resolveUserRole(user) {
       const canMakeEntries = true;
       await initializeMissingUserProfile(usersRef, user, role, canMakeEntries);
       persistResolvedAuthState(user, role, canMakeEntries);
+      writeUserToDirectory(user, role, canMakeEntries);
       return role;
     }
 
@@ -224,18 +245,14 @@ async function resolveUserRole(user) {
     const canMakeEntries = normalizeCanMakeEntries(docData.canMakeEntries);
     await syncRoleAndEntryPermission(usersRef, docData, role, canMakeEntries);
     persistResolvedAuthState(user, role, canMakeEntries);
+    writeUserToDirectory(user, role, canMakeEntries);
 
     return role;
   } catch (error) {
     console.error('Failed to resolve user role:', error);
     const role = getRoleFallbackForUser(user);
     const canMakeEntries = normalizeCanMakeEntries(getCurrentUserCanMakeEntries());
-    saveUserAuthState({
-      uid: user.uid,
-      email: user.email,
-      role,
-      canMakeEntries,
-    });
+    saveUserAuthState(user, role, canMakeEntries);
     return role;
   }
 }
@@ -442,6 +459,7 @@ globalThis.clearUserAuthState = clearUserAuthState;
 globalThis.isUserApproved = isUserApproved;
 globalThis.approveUser = approveUser;
 globalThis.rejectUser = rejectUser;
+globalThis.writeUserToDirectory = writeUserToDirectory;
 
 function protectPortalPageWithAuth() {
   // Prevent multiple initializations

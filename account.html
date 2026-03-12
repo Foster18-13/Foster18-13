@@ -172,6 +172,12 @@
         <div class="section-container section-divider hidden-section" id="roleManagementSection">
           <h3 class="section-title">Role Management</h3>
           <p class="section-description">Assign access roles for portal users.</p>
+          <div class="card" style="background:var(--primary-soft);border:1px solid var(--primary);padding:12px;margin-bottom:16px;font-size:13px;border-radius:6px;">
+            <strong>&#9888; If users are not loading:</strong> Firestore list rules must be deployed.
+            Open <a href="https://console.firebase.google.com/project/twellium-warehouse-portal/firestore/rules" target="_blank" rel="noopener" style="color:var(--primary);font-weight:600;">Firebase Console → Firestore → Rules</a>
+            and paste the contents of <code>firestore.rules</code> from this repo, then click <strong>Publish</strong>.
+            <br>Or run: <code>firebase deploy --only firestore:rules</code>
+          </div>
           <div class="form-group">
             <label for="roleUserSelect" class="form-label">User</label>
             <select class="select" id="roleUserSelect"></select>
