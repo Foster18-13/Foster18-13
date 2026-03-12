@@ -826,6 +826,23 @@ function recoverDayOnlyShiftData(day) {
   }
 }
 
+function recoverCurrentWaterDayCustomers(day, date) {
+  if (getCurrentSectorId() !== "water") return;
+  if (getSelectedShift() !== "day") return;
+  if (date !== getSelectedDate()) return;
+
+  const dayCustomers = Array.isArray(day?.day?.customers) ? day.day.customers : [];
+  const nightCustomers = Array.isArray(day?.night?.customers) ? day.night.customers : [];
+  if (dayCustomers.length > 0 || nightCustomers.length === 0) return;
+
+  day.day.customers = structuredClone(nightCustomers);
+
+  if (Object.keys(day.day.recording || {}).length === 0 && Object.keys(day.night.recording || {}).length > 0) {
+    day.day.recording = structuredClone(day.night.recording);
+    day.day.recordingColumns = Math.max(asNumber(day.day.recordingColumns) || 3, asNumber(day.night.recordingColumns) || 3);
+  }
+}
+
 function ensureDayStore(data, date) {
   if (!data.daily[date]) {
     data.daily[date] = {
@@ -892,6 +909,7 @@ function ensureDayStore(data, date) {
   });
 
   recoverDayOnlyShiftData(day);
+  recoverCurrentWaterDayCustomers(day, date);
 
   return day;
 }
