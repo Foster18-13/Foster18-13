@@ -508,27 +508,32 @@ async function deleteUserAccount() {
       return;
     }
 
-    // Delete user data from Firestore
-    await firebase.firestore().collection('users').doc(user.uid).delete();
+    await firebase.firestore().collection('users').doc(user.uid).set({
+      lastSignOutAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
 
-    // Delete user from Firebase Auth
-    await user.delete();
+    if (typeof addAuditLog === 'function') {
+      addAuditLog('Account sign-out requested', {
+        userId: user.uid,
+        email: user.email || ''
+      });
+    }
 
-    // Clear auth state
+    await firebase.auth().signOut();
     clearUserAuthState();
 
-    // Redirect to login
-    showAccountMessage('Account deleted successfully. Redirecting...', 'ok');
+    showAccountMessage('Signed out successfully. Your account and all records were kept. You can sign in again anytime.', 'ok');
     setTimeout(() => {
       globalThis.location.href = 'login.html';
-    }, 2000);
+    }, 1400);
   } catch (error) {
     console.error('Account deletion error:', error);
     
     if (error.code === 'auth/requires-recent-login') {
-      showAccountMessage('Please logout and login again before deleting your account', 'error');
+      showAccountMessage('Please logout and login again before signing out from account settings.', 'error');
     } else {
-      showAccountMessage('Failed to delete account: ' + error.message, 'error');
+      showAccountMessage('Failed to sign out safely: ' + error.message, 'error');
     }
   }
 }
