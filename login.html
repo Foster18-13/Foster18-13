@@ -532,6 +532,9 @@
     firebase.auth().onAuthStateChanged(async (user) => {
       if (user) {
         await resolveUserRole(user);
+        if (typeof clearCurrentWorkSector === 'function') {
+          clearCurrentWorkSector();
+        }
         globalThis.location.href = 'sector-select.html';
       }
     });
@@ -567,6 +570,9 @@
         console.log('Login successful:', result.user.email);
 
         await resolveUserRole(result.user);
+        if (typeof clearCurrentWorkSector === 'function') {
+          clearCurrentWorkSector();
+        }
 
         successDiv.textContent = 'Login successful! Redirecting...';
         successDiv.style.display = 'block';
@@ -620,6 +626,9 @@
         console.log('Google sign-in successful:', result.user.email);
 
         await resolveUserRole(result.user);
+        if (typeof clearCurrentWorkSector === 'function') {
+          clearCurrentWorkSector();
+        }
 
         successDiv.textContent = 'Google sign-in successful! Redirecting...';
         successDiv.style.display = 'block';
