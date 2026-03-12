@@ -291,13 +291,17 @@ function initSectorTabs() {
 }
 
 function exportDispatchPdf() {
-  const PdfDocument = globalThis.jspdf?.jsPDF;
-  if (!PdfDocument) {
-    alert("PDF export not available.");
+  // Try to get jsPDF from multiple locations (UMD bundle compatibility)
+  const jsPDF = window.jspdf?.jsPDF || window.jsPDF;
+  
+  if (!jsPDF) {
+    alert("PDF export library is not loaded. Please refresh the page and try again.");
+    console.error("jsPDF not found.");
     return;
   }
 
-  const doc = new PdfDocument({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  try {
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const sectorLabel = getDispatchSectorLabel(dispatchSectorId);
   const dateLabel = document.getElementById("workingDate")?.value || todayISO();
   const allDates = !!document.getElementById("allDatesToggle")?.checked;
@@ -396,6 +400,11 @@ function exportDispatchPdf() {
 
   const safeSectorLabel = sectorLabel.replaceAll(/\s+/g, "_").toLowerCase();
   doc.save(`product_dispatch_${safeSectorLabel}_${dateLabel}.pdf`);
+    setStatus("PDF exported successfully.", "ok");
+  } catch (error) {
+    console.error("PDF export error:", error);
+    alert(`Error exporting PDF: ${error.message}`);
+  }
 }
 
 function initDispatchFilters() {
