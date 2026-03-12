@@ -359,12 +359,75 @@
         padding: 1.25rem;
       }
     }
+
+    .auth-page .theme-toggle-floating {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 1000;
+    }
+
+    .auth-page .reset-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .auth-page .reset-modal-content {
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      max-width: 400px;
+      width: 90%;
+      position: relative;
+    }
+
+    .auth-page .reset-modal-close {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #666;
+    }
+
+    .auth-page .reset-modal-title {
+      margin-top: 0;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    .auth-page .reset-modal-note {
+      margin-bottom: 1rem;
+      font-size: 14px;
+      color: #666;
+    }
+
+    [data-theme="dark"] .auth-page .reset-modal-content {
+      background: #161b22;
+      color: #e6edf3;
+    }
+
+    [data-theme="dark"] .auth-page .reset-modal-close {
+      color: #8b949e;
+    }
+
+    [data-theme="dark"] .auth-page .reset-modal-note {
+      color: #8b949e;
+    }
   </style>
 </head>
 
 <body class="auth-page">
-  <button class="button" id="themeToggle" type="button"
-    style="position: fixed; top: 1rem; right: 1rem; z-index: 1000;">🌙 Dark</button>
+  <button class="button theme-toggle-floating" id="themeToggle" type="button">🌙 Dark</button>
   <div class="auth-container">
     <div class="auth-card">
       <h2>Twellium Warehouse Portal</h2>
@@ -406,14 +469,11 @@
       </div>
 
       <!-- Password Reset Modal -->
-      <div id="resetPasswordModal"
-        style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
-        <div
-          style="background: white; padding: 2rem; border-radius: 8px; max-width: 400px; width: 90%; position: relative;">
-          <button id="closeResetModal"
-            style="position: absolute; top: 0.5rem; right: 0.5rem; background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">&times;</button>
-          <h3 style="margin-top: 0; margin-bottom: 1rem; text-align: center;">Reset Password</h3>
-          <p style="margin-bottom: 1rem; font-size: 14px; color: #666;">Enter your email address and we'll send you a
+      <div id="resetPasswordModal" class="reset-modal">
+        <div class="reset-modal-content">
+          <button id="closeResetModal" class="reset-modal-close">&times;</button>
+          <h3 class="reset-modal-title">Reset Password</h3>
+          <p class="reset-modal-note">Enter your email address and we'll send you a
             link to reset your password.</p>
           <div id="resetError" class="auth-error"></div>
           <div id="resetSuccess" class="auth-success"></div>
@@ -600,7 +660,7 @@
 
     // Handle forgot password modal
     const forgotPasswordLink = document.getElementById('forgotPasswordLink');
-    const resetPasswordModal = document.getElementById('resetPasswordModal');
+    const resetModalEl = document.getElementById('resetPasswordModal');
     const closeResetModal = document.getElementById('closeResetModal');
     const resetPasswordForm = document.getElementById('resetPasswordForm');
     const resetError = document.getElementById('resetError');
@@ -609,19 +669,19 @@
 
     forgotPasswordLink.addEventListener('click', (e) => {
       e.preventDefault();
-      resetPasswordModal.style.display = 'flex';
+      resetModalEl.style.display = 'flex';
       resetError.style.display = 'none';
       resetSuccess.style.display = 'none';
       document.getElementById('resetEmail').value = '';
     });
 
     closeResetModal.addEventListener('click', () => {
-      resetPasswordModal.style.display = 'none';
+      resetModalEl.style.display = 'none';
     });
 
-    resetPasswordModal.addEventListener('click', (e) => {
-      if (e.target === resetPasswordModal) {
-        resetPasswordModal.style.display = 'none';
+    resetModalEl.addEventListener('click', (e) => {
+      if (e.target === resetModalEl) {
+        resetModalEl.style.display = 'none';
       }
     });
 
@@ -652,7 +712,7 @@
 
         // Close modal after 3 seconds
         setTimeout(() => {
-          resetPasswordModal.style.display = 'none';
+          resetModalEl.style.display = 'none';
         }, 3000);
 
       } catch (error) {
