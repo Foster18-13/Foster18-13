@@ -91,27 +91,66 @@ async function loadUsersForRoleManagement() {
   select.innerHTML = '<option value="">Loading users...</option>';
 
   try {
+    const fetchUsersByQuery = async (buildQuery) => {
+      const collected = [];
+      let cursor = null;
+      const pageSize = 300;
+
+      while (true) {
+        let query = buildQuery(pageSize);
+        if (cursor) {
+          query = query.startAfter(cursor);
+        }
+
+        const snapshot = await query.get();
+        if (snapshot.empty) break;
+
+        snapshot.docs.forEach((doc) => {
+          collected.push({ id: doc.id, ...doc.data() });
+        });
+
+        if (snapshot.docs.length < pageSize) break;
+        cursor = snapshot.docs[snapshot.docs.length - 1];
+      }
+
+      return collected;
+    };
+
     let users = [];
     let partialAccessOnly = false;
 
     try {
-      const allUsersSnapshot = await firebase
-        .firestore()
-        .collection('users')
-        .limit(500)
-        .get();
-
-      users = allUsersSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      users = await fetchUsersByQuery((pageSize) =>
+        firebase
+          .firestore()
+          .collection('users')
+          .orderBy(firebase.firestore.FieldPath.documentId())
+          .limit(pageSize)
+      );
     } catch (queryError) {
       partialAccessOnly = true;
-      const [approvedSnapshot, pendingSnapshot] = await Promise.all([
-        firebase.firestore().collection('users').where('approved', '==', true).limit(300).get(),
-        firebase.firestore().collection('users').where('approved', '==', false).limit(300).get()
+      const [approvedUsers, pendingUsers] = await Promise.all([
+        fetchUsersByQuery((pageSize) =>
+          firebase
+            .firestore()
+            .collection('users')
+            .where('approved', '==', true)
+            .orderBy(firebase.firestore.FieldPath.documentId())
+            .limit(pageSize)
+        ),
+        fetchUsersByQuery((pageSize) =>
+          firebase
+            .firestore()
+            .collection('users')
+            .where('approved', '==', false)
+            .orderBy(firebase.firestore.FieldPath.documentId())
+            .limit(pageSize)
+        )
       ]);
 
       const usersById = new Map();
-      [...approvedSnapshot.docs, ...pendingSnapshot.docs].forEach((doc) => {
-        usersById.set(doc.id, { id: doc.id, ...doc.data() });
+      [...approvedUsers, ...pendingUsers].forEach((entry) => {
+        usersById.set(entry.id, entry);
       });
       users = Array.from(usersById.values());
       console.warn('All-users query failed, fallback approved/pending queries used for role management:', queryError);
