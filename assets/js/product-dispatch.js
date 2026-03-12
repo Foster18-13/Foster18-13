@@ -301,7 +301,7 @@ function exportDispatchPdf() {
   }
 
   try {
-    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
     const sectorLabel = getDispatchSectorLabel(dispatchSectorId);
     const dateLabel = document.getElementById("workingDate")?.value || todayISO();
     const allDates = !!document.getElementById("allDatesToggle")?.checked;
@@ -311,22 +311,22 @@ function exportDispatchPdf() {
 
   // Add header to each page
     const addHeaderToPage = () => {
-    doc.setFontSize(16);
+    doc.setFontSize(13);
     doc.setTextColor(40, 40, 40);
     doc.text("Product Dispatch Report", 15, 16);
     
-    doc.setFontSize(12);
-    doc.setTextColor(80, 80, 80);
-    doc.text(`Sector: ${sectorLabel}`, 15, 24);
-    
     doc.setFontSize(10);
+    doc.setTextColor(80, 80, 80);
+    doc.text(`Sector: ${sectorLabel}`, 15, 22);
+    
+    doc.setFontSize(8.5);
     doc.setTextColor(100, 100, 100);
-    doc.text(`Date: ${allDates ? "All Dates" : dateLabel}`, 15, 30);
-    doc.text(`Generated: ${new Date().toLocaleString()}`, 15, 36);
+    doc.text(`Date: ${allDates ? "All Dates" : dateLabel}`, 15, 27);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 15, 32);
     
     // Horizontal line
     doc.setDrawColor(150, 150, 150);
-    doc.line(15, 38, pageWidth - 15, 38);
+    doc.line(10, 34, pageWidth - 10, 34);
   };
 
   // Add footer with page numbers
@@ -344,11 +344,11 @@ function exportDispatchPdf() {
     if (table && typeof doc.autoTable === "function") {
       doc.autoTable({
       html: table,
-      startY: 42,
-      margin: { top: 42, right: 15, bottom: 15, left: 15 },
+      startY: 37,
+      margin: { top: 37, right: 10, bottom: 12, left: 10 },
       styles: {
-        fontSize: 10,
-        cellPadding: 4,
+        fontSize: 8.5,
+        cellPadding: 2.4,
         overflow: "wrap",
         halign: "left",
         valign: "middle"
@@ -357,10 +357,10 @@ function exportDispatchPdf() {
         fillColor: [41, 128, 185],
         textColor: [255, 255, 255],
         fontStyle: "bold",
-        fontSize: 11,
+        fontSize: 9,
         halign: "center",
         valign: "middle",
-        cellPadding: 5
+        cellPadding: 3
       },
       bodyStyles: {
         textColor: [50, 50, 50],
@@ -371,9 +371,9 @@ function exportDispatchPdf() {
         fillColor: [245, 245, 245]
       },
       columnStyles: {
-        0: { cellWidth: 70, halign: "left" },
-        1: { cellWidth: 60, halign: "center" },
-        2: { cellWidth: 40, halign: "center" }
+        0: { cellWidth: 125, halign: "left" },
+        1: { cellWidth: 110, halign: "center" },
+        2: { cellWidth: 42, halign: "center" }
       },
       didDrawPage: () => {
         const pageNum = doc.internal.getNumberOfPages();
