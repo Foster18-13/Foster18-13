@@ -25,6 +25,7 @@ const PAGE_MIN_ROLE = {
   "summary.html": "clerk",
   "purchase.html": "clerk",
   "customers.html": "clerk",
+  "product-dispatch.html": "clerk",
   "customer-history.html": "clerk",
   "damages.html": "clerk",
   "product-movement.html": "clerk",
