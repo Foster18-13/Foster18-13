@@ -579,6 +579,8 @@ function protectPortalPageWithAuth() {
     }
 
     // Not authenticated, redirect to login (strip query strings to avoid URI bloat)
+    clearCurrentWorkSector();
+    clearUserAuthState();
     globalThis.location.replace(`login.html?next=${encodeURIComponent(currentPage)}`);
   });
 }

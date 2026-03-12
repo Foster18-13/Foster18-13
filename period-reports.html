@@ -260,6 +260,7 @@
         const displayName = user.displayName || user.email || 'User';
         document.getElementById('currentUserName').textContent = displayName;
       } else {
+        localStorage.removeItem('warehousePortalWorkSector');
         globalThis.location.href = 'login.html';
       }
     });
@@ -267,6 +268,7 @@
     document.getElementById('signOutButton').addEventListener('click', async () => {
       try {
         await signOut(auth);
+        localStorage.removeItem('warehousePortalWorkSector');
         globalThis.location.href = 'login.html';
       } catch (error) {
         console.error('Sign out error:', error);
