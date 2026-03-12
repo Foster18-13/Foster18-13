@@ -1,5 +1,7 @@
 // User Account Authentication System
 const USER_AUTH_STORAGE_KEY = "warehousePortalUserAuth";
+const WORK_SECTOR_STORAGE_KEY = "warehousePortalWorkSector";
+const DEFAULT_WORK_SECTOR = "water";
 const DEFAULT_USER_ROLE = "clerk";
 const FORCED_ADMIN_EMAILS = [
   "antwifosterfrimpong@gmail.com"
@@ -10,6 +12,19 @@ const USER_ROLE_PRIORITY = {
   supervisor: 2,
   admin: 3
 };
+
+const KNOWN_WORK_SECTORS = new Set(
+  (Array.isArray(globalThis.WAREHOUSE_SECTORS) && globalThis.WAREHOUSE_SECTORS.length
+    ? globalThis.WAREHOUSE_SECTORS
+    : [
+        { id: "water" },
+        { id: "hh" },
+        { id: "mcberry" }
+      ]
+  )
+    .map((sector) => String(sector?.id || "").trim().toLowerCase())
+    .filter(Boolean)
+);
 
 function normalizeEmail(value) {
   return String(value || "").trim().toLowerCase();
@@ -93,6 +108,60 @@ function normalizeUserRole(role) {
 
 function normalizeCanMakeEntries(value) {
   return value !== false;
+}
+
+function normalizeWorkSector(value) {
+  const normalized = String(value || "").trim().toLowerCase();
+  return KNOWN_WORK_SECTORS.has(normalized) ? normalized : DEFAULT_WORK_SECTOR;
+}
+
+function getCurrentWorkSector() {
+  try {
+    const stored = localStorage.getItem(WORK_SECTOR_STORAGE_KEY);
+    return normalizeWorkSector(stored || DEFAULT_WORK_SECTOR);
+  } catch {
+    return DEFAULT_WORK_SECTOR;
+  }
+}
+
+function hasSelectedWorkSector() {
+  try {
+    const stored = localStorage.getItem(WORK_SECTOR_STORAGE_KEY);
+    if (!stored) return false;
+    return KNOWN_WORK_SECTORS.has(String(stored).trim().toLowerCase());
+  } catch {
+    return false;
+  }
+}
+
+function setCurrentWorkSector(sectorId) {
+  const normalized = normalizeWorkSector(sectorId);
+  localStorage.setItem(WORK_SECTOR_STORAGE_KEY, normalized);
+  if (typeof globalThis.dispatchEvent === "function") {
+    globalThis.dispatchEvent(
+      new CustomEvent("warehouse:sector-changed", {
+        detail: { sector: normalized }
+      })
+    );
+  }
+  return normalized;
+}
+
+function clearCurrentWorkSector() {
+  try {
+    localStorage.removeItem(WORK_SECTOR_STORAGE_KEY);
+  } catch {
+    // ignore storage errors
+  }
+}
+
+function getCurrentSectorConfig() {
+  const sector = getCurrentWorkSector();
+  const sectorConfig = globalThis.FIREBASE_CLOUD_DOCS?.[sector];
+  if (sectorConfig?.collection && sectorConfig?.document) {
+    return sectorConfig;
+  }
+  return globalThis.FIREBASE_CLOUD_DOC || { collection: "warehousePortal", document: "twellium-main" };
 }
 
 function getRoleFallbackForUser(user) {
@@ -361,7 +430,7 @@ function setupRegistrationForm() {
       
       // Redirect to home after 1 second
       setTimeout(() => {
-        globalThis.location.href = 'home.html';
+        globalThis.location.href = 'sector-select.html';
       }, 1000);
 
     } catch (error) {
@@ -435,6 +504,7 @@ function getCurrentUser() {
 function clearUserAuthState() {
   sessionStorage.removeItem(USER_AUTH_STORAGE_KEY);
   localStorage.removeItem(USER_AUTH_STORAGE_KEY + "_persistent");
+  clearCurrentWorkSector();
 }
 
 function logoutUser() {
@@ -460,6 +530,11 @@ globalThis.isUserApproved = isUserApproved;
 globalThis.approveUser = approveUser;
 globalThis.rejectUser = rejectUser;
 globalThis.writeUserToDirectory = writeUserToDirectory;
+globalThis.getCurrentWorkSector = getCurrentWorkSector;
+globalThis.hasSelectedWorkSector = hasSelectedWorkSector;
+globalThis.setCurrentWorkSector = setCurrentWorkSector;
+globalThis.clearCurrentWorkSector = clearCurrentWorkSector;
+globalThis.getCurrentSectorConfig = getCurrentSectorConfig;
 
 function protectPortalPageWithAuth() {
   // Prevent multiple initializations
@@ -482,6 +557,22 @@ function protectPortalPageWithAuth() {
       // User authenticated, save their info with role
       resolveUserRole(user).then((role) => {
         saveUserAuthState(user, role);
+
+        const normalizedPage = String(currentPage || '').toLowerCase();
+        const currentUrl = new URL(globalThis.location.href);
+        const nextParam = String(currentUrl.searchParams.get('next') || '').trim();
+        const safeNext = nextParam && !nextParam.includes('://') && !nextParam.startsWith('javascript:')
+          ? nextParam
+          : 'home.html';
+
+        if (normalizedPage !== 'sector-select.html' && !hasSelectedWorkSector()) {
+          globalThis.location.replace(`sector-select.html?next=${encodeURIComponent(currentPage)}`);
+          return;
+        }
+
+        if (normalizedPage === 'sector-select.html' && hasSelectedWorkSector()) {
+          globalThis.location.replace(safeNext);
+        }
       });
       return;
     }

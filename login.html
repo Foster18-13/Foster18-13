@@ -532,7 +532,7 @@
     firebase.auth().onAuthStateChanged(async (user) => {
       if (user) {
         await resolveUserRole(user);
-        globalThis.location.href = 'home.html';
+        globalThis.location.href = 'sector-select.html';
       }
     });
 
@@ -573,7 +573,7 @@
 
         // Redirect to home after 1 second
         setTimeout(() => {
-          globalThis.location.href = 'home.html';
+          globalThis.location.href = 'sector-select.html';
         }, 1000);
       } catch (error) {
         submitBtn.disabled = false;
@@ -626,7 +626,7 @@
 
         // Redirect to home after 1 second
         setTimeout(() => {
-          globalThis.location.href = 'home.html';
+          globalThis.location.href = 'sector-select.html';
         }, 1000);
       } catch (error) {
         googleBtn.disabled = false;

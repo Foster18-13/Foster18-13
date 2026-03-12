@@ -79,6 +79,13 @@ function renderCloudAuthState() {
   }
 }
 
+function getCloudLocationForCurrentSector() {
+  if (typeof globalThis.getCurrentSectorConfig === "function") {
+    return globalThis.getCurrentSectorConfig();
+  }
+  return globalThis.FIREBASE_CLOUD_DOC || { collection: "warehousePortal", document: "twellium-main" };
+}
+
 function getCloudDocRef() {
   if (!cloudSyncState.firestore) {
     console.warn("[Cloud Sync] Firestore not initialized");
@@ -86,7 +93,7 @@ function getCloudDocRef() {
   }
   if (cloudSyncState.docRef) return cloudSyncState.docRef;
 
-  const location = globalThis.FIREBASE_CLOUD_DOC || {};
+  const location = getCloudLocationForCurrentSector() || {};
   const collection = location.collection || "warehousePortal";
   const documentId = location.document || "twellium-main";
   
@@ -376,9 +383,11 @@ function getAuthErrorMessage(error) {
 function getCloudSyncErrorMessage(error, action = "sync") {
   const code = error?.code || "";
   const message = error?.message || "";
+  const location = getCloudLocationForCurrentSector();
+  const target = `${location.collection || "warehousePortal"}/${location.document || "twellium-main"}`;
 
   if (code === "permission-denied") {
-    return `Cloud ${action} blocked: Firestore permission denied. Administrator needs to update security rules for warehousePortal/twellium-main collection.`;
+    return `Cloud ${action} blocked: Firestore permission denied. Administrator needs to update security rules for ${target} collection.`;
   }
   if (code === "unauthenticated") {
     return `Cloud ${action} blocked: You need to sign in to cloud first.`;
@@ -499,6 +508,15 @@ function initCloudSync() {
       // Only push if user is signed in and not currently pulling
       if (cloudSyncState.user && !cloudSyncState.pullInProgress) {
         queueCloudPush();
+      }
+    });
+
+    globalThis.addEventListener("warehouse:sector-changed", async () => {
+      cloudSyncState.docRef = null;
+      stopRealtimeCloudListener();
+      if (cloudSyncState.user) {
+        await pullFromCloudIfNewer(true);
+        startRealtimeCloudListener();
       }
     });
   } catch {

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Select Sector | Twellium Warehouse Portal</title>
+  <link rel="stylesheet" href="assets/css/style.css?v=20260224_v2" />
+  <style>
+    .sector-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: var(--bg);
+    }
+
+    .sector-card {
+      width: 100%;
+      max-width: 760px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .sector-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .sector-btn {
+      min-height: 86px;
+      text-align: left;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface-alt);
+      color: var(--text);
+      padding: 12px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .sector-btn:hover {
+      border-color: var(--primary);
+      background: var(--primary-soft);
+    }
+
+    .sector-note {
+      margin-top: 10px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="sector-page">
+    <section class="sector-card">
+      <h2 class="card-title">Select Working Sector</h2>
+      <p class="card-subtitle">Choose the sector you want to work in for this session.</p>
+      <div class="sector-grid" id="sectorGrid"></div>
+      <p class="sector-note" id="sectorStatus"></p>
+      <div class="toolbar mt-12">
+        <button class="button" type="button" onclick="logoutUser()">Logout</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="assets/js/firebase-config.js"></script>
+  <script src="assets/js/user-auth.js"></script>
+  <script>
+    (function initSectorSelectionPage() {
+      const statusEl = document.getElementById('sectorStatus');
+      const grid = document.getElementById('sectorGrid');
+      const sectors = Array.isArray(globalThis.WAREHOUSE_SECTORS) && globalThis.WAREHOUSE_SECTORS.length
+        ? globalThis.WAREHOUSE_SECTORS
+        : [
+          { id: 'water', label: 'Water & Beverages' },
+          { id: 'hh', label: 'H&H Products' },
+          { id: 'mcberry', label: 'Mcberry Products' }
+        ];
+
+      const nextRaw = new URL(globalThis.location.href).searchParams.get('next');
+      const nextPage = nextRaw && !nextRaw.includes('://') && !nextRaw.startsWith('javascript:')
+        ? nextRaw
+        : 'home.html';
+
+      grid.innerHTML = sectors.map((sector) => (
+        `<button class="sector-btn" type="button" data-sector="${sector.id}">${sector.label}</button>`
+      )).join('');
+
+      grid.querySelectorAll('[data-sector]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const selected = btn.dataset.sector;
+          if (typeof setCurrentWorkSector === 'function') {
+            setCurrentWorkSector(selected);
+          }
+          statusEl.textContent = `Sector selected: ${btn.textContent}. Redirecting...`;
+          setTimeout(() => {
+            globalThis.location.replace(nextPage || 'home.html');
+          }, 150);
+        });
+      });
+
+      firebase.auth().onAuthStateChanged((user) => {
+        if (!user) {
+          globalThis.location.replace('login.html?next=sector-select.html');
+          return;
+        }
+        statusEl.textContent = `Signed in as ${user.displayName || user.email || 'User'}`;
+      });
+    })();
+  </script>
+</body>
+
+</html>

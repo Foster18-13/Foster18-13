@@ -11,3 +11,15 @@ globalThis.FIREBASE_CLOUD_DOC = {
   collection: "warehousePortal",
   document: "twellium-main"
 };
+
+globalThis.WAREHOUSE_SECTORS = [
+  { id: "water", label: "Water & Beverages" },
+  { id: "hh", label: "H&H Products" },
+  { id: "mcberry", label: "Mcberry Products" }
+];
+
+globalThis.FIREBASE_CLOUD_DOCS = {
+  water: { collection: "warehousePortal", document: "twellium-main" },
+  hh: { collection: "warehousePortal", document: "hh-main" },
+  mcberry: { collection: "warehousePortal", document: "mcberry-main" }
+};

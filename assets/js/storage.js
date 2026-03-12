@@ -2,11 +2,13 @@ const STORAGE_KEY = "twellium_warehouse_portal_v1";
 const LEGACY_DAILY_RECORDS_KEY = "dailyRecordingSheetData";
 const LEGACY_DAILY_BALANCE_KEY = "dailyBalanceSheetData";
 const LOCAL_BACKUP_STORAGE_KEY = "twellium_warehouse_portal_backup_v1";
+const SELECTED_DATE_STORAGE_KEY = "twellium_selected_date";
+const SELECTED_SHIFT_STORAGE_KEY = "twellium_selected_shift";
 const LOCAL_BACKUP_LIMIT = 40;
 const CLOUD_LOCAL_CACHE_DAYS = 45;
 const CLOUD_BACKUP_LIMIT = 5;
 const AUDIT_LOG_LIMIT = 500;
-const REQUIRED_PRODUCTS = [
+const WATER_REQUIRED_PRODUCTS = [
   "BIGOO APPLE 350MLX20PCS",
   "BIGOO COCKTAIL 350MLX20PCS",
   "BIGOO COCONUT 350MLX20PCS",
@@ -38,6 +40,60 @@ const REQUIRED_PRODUCTS = [
   "VERNA WATER SHRINK 750MLX16PCS"
 ];
 
+const HH_REQUIRED_PRODUCTS = [
+  "H&H ANTISEPTIC GEL 500ML X 12",
+  "H&H HAND WASH 500ML X 12",
+  "H&H MULTI SURFACE CLEANER 1L X 6",
+  "H&H DISHWASH LIQUID 500ML X 12",
+  "H&H FABRIC CONDITIONER 1L X 6"
+];
+
+const MCBERRY_REQUIRED_PRODUCTS = [
+  "MCBERRY APPLE DRINK 350ML X 24",
+  "MCBERRY BERRY BLAST 350ML X 24",
+  "MCBERRY PINEAPPLE DRINK 350ML X 24",
+  "MCBERRY MIXED FRUIT 350ML X 24",
+  "MCBERRY MANGO DRINK 350ML X 24"
+];
+
+function getCurrentSectorId() {
+  if (typeof globalThis.getCurrentWorkSector === "function") {
+    return globalThis.getCurrentWorkSector();
+  }
+  return "water";
+}
+
+function getSectorScopedKey(baseKey) {
+  const sector = getCurrentSectorId();
+  if (!sector || sector === "water") {
+    return baseKey;
+  }
+  return `${baseKey}_${sector}`;
+}
+
+function getStorageDataKey() {
+  return getSectorScopedKey(STORAGE_KEY);
+}
+
+function getBackupStorageKey() {
+  return getSectorScopedKey(LOCAL_BACKUP_STORAGE_KEY);
+}
+
+function getSelectedDateStorageKey() {
+  return getSectorScopedKey(SELECTED_DATE_STORAGE_KEY);
+}
+
+function getSelectedShiftStorageKey() {
+  return getSectorScopedKey(SELECTED_SHIFT_STORAGE_KEY);
+}
+
+function getRequiredProductsForSector() {
+  const sector = getCurrentSectorId();
+  if (sector === "hh") return HH_REQUIRED_PRODUCTS;
+  if (sector === "mcberry") return MCBERRY_REQUIRED_PRODUCTS;
+  return WATER_REQUIRED_PRODUCTS;
+}
+
 function generateId(prefix = "id") {
   return `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
 }
@@ -64,8 +120,9 @@ function inferPalletFactorFromName(name) {
 }
 
 function defaultData() {
+  const requiredProducts = getRequiredProductsForSector();
   return {
-    products: REQUIRED_PRODUCTS.map((name) => ({
+    products: requiredProducts.map((name) => ({
       id: generateId("product"),
       name,
       palletFactor: inferPalletFactorFromName(name),
@@ -89,7 +146,7 @@ function createWarehouseSnapshot(data) {
 
 function safeReadBackupHistory() {
   try {
-    const raw = localStorage.getItem(LOCAL_BACKUP_STORAGE_KEY);
+    const raw = localStorage.getItem(getBackupStorageKey());
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed : [];
@@ -100,7 +157,7 @@ function safeReadBackupHistory() {
 
 function writeBackupHistory(backups) {
   try {
-    localStorage.setItem(LOCAL_BACKUP_STORAGE_KEY, JSON.stringify(backups));
+    localStorage.setItem(getBackupStorageKey(), JSON.stringify(backups));
   } catch {
     // ignore quota/write errors for backup stream
   }
@@ -368,11 +425,14 @@ function tryRecoverFromAlternativeLocalStorage(data) {
   if (alreadyRecovered || hasMeaningfulDailySnapshot(data)) return false;
 
   const candidate = findBestLocalStorageWarehouseSnapshot([
+    getStorageDataKey(),
     STORAGE_KEY,
     LEGACY_DAILY_RECORDS_KEY,
     LEGACY_DAILY_BALANCE_KEY,
-    "twellium_selected_date",
-    "twellium_selected_shift"
+    getSelectedDateStorageKey(),
+    getSelectedShiftStorageKey(),
+    SELECTED_DATE_STORAGE_KEY,
+    SELECTED_SHIFT_STORAGE_KEY
   ]);
 
   if (!candidate?.data || !hasMeaningfulDailySnapshot(candidate.data)) return false;
@@ -396,6 +456,7 @@ function isLegacyStarterList(products) {
 }
 
 function ensureRequiredProducts(data) {
+  const requiredProducts = getRequiredProductsForSector();
   if (!Array.isArray(data.products)) {
     data.products = [];
   }
@@ -403,7 +464,7 @@ function ensureRequiredProducts(data) {
   const deletedRequired = getDeletedRequiredSet(data);
 
   if (isLegacyStarterList(data.products)) {
-    data.products = REQUIRED_PRODUCTS.map((name) => ({
+    data.products = requiredProducts.map((name) => ({
       id: generateId("product"),
       name,
       palletFactor: inferPalletFactorFromName(name)
@@ -414,7 +475,7 @@ function ensureRequiredProducts(data) {
   const currentNames = new Set(data.products.map((item) => item.name.toLowerCase().trim()));
   let changed = false;
 
-  REQUIRED_PRODUCTS.forEach((name) => {
+  requiredProducts.forEach((name) => {
     const key = name.toLowerCase();
     if (!currentNames.has(key) && !deletedRequired.has(key)) {
       data.products.push({
@@ -446,7 +507,7 @@ function getDeletedRequiredSet(data) {
 
 function loadData() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(getStorageDataKey());
     if (!raw) {
       const initial = defaultData();
       tryMigrateLegacyStorage(initial);
@@ -524,7 +585,7 @@ function setStorageStatus(message, level) {
 }
 
 function writeStoragePayload(payload) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  localStorage.setItem(getStorageDataKey(), JSON.stringify(payload));
 }
 
 function retrySaveAfterPrune(payloadToStore, cloudPriorityMode, originalError) {
@@ -760,21 +821,21 @@ function ensureDayStore(data, date) {
 }
 
 function getSelectedDate() {
-  return localStorage.getItem("twellium_selected_date") || todayISO();
+  return localStorage.getItem(getSelectedDateStorageKey()) || localStorage.getItem(SELECTED_DATE_STORAGE_KEY) || todayISO();
 }
 
 function setSelectedDate(date) {
-  localStorage.setItem("twellium_selected_date", date);
+  localStorage.setItem(getSelectedDateStorageKey(), date);
 }
 
 function getSelectedShift() {
-  const shift = localStorage.getItem("twellium_selected_shift");
+  const shift = localStorage.getItem(getSelectedShiftStorageKey()) || localStorage.getItem(SELECTED_SHIFT_STORAGE_KEY);
   return shift === "night" ? "night" : "day";
 }
 
 function setSelectedShift(shift) {
   const normalized = shift === "night" ? "night" : "day";
-  localStorage.setItem("twellium_selected_shift", normalized);
+  localStorage.setItem(getSelectedShiftStorageKey(), normalized);
 }
 
 function getShiftStore(data, date, shift = null) {
@@ -941,7 +1002,7 @@ function deleteProduct(productId) {
 
   if (target) {
     const targetKey = String(target.name || "").toLowerCase().trim();
-    const requiredKey = REQUIRED_PRODUCTS.find((name) => name.toLowerCase() === targetKey);
+    const requiredKey = getRequiredProductsForSector().find((name) => name.toLowerCase() === targetKey);
     if (requiredKey) {
       data._meta = data._meta && typeof data._meta === "object" ? data._meta : {};
       const deleted = Array.isArray(data._meta.deletedRequired) ? data._meta.deletedRequired : [];
