@@ -102,6 +102,9 @@
           if (typeof setCurrentWorkSector === 'function') {
             setCurrentWorkSector(selected);
           }
+          if (typeof clearSectorSelectionPending === 'function') {
+            clearSectorSelectionPending();
+          }
           statusEl.textContent = `Sector selected: ${btn.textContent}. Redirecting...`;
           setTimeout(() => {
             globalThis.location.replace(nextPage || 'home.html');

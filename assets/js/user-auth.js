@@ -1,6 +1,7 @@
 // User Account Authentication System
 const USER_AUTH_STORAGE_KEY = "warehousePortalUserAuth";
 const WORK_SECTOR_STORAGE_KEY = "warehousePortalWorkSector";
+const WORK_SECTOR_PENDING_KEY = "warehousePortalWorkSectorPending";
 const DEFAULT_WORK_SECTOR = "water";
 const DEFAULT_USER_ROLE = "clerk";
 const FORCED_ADMIN_EMAILS = [
@@ -155,6 +156,30 @@ function clearCurrentWorkSector() {
     localStorage.removeItem(WORK_SECTOR_STORAGE_KEY);
   } catch {
     // ignore storage errors
+  }
+}
+
+function markSectorSelectionPending() {
+  try {
+    sessionStorage.setItem(WORK_SECTOR_PENDING_KEY, "1");
+  } catch {
+    // ignore storage errors
+  }
+}
+
+function clearSectorSelectionPending() {
+  try {
+    sessionStorage.removeItem(WORK_SECTOR_PENDING_KEY);
+  } catch {
+    // ignore storage errors
+  }
+}
+
+function isSectorSelectionPending() {
+  try {
+    return sessionStorage.getItem(WORK_SECTOR_PENDING_KEY) === "1";
+  } catch {
+    return false;
   }
 }
 
@@ -508,6 +533,7 @@ function clearUserAuthState() {
   sessionStorage.removeItem(USER_AUTH_STORAGE_KEY);
   localStorage.removeItem(USER_AUTH_STORAGE_KEY + "_persistent");
   clearCurrentWorkSector();
+  clearSectorSelectionPending();
 }
 
 function logoutUser() {
@@ -538,6 +564,9 @@ globalThis.hasSelectedWorkSector = hasSelectedWorkSector;
 globalThis.setCurrentWorkSector = setCurrentWorkSector;
 globalThis.clearCurrentWorkSector = clearCurrentWorkSector;
 globalThis.getCurrentSectorConfig = getCurrentSectorConfig;
+globalThis.markSectorSelectionPending = markSectorSelectionPending;
+globalThis.clearSectorSelectionPending = clearSectorSelectionPending;
+globalThis.isSectorSelectionPending = isSectorSelectionPending;
 
 function protectPortalPageWithAuth() {
   // Prevent multiple initializations
@@ -566,16 +595,17 @@ function protectPortalPageWithAuth() {
         const currentUrl = new URL(globalThis.location.href);
         const nextParam = String(currentUrl.searchParams.get('next') || '').trim();
         const forceSectorSelection = currentUrl.searchParams.get('forceSector') === '1';
+        const pendingSectorSelection = isSectorSelectionPending();
         const safeNext = nextParam && !nextParam.includes('://') && !nextParam.startsWith('javascript:')
           ? nextParam
           : 'home.html';
 
-        if (normalizedPage !== 'sector-select.html' && !hasSelectedWorkSector()) {
+        if (normalizedPage !== 'sector-select.html' && (pendingSectorSelection || !hasSelectedWorkSector())) {
           globalThis.location.replace(`sector-select.html?next=${encodeURIComponent(currentPage)}&forceSector=1`);
           return;
         }
 
-        if (normalizedPage === 'sector-select.html' && hasSelectedWorkSector() && !forceSectorSelection) {
+        if (normalizedPage === 'sector-select.html' && hasSelectedWorkSector() && !forceSectorSelection && !pendingSectorSelection) {
           globalThis.location.replace(safeNext);
         }
       });

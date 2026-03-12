@@ -532,6 +532,9 @@
     firebase.auth().onAuthStateChanged(async (user) => {
       if (user) {
         await resolveUserRole(user);
+        if (typeof markSectorSelectionPending === 'function') {
+          markSectorSelectionPending();
+        }
         if (typeof clearCurrentWorkSector === 'function') {
           clearCurrentWorkSector();
         }
@@ -570,6 +573,9 @@
         console.log('Login successful:', result.user.email);
 
         await resolveUserRole(result.user);
+        if (typeof markSectorSelectionPending === 'function') {
+          markSectorSelectionPending();
+        }
         if (typeof clearCurrentWorkSector === 'function') {
           clearCurrentWorkSector();
         }
@@ -626,6 +632,9 @@
         console.log('Google sign-in successful:', result.user.email);
 
         await resolveUserRole(result.user);
+        if (typeof markSectorSelectionPending === 'function') {
+          markSectorSelectionPending();
+        }
         if (typeof clearCurrentWorkSector === 'function') {
           clearCurrentWorkSector();
         }
