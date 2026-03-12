@@ -458,7 +458,7 @@ function setupRegistrationForm() {
       
       // Redirect to home after 1 second
       setTimeout(() => {
-        globalThis.location.href = 'sector-select.html';
+        globalThis.location.href = 'home.html';
       }, 1000);
 
     } catch (error) {
@@ -600,7 +600,7 @@ function protectPortalPageWithAuth() {
           ? nextParam
           : 'home.html';
 
-        if (normalizedPage !== 'sector-select.html' && (pendingSectorSelection || !hasSelectedWorkSector())) {
+        if (normalizedPage !== 'sector-select.html' && normalizedPage !== 'home.html' && (pendingSectorSelection || !hasSelectedWorkSector())) {
           globalThis.location.replace(`sector-select.html?next=${encodeURIComponent(currentPage)}&forceSector=1`);
           return;
         }
