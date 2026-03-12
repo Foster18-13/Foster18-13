@@ -153,9 +153,31 @@ function escapeDispatchHtml(value) {
     .replaceAll('"', "&quot;");
 }
 
+const DISPATCH_ENTRY_PAIRS_PER_ROW = 6;
+const DISPATCH_TABLE_COLUMN_COUNT = 1 + (DISPATCH_ENTRY_PAIRS_PER_ROW * 2);
+
 function renderEmptyDispatchState(tbody, countEl, message) {
-  tbody.innerHTML = `<tr><td colspan="3" class="dispatch-empty-state">${message}</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="${DISPATCH_TABLE_COLUMN_COUNT}" class="dispatch-empty-state">${message}</td></tr>`;
   if (countEl) countEl.textContent = "";
+}
+
+function buildDispatchEntryCells(entries, rowIndex) {
+  let html = "";
+
+  for (let pairOffset = 0; pairOffset < DISPATCH_ENTRY_PAIRS_PER_ROW; pairOffset++) {
+    const entry = entries[(rowIndex * DISPATCH_ENTRY_PAIRS_PER_ROW) + pairOffset];
+
+    if (entry) {
+      html += `<td>${escapeDispatchHtml(entry.waybill)}</td>`;
+      html += `<td>${escapeDispatchHtml(entry.qty)}</td>`;
+      continue;
+    }
+
+    html += "<td></td>";
+    html += "<td></td>";
+  }
+
+  return html;
 }
 
 function buildDispatchTableHtml(rows) {
@@ -177,33 +199,17 @@ function buildDispatchTableHtml(rows) {
     const entries = grouped.get(productName) || [];
     totalEntries += entries.length;
 
-    // Group entries in pairs (2 entries per row)
-    const pairCount = Math.ceil(entries.length / 2);
-    
-    for (let pairIndex = 0; pairIndex < pairCount; pairIndex++) {
+    const rowCount = Math.ceil(entries.length / DISPATCH_ENTRY_PAIRS_PER_ROW);
+
+    for (let rowIndex = 0; rowIndex < rowCount; rowIndex++) {
       html += "<tr>";
-      
-      // Add product name only on first row of this product
-      if (pairIndex === 0) {
-        html += `<td class="dispatch-product-cell" rowspan="${pairCount}">${escapeDispatchHtml(productName)}</td>`;
+
+      if (rowIndex === 0) {
+        html += `<td class="dispatch-product-cell" rowspan="${rowCount}">${escapeDispatchHtml(productName)}</td>`;
       }
-      
-      // First entry of the pair
-      const entry1 = entries[pairIndex * 2];
-      html += `<td>${escapeDispatchHtml(entry1.waybill)}</td>`;
-      html += `<td>${escapeDispatchHtml(entry1.qty)}</td>`;
-      
-      // Second entry of the pair (if exists)
-      const entry2 = entries[pairIndex * 2 + 1];
-      if (entry2) {
-        html += `<td>${escapeDispatchHtml(entry2.waybill)}</td>`;
-        html += `<td>${escapeDispatchHtml(entry2.qty)}</td>`;
-      } else {
-        // Empty cells if no second entry in pair
-        html += "<td></td>";
-        html += "<td></td>";
-      }
-      
+
+      html += buildDispatchEntryCells(entries, rowIndex);
+
       html += "</tr>";
     }
   }
@@ -453,11 +459,19 @@ async function exportDispatchPdf() {
         fillColor: [245, 245, 245]
       },
       columnStyles: {
-        0: { cellWidth: 85, halign: "left" },
-        1: { cellWidth: 50, halign: "center" },
-        2: { cellWidth: 20, halign: "center" },
-        3: { cellWidth: 50, halign: "center" },
-        4: { cellWidth: 20, halign: "center" }
+        0: { cellWidth: 56, halign: "left" },
+        1: { cellWidth: 22, halign: "center" },
+        2: { cellWidth: 11, halign: "center" },
+        3: { cellWidth: 22, halign: "center" },
+        4: { cellWidth: 11, halign: "center" },
+        5: { cellWidth: 22, halign: "center" },
+        6: { cellWidth: 11, halign: "center" },
+        7: { cellWidth: 22, halign: "center" },
+        8: { cellWidth: 11, halign: "center" },
+        9: { cellWidth: 22, halign: "center" },
+        10: { cellWidth: 11, halign: "center" },
+        11: { cellWidth: 22, halign: "center" },
+        12: { cellWidth: 11, halign: "center" }
       },
       didDrawPage: () => {
         const pageNum = doc.internal.getNumberOfPages();
