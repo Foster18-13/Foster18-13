@@ -72,6 +72,9 @@ function applyCleanUrlCanonicalPath() {
     if (globalThis._urlCleanupApplied) return;
 
     const pathname = String(globalThis.location?.pathname || '');
+    if (!globalThis._originalPathname) {
+      globalThis._originalPathname = pathname;
+    }
     const currentUrl = globalThis.location?.href || '';
     
     // Safety check: If URL is too long (>2000 chars), force clean it
@@ -544,7 +547,8 @@ function protectPortalPageWithAuth() {
   globalThis._authProtectionInitialized = true;
 
   // Don't protect auth pages
-  const currentPage = location.pathname.split("/").pop() || "index.html";
+  const effectivePathname = String(globalThis._originalPathname || location.pathname || '');
+  const currentPage = effectivePathname.split("/").pop() || "index.html";
   const authPages = ['login.html', 'register.html', 'access.html', 'index.html', '404.html'];
 
   if (authPages.includes(currentPage.toLowerCase())) {
