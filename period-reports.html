@@ -267,7 +267,7 @@
     document.getElementById('signOutButton').addEventListener('click', async () => {
       try {
         await signOut(auth);
-        globalThis.location.href = 'login.html';
+        globalThis.location.href = 'index.html';
       } catch (error) {
         console.error('Sign out error:', error);
         alert('Error signing out. Please try again.');
