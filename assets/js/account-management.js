@@ -666,7 +666,7 @@ async function deleteUserAccount() {
 
     showAccountMessage('Signed out successfully. Your account and all records were kept. You can sign in again anytime.', 'ok');
     setTimeout(() => {
-      globalThis.location.href = 'index.html';
+      globalThis.location.href = 'login.html';
     }, 1400);
   } catch (error) {
     console.error('Account deletion error:', error);

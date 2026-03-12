@@ -510,7 +510,7 @@ function clearUserAuthState() {
 function logoutUser() {
   firebase.auth().signOut().then(() => {
     clearUserAuthState();
-    globalThis.location.href = 'index.html';
+    globalThis.location.href = 'login.html';
   }).catch((error) => {
     console.error('Logout error:', error);
   });
