@@ -922,6 +922,17 @@ function setSelectedShift(shift) {
 function getShiftStore(data, date, shift = null) {
   const selectedShift = shift || getSelectedShift();
   const day = ensureDayStore(data, date);
+
+  if (
+    !shift &&
+    getCurrentSectorId() === "water" &&
+    selectedShift === "day" &&
+    !hasShiftData(day.day) &&
+    hasShiftData(day.night)
+  ) {
+    return day.night;
+  }
+
   return day[selectedShift];
 }
 
@@ -948,11 +959,23 @@ function getPreviousClosingStock(data, date, productId, shift = null) {
     return "";
   }
   
-  // For day shift, get previous day's night shift closing
+  // For day shift, get previous day's night shift closing (fallback to day closing if needed)
   const previousDate = getPreviousDateISO(date);
   if (!previousDate) return "";
 
   const previousDay = data.daily[previousDate];
+  const previousNightBalance = previousDay?.night?.balance?.[productId] || {};
+  const previousNightClosing = previousNightBalance.closing;
+  if (previousNightClosing !== null && previousNightClosing !== undefined && previousNightClosing !== "") {
+    return previousNightClosing;
+  }
+
+  const previousDayBalance = previousDay?.day?.balance?.[productId] || {};
+  const previousDayClosing = previousDayBalance.closing;
+  if (previousDayClosing !== null && previousDayClosing !== undefined && previousDayClosing !== "") {
+    return previousDayClosing;
+  }
+
   if (isDayOnlySector()) {
     const dayBalance = previousDay?.day?.balance?.[productId] || {};
     const dayClosingStock = dayBalance.closing;
