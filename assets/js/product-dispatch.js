@@ -358,43 +358,43 @@ async function exportDispatchPdf() {
 
   // Add header to each page
     const addHeaderToPage = () => {
-    doc.setFontSize(13);
+    doc.setFontSize(10);
     doc.setTextColor(40, 40, 40);
     doc.text("Product Dispatch Report", 15, 16);
     
-    doc.setFontSize(10);
+    doc.setFontSize(8);
     doc.setTextColor(80, 80, 80);
-    doc.text(`Sector: ${sectorLabel}`, 15, 22);
+    doc.text(`Sector: ${sectorLabel}`, 15, 20);
     
-    doc.setFontSize(8.5);
+    doc.setFontSize(7.5);
     doc.setTextColor(100, 100, 100);
-    doc.text(`Date: ${allDates ? "All Dates" : dateLabel}`, 15, 27);
-    doc.text(`Generated: ${new Date().toLocaleString()}`, 15, 32);
+    doc.text(`Date: ${allDates ? "All Dates" : dateLabel}`, 15, 24);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 15, 28);
 
     if (logoDataUrl) {
-      const logoWidth = 24;
-      const logoHeight = 24;
+      const logoWidth = 16;
+      const logoHeight = 16;
       const logoX = pageWidth - logoWidth - 12;
-      const logoY = 8;
+      const logoY = 12;
       doc.addImage(logoDataUrl, "PNG", logoX, logoY, logoWidth, logoHeight);
     }
     
     // Horizontal line
     doc.setDrawColor(150, 150, 150);
-    doc.line(10, 34, pageWidth - 10, 34);
+    doc.line(5, 30, pageWidth - 5, 30);
   };
 
   // Add footer with page numbers
     const addFooterToPage = (pageNum) => {
-    doc.setFontSize(8);
+    doc.setFontSize(6.5);
     doc.setTextColor(150, 150, 150);
-    doc.text(`Page ${pageNum}`, pageWidth / 2, pageHeight - 10, { align: "center" });
-    doc.text(`Twellium Warehouse Portal`, 15, pageHeight - 10);
+    doc.text(`Page ${pageNum}`, pageWidth / 2, pageHeight - 5, { align: "center" });
+    doc.text(`Twellium Warehouse Portal`, 5, pageHeight - 5);
 
     if (logoDataUrl) {
       const footerLogoSize = 8;
       const footerLogoX = pageWidth - footerLogoSize - 12;
-      const footerLogoY = pageHeight - footerLogoSize - 12;
+      const footerLogoY = pageHeight - footerLogoSize - 8;
       doc.addImage(logoDataUrl, "PNG", footerLogoX, footerLogoY, footerLogoSize, footerLogoSize);
     }
     };
@@ -406,11 +406,11 @@ async function exportDispatchPdf() {
     if (table && typeof doc.autoTable === "function") {
       doc.autoTable({
       html: table,
-      startY: 37,
-      margin: { top: 37, right: 10, bottom: 12, left: 10 },
+      startY: 32,
+      margin: { top: 32, right: 5, bottom: 8, left: 5 },
       styles: {
-        fontSize: 8.5,
-        cellPadding: 2.4,
+        fontSize: 7,
+        cellPadding: 1.2,
         overflow: "wrap",
         halign: "left",
         valign: "middle"
@@ -419,10 +419,10 @@ async function exportDispatchPdf() {
         fillColor: [41, 128, 185],
         textColor: [255, 255, 255],
         fontStyle: "bold",
-        fontSize: 9,
+        fontSize: 7.5,
         halign: "center",
         valign: "middle",
-        cellPadding: 3
+        cellPadding: 1.5
       },
       bodyStyles: {
         textColor: [50, 50, 50],
@@ -433,16 +433,16 @@ async function exportDispatchPdf() {
         fillColor: [245, 245, 245]
       },
       columnStyles: {
-        0: { cellWidth: 125, halign: "left" },
-        1: { cellWidth: 110, halign: "center" },
-        2: { cellWidth: 42, halign: "center" }
+        0: { cellWidth: 85, halign: "left" },
+        1: { cellWidth: 75, halign: "center" },
+        2: { cellWidth: 25, halign: "center" }
       },
       didDrawPage: () => {
         const pageNum = doc.internal.getNumberOfPages();
         addFooterToPage(pageNum);
 
         if (pageNum > 1) {
-          doc.setFontSize(10);
+          doc.setFontSize(7.5);
           doc.setTextColor(100, 100, 100);
           doc.text(`${sectorLabel} - Continued`, 15, 15);
         }
