@@ -297,20 +297,101 @@ function exportDispatchPdf() {
     return;
   }
 
-  const doc = new PdfDocument();
+  const doc = new PdfDocument({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const sectorLabel = getDispatchSectorLabel(dispatchSectorId);
   const dateLabel = document.getElementById("workingDate")?.value || todayISO();
   const allDates = !!document.getElementById("allDatesToggle")?.checked;
 
-  doc.setFontSize(14);
-  doc.text(`Product Dispatch Report - ${sectorLabel}`, 14, 16);
-  doc.setFontSize(10);
-  doc.text(`Date: ${allDates ? "All Dates" : dateLabel}`, 14, 24);
-  doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 30);
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+
+  // Add header to each page
+  const addHeaderToPage = () => {
+    doc.setFontSize(16);
+    doc.setTextColor(40, 40, 40);
+    doc.text('Product Dispatch Report', 15, 16);
+    
+    doc.setFontSize(12);
+    doc.setTextColor(80, 80, 80);
+    doc.text(`Sector: ${sectorLabel}`, 15, 24);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Date: ${allDates ? 'All Dates' : dateLabel}`, 15, 30);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 15, 36);
+    
+    // Horizontal line
+    doc.setDrawColor(150, 150, 150);
+    doc.line(15, 38, pageWidth - 15, 38);
+  };
+
+  // Add footer with page numbers
+  const addFooterToPage = (pageNum) => {
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text(`Page ${pageNum}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
+    doc.text(`Twellium Warehouse Portal`, 15, pageHeight - 10);
+  };
+
+  // Add header to first page
+  addHeaderToPage();
 
   const table = document.getElementById("dispatchTable");
   if (table && typeof doc.autoTable === "function") {
-    doc.autoTable({ html: table, startY: 36, styles: { fontSize: 8 } });
+    let pageCount = 1;
+    
+    doc.autoTable({
+      html: table,
+      startY: 42,
+      margin: { top: 42, right: 15, bottom: 15, left: 15 },
+      styles: {
+        fontSize: 10,
+        cellPadding: 4,
+        overflow: 'wrap',
+        halign: 'left',
+        valign: 'middle'
+      },
+      headStyles: {
+        fillColor: [41, 128, 185],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        fontSize: 11,
+        halign: 'center',
+        valign: 'middle',
+        cellPadding: 5
+      },
+      bodyStyles: {
+        textColor: [50, 50, 50],
+        lineColor: [200, 200, 200],
+        lineWidth: 0.3
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245]
+      },
+      columnStyles: {
+        0: { cellWidth: 70, halign: 'left' },
+        1: { cellWidth: 60, halign: 'center' },
+        2: { cellWidth: 40, halign: 'center' }
+      },
+      didDrawPage: (data) => {
+        // Add footer to each page
+        pageCount = doc.internal.pages.length - 1;
+        addFooterToPage(pageCount);
+        
+        // Re-add header on new pages after the first
+        if (pageCount > 1) {
+          doc.setPageSize('a4');
+          // Move to top of page
+          const yPos = doc.internal.pageSize.getHeight() - doc.lastAutoTable.finalY - 15;
+          if (yPos < 30) {
+            // Add header on continued pages
+            doc.setFontSize(10);
+            doc.setTextColor(100, 100, 100);
+            doc.text(`${sectorLabel} - Continued`, 15, 15);
+          }
+        }
+      }
+    });
   }
 
   const safeSectorLabel = sectorLabel.replaceAll(/\s+/g, "_").toLowerCase();
