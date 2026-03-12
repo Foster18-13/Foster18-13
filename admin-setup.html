@@ -22,20 +22,20 @@
   </header>
 
   <div class="app-shell">
-    <main class="page" style="max-width: 600px; margin: 2rem auto;">
+    <main class="page admin-setup-page">
       <section class="card">
         <h2 class="card-title">Admin Setup</h2>
         <p class="card-subtitle">Set the first administrator for this warehouse portal</p>
 
         <div id="setupStatus" class="status"></div>
-        <div id="setupError" class="status error" style="display: none;"></div>
-        <div id="setupSuccess" class="status ok" style="display: none;"></div>
+        <div id="setupError" class="status error display-none"></div>
+        <div id="setupSuccess" class="status ok display-none"></div>
 
         <div id="setupForm">
           <div class="form-group">
             <label for="adminEmail" class="form-label">Admin Email Address</label>
             <input class="input" type="email" id="adminEmail" placeholder="admin@example.com" required />
-            <small style="color: var(--text-muted); display: block; margin-top: 0.5rem;">
+            <small class="helper-small-muted">
               Enter the email of an existing registered user to promote them to admin
             </small>
           </div>
@@ -45,10 +45,10 @@
             <a class="button" href="home.html">Cancel</a>
           </div>
 
-          <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border);" />
+          <hr class="section-divider-line" />
 
-          <h3 style="font-size: 14px; margin-bottom: 1rem;">All Registered Users</h3>
-          <div id="usersList" style="font-size: 13px; max-height: 300px; overflow-y: auto;">
+          <h3 class="section-subtitle-small">All Registered Users</h3>
+          <div id="usersList" class="users-scroll-box">
             Loading users...
           </div>
         </div>
