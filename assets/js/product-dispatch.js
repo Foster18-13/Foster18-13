@@ -290,7 +290,53 @@ function initSectorTabs() {
   setActiveDispatchSector(currentSector);
 }
 
-function exportDispatchPdf() {
+function imageElementToDataUrl(imageElement) {
+  if (!imageElement || !imageElement.naturalWidth || !imageElement.naturalHeight) {
+    return null;
+  }
+
+  try {
+    const canvas = document.createElement("canvas");
+    canvas.width = imageElement.naturalWidth;
+    canvas.height = imageElement.naturalHeight;
+    const context = canvas.getContext("2d");
+    if (!context) return null;
+
+    context.drawImage(imageElement, 0, 0);
+    return canvas.toDataURL("image/png");
+  } catch (error) {
+    console.debug("Unable to convert sector logo image to data URL:", error);
+    return null;
+  }
+}
+
+function loadImageFromSource(src) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+    image.src = src;
+  });
+}
+
+async function resolveActiveSectorLogoDataUrl() {
+  const activeLogo = document.querySelector(".dispatch-sector-tab.active img");
+  const fromActive = imageElementToDataUrl(activeLogo);
+  if (fromActive) {
+    return fromActive;
+  }
+
+  const fallbackSrc = `assets/images/sector-${normalizeDispatchSectorId(dispatchSectorId)}.png`;
+  try {
+    const loadedImage = await loadImageFromSource(fallbackSrc);
+    return imageElementToDataUrl(loadedImage);
+  } catch (error) {
+    console.debug("Sector logo not available for PDF header:", error);
+    return null;
+  }
+}
+
+async function exportDispatchPdf() {
   // Try to get jsPDF from multiple locations (UMD bundle compatibility)
   const jsPDF = globalThis.jspdf?.jsPDF || globalThis.jsPDF;
   
@@ -301,6 +347,7 @@ function exportDispatchPdf() {
   }
 
   try {
+    const logoDataUrl = await resolveActiveSectorLogoDataUrl();
     const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
     const sectorLabel = getDispatchSectorLabel(dispatchSectorId);
     const dateLabel = document.getElementById("workingDate")?.value || todayISO();
@@ -323,6 +370,14 @@ function exportDispatchPdf() {
     doc.setTextColor(100, 100, 100);
     doc.text(`Date: ${allDates ? "All Dates" : dateLabel}`, 15, 27);
     doc.text(`Generated: ${new Date().toLocaleString()}`, 15, 32);
+
+    if (logoDataUrl) {
+      const logoWidth = 18;
+      const logoHeight = 18;
+      const logoX = pageWidth - logoWidth - 12;
+      const logoY = 12;
+      doc.addImage(logoDataUrl, "PNG", logoX, logoY, logoWidth, logoHeight);
+    }
     
     // Horizontal line
     doc.setDrawColor(150, 150, 150);
