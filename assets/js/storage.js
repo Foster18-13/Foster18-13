@@ -804,45 +804,6 @@ function hasShiftData(shift) {
   return recordingCount > 0 || balanceCount > 0 || returnsCount > 0 || purchasesCount > 0 || customersCount > 0;
 }
 
-function recoverDayOnlyShiftData(day) {
-  if (!isDayOnlySector()) return;
-  const dayShift = day?.day;
-  const nightShift = day?.night;
-  if (!dayShift || !nightShift) return;
-
-  if (!hasShiftData(dayShift) && hasShiftData(nightShift)) {
-    day.day = structuredClone(nightShift);
-    day.night = {
-      recordingColumns: 3,
-      recording: {},
-      balance: {},
-      returns: [],
-      purchases: [],
-      locked: false,
-      lockedBy: "",
-      lockedAt: 0,
-      closingChecklist: defaultClosingChecklist()
-    };
-  }
-}
-
-function recoverCurrentWaterDayCustomers(day, date) {
-  if (getCurrentSectorId() !== "water") return;
-  if (getSelectedShift() !== "day") return;
-  if (date !== getSelectedDate()) return;
-
-  const dayCustomers = Array.isArray(day?.day?.customers) ? day.day.customers : [];
-  const nightCustomers = Array.isArray(day?.night?.customers) ? day.night.customers : [];
-  if (dayCustomers.length > 0 || nightCustomers.length === 0) return;
-
-  day.day.customers = structuredClone(nightCustomers);
-
-  if (Object.keys(day.day.recording || {}).length === 0 && Object.keys(day.night.recording || {}).length > 0) {
-    day.day.recording = structuredClone(day.night.recording);
-    day.day.recordingColumns = Math.max(asNumber(day.day.recordingColumns) || 3, asNumber(day.night.recordingColumns) || 3);
-  }
-}
-
 function ensureDayStore(data, date) {
   if (!data.daily[date]) {
     data.daily[date] = {
@@ -907,9 +868,6 @@ function ensureDayStore(data, date) {
     if (typeof shift.closingChecklist.lastRunBy !== "string") shift.closingChecklist.lastRunBy = "";
     if (typeof shift.closingChecklist.lastPassedBy !== "string") shift.closingChecklist.lastPassedBy = "";
   });
-
-  recoverDayOnlyShiftData(day);
-  recoverCurrentWaterDayCustomers(day, date);
 
   return day;
 }
