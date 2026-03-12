@@ -76,6 +76,14 @@ function getRoleLabel(role) {
   return 'Clerk';
 }
 
+function normalizeManagedRoleValue(role) {
+  if (typeof normalizeUserRole === 'function') {
+    return normalizeUserRole(role);
+  }
+  const normalized = String(role || 'clerk').toLowerCase().trim();
+  return ['clerk', 'supervisor', 'admin'].includes(normalized) ? normalized : 'clerk';
+}
+
 async function loadUsersForRoleManagement() {
   const select = document.getElementById('roleUserSelect');
   if (!select) return;
@@ -95,15 +103,16 @@ async function loadUsersForRoleManagement() {
     select.innerHTML = users
       .map((entry) => {
         const display = entry.email || entry.username || entry.id;
-        const role = getRoleLabel(entry.role);
-        return `<option value="${entry.id}" data-role="${entry.role || 'clerk'}">${display} (${role})</option>`;
+        const normalizedRole = normalizeManagedRoleValue(entry.role);
+        const role = getRoleLabel(normalizedRole);
+        return `<option value="${entry.id}" data-role="${normalizedRole}">${display} (${role})</option>`;
       })
       .join('');
 
     const roleSelect = document.getElementById('targetRoleSelect');
     if (roleSelect) {
       const selectedOption = select.options[select.selectedIndex];
-      roleSelect.value = selectedOption?.dataset?.role || 'clerk';
+      roleSelect.value = normalizeManagedRoleValue(selectedOption?.dataset?.role || 'clerk');
     }
   } catch (error) {
     console.error('Failed to load users for role management:', error);
@@ -118,9 +127,7 @@ async function saveSelectedUserRole() {
   if (!select || !roleSelect) return;
 
   const userId = select.value;
-  const targetRole = typeof normalizeUserRole === 'function'
-    ? normalizeUserRole(roleSelect.value)
-    : String(roleSelect.value || 'clerk').toLowerCase();
+  const targetRole = normalizeManagedRoleValue(roleSelect.value);
 
   if (!userId) {
     showAccountMessage('Select a user first.', 'error');
@@ -208,7 +215,7 @@ async function initRoleManagement() {
   if (select && roleSelect) {
     select.addEventListener('change', () => {
       const selectedOption = select.options[select.selectedIndex];
-      roleSelect.value = selectedOption?.dataset?.role || 'clerk';
+      roleSelect.value = normalizeManagedRoleValue(selectedOption?.dataset?.role || 'clerk');
     });
   }
 
