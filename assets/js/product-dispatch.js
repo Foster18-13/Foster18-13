@@ -291,7 +291,7 @@ function initSectorTabs() {
 }
 
 function imageElementToDataUrl(imageElement) {
-  if (!imageElement || !imageElement.naturalWidth || !imageElement.naturalHeight) {
+  if (!imageElement?.naturalWidth || !imageElement?.naturalHeight) {
     return null;
   }
 
@@ -372,10 +372,10 @@ async function exportDispatchPdf() {
     doc.text(`Generated: ${new Date().toLocaleString()}`, 15, 32);
 
     if (logoDataUrl) {
-      const logoWidth = 18;
-      const logoHeight = 18;
+      const logoWidth = 24;
+      const logoHeight = 24;
       const logoX = pageWidth - logoWidth - 12;
-      const logoY = 12;
+      const logoY = 8;
       doc.addImage(logoDataUrl, "PNG", logoX, logoY, logoWidth, logoHeight);
     }
     
@@ -390,6 +390,13 @@ async function exportDispatchPdf() {
     doc.setTextColor(150, 150, 150);
     doc.text(`Page ${pageNum}`, pageWidth / 2, pageHeight - 10, { align: "center" });
     doc.text(`Twellium Warehouse Portal`, 15, pageHeight - 10);
+
+    if (logoDataUrl) {
+      const footerLogoSize = 8;
+      const footerLogoX = pageWidth - footerLogoSize - 12;
+      const footerLogoY = pageHeight - footerLogoSize - 12;
+      doc.addImage(logoDataUrl, "PNG", footerLogoX, footerLogoY, footerLogoSize, footerLogoSize);
+    }
     };
 
   // Add header to first page
