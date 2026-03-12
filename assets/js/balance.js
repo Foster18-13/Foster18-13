@@ -181,13 +181,14 @@ document.addEventListener("DOMContentLoaded", () => {
   
   const saveButton = document.getElementById("saveBalance");
   const copyPrevDayButton = document.getElementById("copyPrevDay");
-  const exportButton = document.getElementById("exportBalance");
   const exportPdfButton = document.getElementById("exportBalancePdf");
+
   if (saveButton) {
     saveButton.addEventListener("click", async () => {
       await withLoadingFeedback(saveButton, "Saving...", () => saveBalanceSheet());
     });
   }
+
   if (copyPrevDayButton) {
     copyPrevDayButton.addEventListener("click", async () => {
       if (!confirm("Copy previous day's data to today? This will overwrite current data.")) return;
@@ -221,11 +222,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
   }
-  if (exportButton) {
-    exportButton.addEventListener("click", () => {
-      exportTableAsCsv("balanceTable", "balance_sheet");
-    });
-  }
+
   if (exportPdfButton) {
     exportPdfButton.addEventListener("click", () => {
       exportTableAsPdf("balanceTable", "Daily Balance Sheet", "balance_sheet");
