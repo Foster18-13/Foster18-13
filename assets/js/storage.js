@@ -794,6 +794,37 @@ function defaultClosingChecklist() {
   };
 }
 
+function hasShiftData(shift) {
+  if (!shift || typeof shift !== "object") return false;
+  const recordingCount = Object.keys(shift.recording || {}).length;
+  const balanceCount = Object.keys(shift.balance || {}).length;
+  const returnsCount = Array.isArray(shift.returns) ? shift.returns.length : 0;
+  const purchasesCount = Array.isArray(shift.purchases) ? shift.purchases.length : 0;
+  return recordingCount > 0 || balanceCount > 0 || returnsCount > 0 || purchasesCount > 0;
+}
+
+function recoverDayOnlyShiftData(day) {
+  if (!isDayOnlySector()) return;
+  const dayShift = day?.day;
+  const nightShift = day?.night;
+  if (!dayShift || !nightShift) return;
+
+  if (!hasShiftData(dayShift) && hasShiftData(nightShift)) {
+    day.day = structuredClone(nightShift);
+    day.night = {
+      recordingColumns: 3,
+      recording: {},
+      balance: {},
+      returns: [],
+      purchases: [],
+      locked: false,
+      lockedBy: "",
+      lockedAt: 0,
+      closingChecklist: defaultClosingChecklist()
+    };
+  }
+}
+
 function ensureDayStore(data, date) {
   if (!data.daily[date]) {
     data.daily[date] = {
@@ -858,6 +889,8 @@ function ensureDayStore(data, date) {
     if (typeof shift.closingChecklist.lastPassedBy !== "string") shift.closingChecklist.lastPassedBy = "";
   });
 
+  recoverDayOnlyShiftData(day);
+
   return day;
 }
 
@@ -920,6 +953,14 @@ function getPreviousClosingStock(data, date, productId, shift = null) {
   if (!previousDate) return "";
 
   const previousDay = data.daily[previousDate];
+  if (isDayOnlySector()) {
+    const dayBalance = previousDay?.day?.balance?.[productId] || {};
+    const dayClosingStock = dayBalance.closing;
+    if (dayClosingStock !== null && dayClosingStock !== undefined && dayClosingStock !== "") {
+      return dayClosingStock;
+    }
+  }
+
   if (!previousDay?.night?.balance) return "";
 
   const previousBalance = previousDay.night.balance[productId] || {};
