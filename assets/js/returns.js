@@ -73,6 +73,9 @@ function renderReturnsTable() {
 }
 
 function addReturnEntry(event) {
+  if (typeof ensureEntryPermission === 'function' && !ensureEntryPermission('add return entries')) {
+    return;
+  }
   const productId = document.getElementById("returnProductId").value;
   const waybill = document.getElementById("returnWaybill").value.trim();
   const quantityReturned = document.getElementById("returnQuantity").value;
@@ -121,6 +124,9 @@ function addReturnEntry(event) {
 }
 
 function deleteReturn(id) {
+  if (typeof ensureEntryPermission === 'function' && !ensureEntryPermission('delete return entries')) {
+    return;
+  }
   const data = loadData();
   const date = getSelectedDate();
   const dayStore = getShiftStore(data, date);

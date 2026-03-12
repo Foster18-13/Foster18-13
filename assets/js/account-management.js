@@ -84,6 +84,23 @@ function normalizeManagedRoleValue(role) {
   return ['clerk', 'supervisor', 'admin'].includes(normalized) ? normalized : 'clerk';
 }
 
+function normalizeEntryPermissionValue(value) {
+  return value !== false;
+}
+
+async function isCurrentUserAdminForRoleChanges() {
+  const currentUser = firebase.auth().currentUser;
+  if (!currentUser) return false;
+
+  let role = typeof getCurrentUserRole === 'function' ? getCurrentUserRole() : 'clerk';
+  if (typeof resolveUserRole === 'function') {
+    role = await Promise.resolve(resolveUserRole(currentUser));
+  }
+
+  const isAdminByRole = typeof hasRoleAccess === 'function' ? hasRoleAccess(role, 'admin') : role === 'admin';
+  return isAdminByRole || isBootstrapAdminUser(currentUser);
+}
+
 async function loadUsersForRoleManagement() {
   const select = document.getElementById('roleUserSelect');
   if (!select) return;
@@ -172,14 +189,19 @@ async function loadUsersForRoleManagement() {
         const display = entry.email || entry.username || entry.id;
         const normalizedRole = normalizeManagedRoleValue(entry.role);
         const role = getRoleLabel(normalizedRole);
-        return `<option value="${entry.id}" data-role="${normalizedRole}">${display} (${role})</option>`;
+        const canMakeEntries = normalizeEntryPermissionValue(entry.canMakeEntries);
+        return `<option value="${entry.id}" data-role="${normalizedRole}" data-can-make-entries="${canMakeEntries ? '1' : '0'}">${display} (${role})</option>`;
       })
       .join('');
 
     const roleSelect = document.getElementById('targetRoleSelect');
+    const canMakeEntriesCheckbox = document.getElementById('canMakeEntriesCheckbox');
     if (roleSelect) {
       const selectedOption = select.options[select.selectedIndex];
       roleSelect.value = normalizeManagedRoleValue(selectedOption?.dataset?.role || 'clerk');
+      if (canMakeEntriesCheckbox) {
+        canMakeEntriesCheckbox.checked = (selectedOption?.dataset?.canMakeEntries || '1') !== '0';
+      }
     }
   } catch (error) {
     console.error('Failed to load users for role management:', error);
@@ -194,10 +216,18 @@ async function loadUsersForRoleManagement() {
 async function saveSelectedUserRole() {
   const select = document.getElementById('roleUserSelect');
   const roleSelect = document.getElementById('targetRoleSelect');
-  if (!select || !roleSelect) return;
+  const canMakeEntriesCheckbox = document.getElementById('canMakeEntriesCheckbox');
+  if (!select || !roleSelect || !canMakeEntriesCheckbox) return;
+
+  const isAdmin = await isCurrentUserAdminForRoleChanges();
+  if (!isAdmin) {
+    showAccountMessage('Only admins can change roles and entry permissions.', 'error');
+    return;
+  }
 
   const userId = select.value;
   const targetRole = normalizeManagedRoleValue(roleSelect.value);
+  const targetCanMakeEntries = !!canMakeEntriesCheckbox.checked;
 
   if (!userId) {
     showAccountMessage('Select a user first.', 'error');
@@ -207,6 +237,7 @@ async function saveSelectedUserRole() {
   try {
     await firebase.firestore().collection('users').doc(userId).set({
       role: targetRole,
+      canMakeEntries: targetCanMakeEntries,
       updatedAt: new Date().toISOString()
     }, { merge: true });
 
@@ -215,24 +246,26 @@ async function saveSelectedUserRole() {
 
     if (selectedOption) {
       selectedOption.dataset.role = targetRole;
+      selectedOption.dataset.canMakeEntries = targetCanMakeEntries ? '1' : '0';
       const withoutRole = targetLabel.replace(/\s+\([^)]*\)\s*$/, '');
       selectedOption.textContent = `${withoutRole} (${getRoleLabel(targetRole)})`;
     }
 
     const currentUser = firebase.auth().currentUser;
     if (currentUser && currentUser.uid === userId && typeof saveUserAuthState === 'function') {
-      saveUserAuthState(currentUser, targetRole);
+      saveUserAuthState(currentUser, targetRole, targetCanMakeEntries);
     }
 
     if (typeof addAuditLog === 'function') {
       addAuditLog('User role updated', {
         targetUserId: userId,
         target: targetLabel,
-        role: targetRole
+        role: targetRole,
+        canMakeEntries: targetCanMakeEntries
       });
     }
 
-    showAccountMessage('User role updated successfully.', 'ok');
+    showAccountMessage('User role and entry permission updated successfully.', 'ok');
   } catch (error) {
     console.error('Failed to save user role:', error);
     showAccountMessage('Failed to update user role.', 'error');
@@ -275,6 +308,7 @@ async function initRoleManagement() {
   const saveButton = document.getElementById('saveRoleBtn');
   const select = document.getElementById('roleUserSelect');
   const roleSelect = document.getElementById('targetRoleSelect');
+  const canMakeEntriesCheckbox = document.getElementById('canMakeEntriesCheckbox');
 
   if (refreshButton) {
     refreshButton.addEventListener('click', loadUsersForRoleManagement);
@@ -286,6 +320,9 @@ async function initRoleManagement() {
     select.addEventListener('change', () => {
       const selectedOption = select.options[select.selectedIndex];
       roleSelect.value = normalizeManagedRoleValue(selectedOption?.dataset?.role || 'clerk');
+      if (canMakeEntriesCheckbox) {
+        canMakeEntriesCheckbox.checked = (selectedOption?.dataset?.canMakeEntries || '1') !== '0';
+      }
     });
   }
 

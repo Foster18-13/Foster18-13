@@ -76,6 +76,10 @@ function renderDamagesTable() {
 function addDamageRecord(event) {
   event.preventDefault();
 
+  if (typeof ensureEntryPermission === 'function' && !ensureEntryPermission('add damage entries')) {
+    return;
+  }
+
   const productId = document.getElementById("productIdDamage").value;
   const quantity = Number.parseFloat(document.getElementById("damageQuantity").value);
   const reason = document.getElementById("damageReason").value;
@@ -127,6 +131,9 @@ function addDamageRecord(event) {
 }
 
 function deleteDamage(id) {
+  if (typeof ensureEntryPermission === 'function' && !ensureEntryPermission('delete damage entries')) {
+    return;
+  }
   if (!confirm("Delete this damage record?")) return;
 
   const data = loadData();

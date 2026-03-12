@@ -85,6 +85,9 @@ function initPurchaseBatchMode() {
 }
 
 function addPurchaseBatchEntries(event) {
+  if (typeof ensureEntryPermission === 'function' && !ensureEntryPermission('add purchase entries')) {
+    return;
+  }
   const waybill = document.getElementById("batchWaybill").value.trim();
   const vehicleNumber = document.getElementById("batchVehicleNumber").value.trim();
   const dateReceived = document.getElementById("batchDateReceived").value;
@@ -148,6 +151,9 @@ function addPurchaseBatchEntries(event) {
 }
 
 function deletePurchase(id) {
+  if (typeof ensureEntryPermission === 'function' && !ensureEntryPermission('delete purchase entries')) {
+    return;
+  }
   const data = loadData();
   const date = getSelectedDate();
   const dayStore = getShiftStore(data, date);

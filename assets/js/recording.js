@@ -173,6 +173,9 @@ function queueRecordingPersist(delay = 1200) {
 }
 
 function saveRecordingSheet(options = {}) {
+  if (typeof ensureEntryPermission === 'function' && !ensureEntryPermission('save recording entries')) {
+    return;
+  }
   const { silent = false, logAudit = true } = options;
   const data = loadData();
   const date = getSelectedDate();
@@ -204,6 +207,9 @@ function saveRecordingSheet(options = {}) {
 }
 
 function addRecordingColumn() {
+  if (typeof ensureEntryPermission === 'function' && !ensureEntryPermission('add recording columns')) {
+    return;
+  }
   const data = loadData();
   const date = getSelectedDate();
   const dayStore = getShiftStore(data, date);

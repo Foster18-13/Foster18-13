@@ -91,6 +91,10 @@ function normalizeUserRole(role) {
   return USER_ROLE_PRIORITY[normalized] ? normalized : DEFAULT_USER_ROLE;
 }
 
+function normalizeCanMakeEntries(value) {
+  return value !== false;
+}
+
 async function isUserApproved(user) {
   if (!user?.uid || !globalThis.firebase?.firestore) return false;
 
@@ -145,6 +149,45 @@ async function getDefaultRoleForNewUser(email = "") {
   return DEFAULT_USER_ROLE;
 }
 
+function persistResolvedAuthState(user, role, canMakeEntries) {
+  if (typeof saveUserAuthState === 'function') {
+    saveUserAuthState(user, role, canMakeEntries);
+  }
+}
+
+async function initializeMissingUserProfile(usersRef, user, role, canMakeEntries) {
+  try {
+    await usersRef.set({
+      username: user.displayName || user.email || '',
+      email: user.email || '',
+      uid: user.uid,
+      role,
+      canMakeEntries,
+      approved: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+  } catch (error) {
+    console.error('Failed to initialize user profile in Firestore:', error);
+  }
+}
+
+async function syncRoleAndEntryPermission(usersRef, docData, role, canMakeEntries) {
+  const needsRoleSync = role !== docData?.role;
+  const needsEntrySync = docData?.canMakeEntries === undefined;
+  if (!needsRoleSync && !needsEntrySync) return;
+
+  try {
+    await usersRef.set({
+      role,
+      canMakeEntries,
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+  } catch (error) {
+    console.error('Failed to sync user role in Firestore:', error);
+  }
+}
+
 async function resolveUserRole(user) {
   if (!user?.uid || !globalThis.firebase?.firestore) return DEFAULT_USER_ROLE;
 
@@ -155,34 +198,18 @@ async function resolveUserRole(user) {
 
     if (!doc.exists) {
       const role = forcedAdmin ? "admin" : DEFAULT_USER_ROLE;
-      try {
-        await usersRef.set({
-          username: user.displayName || user.email || '',
-          email: user.email || '',
-          uid: user.uid,
-          role,
-          approved: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }, { merge: true });
-      } catch (error) {
-        console.error('Failed to initialize user profile in Firestore:', error);
-      }
+      const canMakeEntries = true;
+      await initializeMissingUserProfile(usersRef, user, role, canMakeEntries);
+      persistResolvedAuthState(user, role, canMakeEntries);
       return role;
     }
 
+    const docData = doc.data() || {};
     const currentRole = normalizeUserRole(doc.data()?.role);
     const role = forcedAdmin ? "admin" : currentRole;
-    if (role !== doc.data()?.role) {
-      try {
-        await usersRef.set({
-          role,
-          updatedAt: new Date().toISOString()
-        }, { merge: true });
-      } catch (error) {
-        console.error('Failed to sync user role in Firestore:', error);
-      }
-    }
+    const canMakeEntries = normalizeCanMakeEntries(docData.canMakeEntries);
+    await syncRoleAndEntryPermission(usersRef, docData, role, canMakeEntries);
+    persistResolvedAuthState(user, role, canMakeEntries);
 
     return role;
   } catch (error) {
@@ -272,6 +299,7 @@ function setupRegistrationForm() {
         username: username,
         email: email,
         role,
+        canMakeEntries: true,
         approved: true,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -324,15 +352,20 @@ function setupRegistrationForm() {
   });
 }
 
-function saveUserAuthState(user, role = "") {
+function saveUserAuthState(user, role, canMakeEntries) {
   try {
+    const current = getCurrentUser();
     const resolvedRole = normalizeUserRole(role || getCurrentUserRole());
+    const resolvedCanMakeEntries = typeof canMakeEntries === "boolean"
+      ? canMakeEntries
+      : normalizeCanMakeEntries(current?.canMakeEntries);
     const authState = {
       authenticated: true,
       uid: user.uid,
       email: user.email,
       displayName: user.displayName,
       role: resolvedRole,
+      canMakeEntries: resolvedCanMakeEntries,
       time: new Date().toISOString()
     };
     sessionStorage.setItem(USER_AUTH_STORAGE_KEY, JSON.stringify(authState));
@@ -345,6 +378,11 @@ function saveUserAuthState(user, role = "") {
 function getCurrentUserRole() {
   const current = getCurrentUser();
   return normalizeUserRole(current?.role);
+}
+
+function getCurrentUserCanMakeEntries() {
+  const current = getCurrentUser();
+  return normalizeCanMakeEntries(current?.canMakeEntries);
 }
 
 function getCurrentUser() {
@@ -377,6 +415,7 @@ globalThis.logoutUser = logoutUser;
 globalThis.saveUserAuthState = saveUserAuthState;
 globalThis.getCurrentUser = getCurrentUser;
 globalThis.getCurrentUserRole = getCurrentUserRole;
+globalThis.getCurrentUserCanMakeEntries = getCurrentUserCanMakeEntries;
 globalThis.resolveUserRole = resolveUserRole;
 globalThis.normalizeUserRole = normalizeUserRole;
 globalThis.hasRoleAccess = hasRoleAccess;

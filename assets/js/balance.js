@@ -117,6 +117,9 @@ function attachBalanceCalculations() {
 }
 
 function saveBalanceSheet() {
+  if (typeof ensureEntryPermission === 'function' && !ensureEntryPermission('save balance entries')) {
+    return;
+  }
   const data = loadData();
   const date = getSelectedDate();
   const dayStore = getShiftStore(data, date);
@@ -195,6 +198,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (copyPrevDayButton) {
     copyPrevDayButton.addEventListener("click", async () => {
+      if (typeof ensureEntryPermission === 'function' && !ensureEntryPermission('copy entries from previous day')) {
+        return;
+      }
       if (!confirm("Copy previous day's data to today? This will overwrite current data.")) return;
       await withLoadingFeedback(copyPrevDayButton, "Copying...", () => {
         const data = loadData();

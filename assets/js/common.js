@@ -52,6 +52,19 @@ function currentUserRole() {
   return "clerk";
 }
 
+function currentUserCanMakeEntries() {
+  if (typeof getCurrentUserCanMakeEntries === "function") {
+    return !!getCurrentUserCanMakeEntries();
+  }
+  return true;
+}
+
+function ensureEntryPermission(actionLabel = "perform this action") {
+  if (currentUserCanMakeEntries()) return true;
+  setStatus(`You are not allowed to ${actionLabel}. Contact an admin to enable entry permission.`, "error");
+  return false;
+}
+
 function roleAllowsPage(role, pageName) {
   const minRole = getMinimumRoleForPage(pageName);
   if (typeof hasRoleAccess === "function") {
@@ -223,6 +236,8 @@ function initSharedHeader() {
   initDayLockControls();
   initGlobalSearch();
 }
+
+globalThis.ensureEntryPermission = ensureEntryPermission;
 
 function shiftWorkingDate(days) {
   const current = getSelectedDate() || todayISO();
