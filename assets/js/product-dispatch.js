@@ -177,15 +177,35 @@ function buildDispatchTableHtml(rows) {
     const entries = grouped.get(productName) || [];
     totalEntries += entries.length;
 
-    entries.forEach((entry, index) => {
+    // Group entries in pairs (2 entries per row)
+    const pairCount = Math.ceil(entries.length / 2);
+    
+    for (let pairIndex = 0; pairIndex < pairCount; pairIndex++) {
       html += "<tr>";
-      if (index === 0) {
-        html += `<td class="dispatch-product-cell" rowspan="${entries.length}">${escapeDispatchHtml(productName)}</td>`;
+      
+      // Add product name only on first row of this product
+      if (pairIndex === 0) {
+        html += `<td class="dispatch-product-cell" rowspan="${pairCount}">${escapeDispatchHtml(productName)}</td>`;
       }
-      html += `<td>${escapeDispatchHtml(entry.waybill)}</td>`;
-      html += `<td>${escapeDispatchHtml(entry.qty)}</td>`;
+      
+      // First entry of the pair
+      const entry1 = entries[pairIndex * 2];
+      html += `<td>${escapeDispatchHtml(entry1.waybill)}</td>`;
+      html += `<td>${escapeDispatchHtml(entry1.qty)}</td>`;
+      
+      // Second entry of the pair (if exists)
+      const entry2 = entries[pairIndex * 2 + 1];
+      if (entry2) {
+        html += `<td>${escapeDispatchHtml(entry2.waybill)}</td>`;
+        html += `<td>${escapeDispatchHtml(entry2.qty)}</td>`;
+      } else {
+        // Empty cells if no second entry in pair
+        html += "<td></td>";
+        html += "<td></td>";
+      }
+      
       html += "</tr>";
-    });
+    }
   }
 
   return {
@@ -434,8 +454,10 @@ async function exportDispatchPdf() {
       },
       columnStyles: {
         0: { cellWidth: 85, halign: "left" },
-        1: { cellWidth: 75, halign: "center" },
-        2: { cellWidth: 25, halign: "center" }
+        1: { cellWidth: 50, halign: "center" },
+        2: { cellWidth: 20, halign: "center" },
+        3: { cellWidth: 50, halign: "center" },
+        4: { cellWidth: 20, halign: "center" }
       },
       didDrawPage: () => {
         const pageNum = doc.internal.getNumberOfPages();
