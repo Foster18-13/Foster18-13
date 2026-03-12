@@ -66,10 +66,14 @@ function attachBalanceCalculations() {
 
     const applyRemarkFlag = (remarkValue) => {
       if (Math.abs(remarkValue) > 10) {
-        remarkInput.style.backgroundColor = '#fff3cd';
+        remarkInput.classList.add("input-flag");
+        row.classList.add("flag-row");
+        remarkInput.dataset.flag = "true";
         remarkInput.title = 'Variance over 10 detected';
       } else {
-        remarkInput.style.backgroundColor = '';
+        remarkInput.classList.remove("input-flag");
+        row.classList.remove("flag-row");
+        delete remarkInput.dataset.flag;
         remarkInput.title = '';
       }
     };
@@ -88,10 +92,10 @@ function attachBalanceCalculations() {
 
       // Real-time validation styling
       if (asNumber(closingInput.value) < 0) {
-        closingInput.style.borderColor = '#dc3545';
+        closingInput.classList.add("input-error");
         closingInput.title = 'Closing stock cannot be negative';
       } else {
-        closingInput.style.borderColor = '';
+        closingInput.classList.remove("input-error");
         closingInput.title = '';
       }
 
