@@ -800,7 +800,8 @@ function hasShiftData(shift) {
   const balanceCount = Object.keys(shift.balance || {}).length;
   const returnsCount = Array.isArray(shift.returns) ? shift.returns.length : 0;
   const purchasesCount = Array.isArray(shift.purchases) ? shift.purchases.length : 0;
-  return recordingCount > 0 || balanceCount > 0 || returnsCount > 0 || purchasesCount > 0;
+  const customersCount = Array.isArray(shift.customers) ? shift.customers.length : 0;
+  return recordingCount > 0 || balanceCount > 0 || returnsCount > 0 || purchasesCount > 0 || customersCount > 0;
 }
 
 function recoverDayOnlyShiftData(day) {
@@ -875,6 +876,7 @@ function ensureDayStore(data, date) {
     if (!shift.balance || typeof shift.balance !== "object") shift.balance = {};
     if (!Array.isArray(shift.returns)) shift.returns = [];
     if (!Array.isArray(shift.purchases)) shift.purchases = [];
+    if (!Array.isArray(shift.customers)) shift.customers = [];
     if (!Number.isInteger(shift.recordingColumns) || shift.recordingColumns < 1) shift.recordingColumns = 3;
     if (typeof shift.locked !== "boolean") shift.locked = false;
     if (typeof shift.lockedBy !== "string") shift.lockedBy = "";
@@ -943,56 +945,31 @@ function getPreviousDateISO(date) {
   return formatDateToLocalISO(targetDate);
 }
 
+function hasStockValue(value) {
+  return value !== null && value !== undefined && value !== "";
+}
+
+function getClosingFromShift(shiftStore, productId) {
+  const closing = shiftStore?.balance?.[productId]?.closing;
+  return hasStockValue(closing) ? closing : "";
+}
+
 function getPreviousClosingStock(data, date, productId, shift = null) {
   const selectedShift = shift || getSelectedShift();
-  
-  // For night shift, get current day's day shift closing
+
   if (selectedShift === "night") {
-    const currentDay = data.daily[date];
-    if (currentDay?.day?.balance) {
-      const dayBalance = currentDay.day.balance[productId] || {};
-      const closingStock = dayBalance.closing;
-      if (closingStock !== null && closingStock !== undefined && closingStock !== "") {
-        return closingStock;
-      }
-    }
-    return "";
+    return getClosingFromShift(data.daily?.[date]?.day, productId);
   }
-  
-  // For day shift, get previous day's night shift closing (fallback to day closing if needed)
+
   const previousDate = getPreviousDateISO(date);
   if (!previousDate) return "";
 
   const previousDay = data.daily[previousDate];
-  const previousNightBalance = previousDay?.night?.balance?.[productId] || {};
-  const previousNightClosing = previousNightBalance.closing;
-  if (previousNightClosing !== null && previousNightClosing !== undefined && previousNightClosing !== "") {
-    return previousNightClosing;
-  }
+  const previousNightClosing = getClosingFromShift(previousDay?.night, productId);
+  if (hasStockValue(previousNightClosing)) return previousNightClosing;
 
-  const previousDayBalance = previousDay?.day?.balance?.[productId] || {};
-  const previousDayClosing = previousDayBalance.closing;
-  if (previousDayClosing !== null && previousDayClosing !== undefined && previousDayClosing !== "") {
-    return previousDayClosing;
-  }
-
-  if (isDayOnlySector()) {
-    const dayBalance = previousDay?.day?.balance?.[productId] || {};
-    const dayClosingStock = dayBalance.closing;
-    if (dayClosingStock !== null && dayClosingStock !== undefined && dayClosingStock !== "") {
-      return dayClosingStock;
-    }
-  }
-
-  if (!previousDay?.night?.balance) return "";
-
-  const previousBalance = previousDay.night.balance[productId] || {};
-  const closingStock = previousBalance.closing;
-  if (closingStock === null || closingStock === undefined || closingStock === "") {
-    return "";
-  }
-
-  return closingStock;
+  const previousDayClosing = getClosingFromShift(previousDay?.day, productId);
+  return hasStockValue(previousDayClosing) ? previousDayClosing : "";
 }
 
 function getProductById(data, productId) {
