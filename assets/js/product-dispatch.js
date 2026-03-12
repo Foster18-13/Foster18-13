@@ -292,7 +292,7 @@ function initSectorTabs() {
 
 function exportDispatchPdf() {
   // Try to get jsPDF from multiple locations (UMD bundle compatibility)
-  const jsPDF = window.jspdf?.jsPDF || window.jsPDF;
+  const jsPDF = globalThis.jspdf?.jsPDF || globalThis.jsPDF;
   
   if (!jsPDF) {
     alert("PDF export library is not loaded. Please refresh the page and try again.");
