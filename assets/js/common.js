@@ -735,6 +735,8 @@ function getTableDataForExport(tableId) {
 
 function exportTableAsPdfFile(tableId, title, filePrefix) {
   const date = getSelectedDate();
+  const shift = getSelectedShift();
+  const shiftLabel = shift === "night" ? "Night" : "Day";
   const { headers, rows } = getTableDataForExport(tableId);
   if (!headers.length || !rows.length) {
     return false;
@@ -750,7 +752,7 @@ function exportTableAsPdfFile(tableId, title, filePrefix) {
   doc.setFontSize(14);
   doc.text(title, 40, 36);
   doc.setFontSize(10);
-  doc.text(`Date: ${date}`, 40, 54);
+  doc.text(`Date: ${date} | Shift: ${shiftLabel}`, 40, 54);
 
   if (typeof doc.autoTable !== "function") {
     return false;
@@ -783,7 +785,7 @@ function exportTableAsPdfFile(tableId, title, filePrefix) {
     }
   });
 
-  doc.save(`${filePrefix}_${date}.pdf`);
+  doc.save(`${filePrefix}_${date}_${shift}.pdf`);
   return true;
 }
 
@@ -801,6 +803,8 @@ function exportTableAsPdf(tableId, title, filePrefix) {
   }
 
   const date = getSelectedDate();
+  const shift = getSelectedShift();
+  const shiftLabel = shift === "night" ? "Night" : "Day";
   const popup = window.open("", "_blank");
   if (!popup) {
     setStatus("Please allow popups to export PDF.", "error");
@@ -808,7 +812,7 @@ function exportTableAsPdf(tableId, title, filePrefix) {
   }
 
   const doc = popup.document;
-  doc.title = `${filePrefix}_${date}`;
+  doc.title = `${filePrefix}_${date}_${shift}`;
 
   const style = doc.createElement("style");
   style.textContent = `
@@ -825,7 +829,7 @@ function exportTableAsPdf(tableId, title, filePrefix) {
   heading.textContent = title;
 
   const dateLine = doc.createElement("p");
-  dateLine.textContent = `Date: ${date}`;
+  dateLine.textContent = `Date: ${date} | Shift: ${shiftLabel}`;
 
   doc.head.innerHTML = "";
   doc.head.appendChild(style);
