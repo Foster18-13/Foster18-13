@@ -91,8 +91,28 @@ async function loadUsersForRoleManagement() {
   select.innerHTML = '<option value="">Loading users...</option>';
 
   try {
-    const snapshot = await firebase.firestore().collection('users').limit(300).get();
-    const users = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    let users = [];
+
+    try {
+      const approvedSnapshot = await firebase
+        .firestore()
+        .collection('users')
+        .where('approved', '==', true)
+        .limit(300)
+        .get();
+
+      users = approvedSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    } catch (queryError) {
+      const fallbackSnapshot = await firebase
+        .firestore()
+        .collection('users')
+        .limit(300)
+        .get();
+
+      users = fallbackSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      console.warn('Approved-users query failed, fallback query used for role management:', queryError);
+    }
+
     users.sort((a, b) => String(a.email || a.username || '').localeCompare(String(b.email || b.username || '')));
 
     if (!users.length) {
@@ -117,7 +137,10 @@ async function loadUsersForRoleManagement() {
   } catch (error) {
     console.error('Failed to load users for role management:', error);
     select.innerHTML = '<option value="">Failed to load users</option>';
-    showAccountMessage('Failed to load users for role management.', 'error');
+    const message = error?.code === 'permission-denied'
+      ? 'Failed to load users: Firestore permissions are blocking access to user records.'
+      : 'Failed to load users for role management.';
+    showAccountMessage(message, 'error');
   }
 }
 
