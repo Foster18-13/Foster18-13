@@ -67,6 +67,13 @@
       </section>
 
       <section class="card">
+        <h2 class="card-title">Select Sector</h2>
+        <p class="card-subtitle">All sectors are available here on the home page. Pick one to start work.</p>
+        <p id="homeSectorStatus" class="status"></p>
+        <div id="homeSectorButtons" class="toolbar" data-requires-auth="true"></div>
+      </section>
+
+      <section class="card">
         <h2 class="card-title">Daily Workflow</h2>
         <p class="card-subtitle">Recommended order for accurate day-end reporting.</p>
         <ol>
@@ -89,15 +96,73 @@
   <script src="assets/js/cloud-sync.js?v=20260313"></script>
   <script src="assets/js/theme-toggle.js"></script>
   <script>
+    function initHomeSectorSelector(user) {
+      const container = document.getElementById('homeSectorButtons');
+      const status = document.getElementById('homeSectorStatus');
+      if (!container || !status) return;
+
+      const sectors = Array.isArray(globalThis.WAREHOUSE_SECTORS) && globalThis.WAREHOUSE_SECTORS.length
+        ? globalThis.WAREHOUSE_SECTORS
+        : [
+          { id: 'water', label: 'Water & Beverages' },
+          { id: 'hh', label: 'H&H Products' },
+          { id: 'mcberry', label: 'Mcberry Products' }
+        ];
+
+      const selectedSector = typeof getCurrentWorkSector === 'function' ? getCurrentWorkSector() : 'water';
+
+      container.innerHTML = sectors.map((sector) => {
+        const isActive = sector.id === selectedSector;
+        const classNames = isActive ? 'button button-primary' : 'button';
+        const activeTag = isActive ? ' ✓' : '';
+        return `<button class="${classNames}" type="button" data-sector-id="${sector.id}">${sector.label}${activeTag}</button>`;
+      }).join('');
+
+      if (!user) {
+        status.textContent = 'Sign in to choose a sector.';
+        status.className = 'status error';
+        return;
+      }
+
+      const selectedLabel = sectors.find((item) => item.id === selectedSector)?.label || selectedSector;
+      status.textContent = `Current sector: ${selectedLabel}`;
+      status.className = 'status ok';
+
+      container.querySelectorAll('[data-sector-id]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const sectorId = button.dataset.sectorId;
+          if (!sectorId) return;
+
+          if (typeof setCurrentWorkSector === 'function') {
+            setCurrentWorkSector(sectorId);
+          }
+          if (typeof clearSectorSelectionPending === 'function') {
+            clearSectorSelectionPending();
+          }
+
+          const nextLabel = sectors.find((item) => item.id === sectorId)?.label || sectorId;
+          status.textContent = `Sector selected: ${nextLabel}. Opening dashboard...`;
+          status.className = 'status ok';
+
+          setTimeout(() => {
+            globalThis.location.href = 'dashboard.html';
+          }, 150);
+        });
+      });
+    }
+
     // Setup user controls in header
     firebase.auth().onAuthStateChanged((user) => {
       const userControls = document.getElementById('userControls');
+      initHomeSectorSelector(user);
       if (user) {
         userControls.innerHTML = `
           <span style="font-size: 14px; color: var(--text);">Welcome, <strong>${user.displayName || user.email}</strong></span>
           <a class="button" href="account.html" style="padding: 0.5rem 1rem; text-decoration: none; display: inline-block;">Account</a>
           <button class="button" onclick="logoutUser()">Logout</button>
         `;
+      } else if (userControls) {
+        userControls.innerHTML = '';
       }
     });
   </script>
