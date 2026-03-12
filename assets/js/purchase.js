@@ -180,7 +180,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const batchForm = document.getElementById("purchaseBatchForm");
   const addBatchRowButton = document.getElementById("addPurchaseBatchRow");
   const batchRowsContainer = document.getElementById("purchaseBatchRows");
-  const exportButton = document.getElementById("exportPurchase");
   const exportPdfButton = document.getElementById("exportPurchasePdf");
 
   if (addBatchRowButton) {
@@ -212,11 +211,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  if (exportButton) {
-    exportButton.addEventListener("click", () => {
-      exportTableAsCsv("purchaseTable", "purchase_sheet");
-    });
-  }
   if (exportPdfButton) {
     exportPdfButton.addEventListener("click", () => {
       exportTableAsPdf("purchaseTable", "Purchase Sheet", "purchase_sheet");
