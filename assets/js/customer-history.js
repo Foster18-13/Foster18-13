@@ -9,45 +9,41 @@ function searchCustomerHistory() {
 
   const data = loadData();
   const allResults = [];
+  let dailyStores = {};
+  if (data?.daily && typeof data.daily === "object") {
+    dailyStores = data.daily;
+  } else if (data?.dailyStores && typeof data.dailyStores === "object") {
+    dailyStores = data.dailyStores;
+  }
+
+  const currentSector = typeof getCurrentWorkSector === "function" ? getCurrentWorkSector() : "water";
+
+  const collectShiftResults = (date, shiftLabel, shiftStore) => {
+    if (!Array.isArray(shiftStore?.customers)) return;
+
+    shiftStore.customers.forEach((customer) => {
+      const customerName = String(customer?.customerName || "");
+      if (!customerName.toLowerCase().includes(searchTerm)) return;
+
+      const product = getProductById(data, customer.productId);
+      allResults.push({
+        date,
+        shift: shiftLabel,
+        customerName,
+        waybillNumber: customer.waybillNumber || "",
+        productName: product ? product.name : 'Unknown Product',
+        quantity: Number(customer.quantity || 0),
+        dateDelivered: customer.dateDelivered || ""
+      });
+    });
+  };
 
   // Search across all dates
-  Object.keys(data.dailyStores || {}).forEach(date => {
-    const dayStore = data.dailyStores[date];
-    
-    // Search day shift
-    if (dayStore.day?.customers) {
-      dayStore.day.customers.forEach(customer => {
-        if (customer.customerName.toLowerCase().includes(searchTerm)) {
-          const product = getProductById(data, customer.productId);
-          allResults.push({
-            date: date,
-            shift: 'Day',
-            customerName: customer.customerName,
-            waybillNumber: customer.waybillNumber,
-            productName: product ? product.name : 'Unknown Product',
-            quantity: customer.quantity,
-            dateDelivered: customer.dateDelivered
-          });
-        }
-      });
-    }
-
-    // Search night shift
-    if (dayStore.night?.customers) {
-      dayStore.night.customers.forEach(customer => {
-        if (customer.customerName.toLowerCase().includes(searchTerm)) {
-          const product = getProductById(data, customer.productId);
-          allResults.push({
-            date: date,
-            shift: 'Night',
-            customerName: customer.customerName,
-            waybillNumber: customer.waybillNumber,
-            productName: product ? product.name : 'Unknown Product',
-            quantity: customer.quantity,
-            dateDelivered: customer.dateDelivered
-          });
-        }
-      });
+  Object.keys(dailyStores).forEach((date) => {
+    const dayStore = dailyStores[date] || {};
+    collectShiftResults(date, 'Day', dayStore.day);
+    if (currentSector !== "hh") {
+      collectShiftResults(date, 'Night', dayStore.night);
     }
   });
 
