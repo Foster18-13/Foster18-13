@@ -234,6 +234,7 @@ function initSharedHeader() {
   applyRoleNavAccess(currentUserRole());
 
   enforceSectorShiftRules();
+  initSectorSwitcher();
 
   // Set print date
   const printDateElement = document.getElementById("printDate");
@@ -271,6 +272,68 @@ function initSharedHeader() {
 
   initDayLockControls();
   initGlobalSearch();
+}
+
+function initSectorSwitcher() {
+  const controls = document.querySelector(".topbar-controls");
+  if (!controls) return;
+
+  if (document.getElementById("sectorSwitcher")) return;
+
+  const sectors = Array.isArray(globalThis.WAREHOUSE_SECTORS) && globalThis.WAREHOUSE_SECTORS.length
+    ? globalThis.WAREHOUSE_SECTORS
+    : [
+      { id: "water", label: "Water & Beverages" },
+      { id: "hh", label: "H&H Products" },
+      { id: "mcberry", label: "Mcberry Products" }
+    ];
+
+  if (!sectors.length) return;
+
+  const currentSector = typeof getCurrentWorkSector === "function" ? getCurrentWorkSector() : "water";
+
+  const label = document.createElement("label");
+  label.setAttribute("for", "sectorSwitcher");
+  label.textContent = "Sector";
+
+  const select = document.createElement("select");
+  select.id = "sectorSwitcher";
+  select.className = "select";
+  select.style.minWidth = "180px";
+
+  select.innerHTML = sectors
+    .map((sector) => `<option value="${sector.id}">${sector.label || sector.id}</option>`)
+    .join("");
+  select.value = currentSector;
+
+  const dateLabel = controls.querySelector('label[for="workingDate"]');
+  if (dateLabel) {
+    dateLabel.before(label);
+    label.after(select);
+  } else {
+    controls.prepend(select);
+    controls.prepend(label);
+  }
+
+  select.addEventListener("change", () => {
+    const nextSector = String(select.value || "").trim().toLowerCase();
+    if (!nextSector || nextSector === currentSector) return;
+
+    if (typeof setCurrentWorkSector === "function") {
+      setCurrentWorkSector(nextSector);
+    }
+    if (typeof clearSectorSelectionPending === "function") {
+      clearSectorSelectionPending();
+    }
+
+    if (typeof setStatus === "function") {
+      setStatus("Sector changed. Reloading...", "ok");
+    }
+
+    globalThis.setTimeout(() => {
+      location.reload();
+    }, 120);
+  });
 }
 
 function enforceSectorShiftRules() {
