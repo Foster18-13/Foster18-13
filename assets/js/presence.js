@@ -98,9 +98,7 @@
   function buildLiveChannelKey() {
     const sector = sanitizePart(getCurrentSector());
     const page = sanitizePart(getCurrentPageFile());
-    const date = sanitizePart(getSelectedDateSafe() || "global");
-    const shift = sanitizePart(getSelectedShiftSafe() || "all");
-    return `${sector}__${page}__${date}__${shift}`;
+    return `${sector}__${page}`;
   }
 
   function hashString(input) {
@@ -121,7 +119,36 @@
     if (name) {
       return { mode: "name", value: name };
     }
+    const path = buildElementPath(el);
+    if (path) {
+      return { mode: "path", value: path };
+    }
     return null;
+  }
+
+  function buildElementPath(el) {
+    try {
+      const parts = [];
+      let current = el;
+      let guard = 0;
+      while (current && current !== document.body && guard < 12) {
+        const tag = String(current.tagName || "").toLowerCase();
+        if (!tag) break;
+        let index = 1;
+        let sibling = current;
+        while ((sibling = sibling.previousElementSibling)) {
+          if (String(sibling.tagName || "").toLowerCase() === tag) {
+            index += 1;
+          }
+        }
+        parts.unshift(`${tag}:nth-of-type(${index})`);
+        current = current.parentElement;
+        guard += 1;
+      }
+      return parts.length ? parts.join(" > ") : "";
+    } catch {
+      return "";
+    }
   }
 
   function getFieldKeyFromDescriptor(descriptor) {
@@ -254,6 +281,9 @@
     }
     if (descriptor.mode === "name") {
       return document.querySelector(`[name="${CSS.escape(descriptor.value)}"]`);
+    }
+    if (descriptor.mode === "path") {
+      return document.querySelector(descriptor.value);
     }
     return null;
   }
