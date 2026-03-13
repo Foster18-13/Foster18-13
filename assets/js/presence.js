@@ -97,8 +97,19 @@
 
   function buildLiveChannelKey() {
     const sector = sanitizePart(getCurrentSector());
-    const page = sanitizePart(getCurrentPageFile());
-    return `${sector}__${page}`;
+    return `${sector}`;
+  }
+
+  function cssEscapeSafe(value) {
+    const text = String(value || "");
+    try {
+      if (globalThis.CSS && typeof globalThis.CSS.escape === "function") {
+        return globalThis.CSS.escape(text);
+      }
+    } catch {
+      // ignore
+    }
+    return text.replaceAll(/(["\\])/g, (match) => `\\${match}`);
   }
 
   function hashString(input) {
@@ -280,7 +291,7 @@
       return document.getElementById(descriptor.value);
     }
     if (descriptor.mode === "name") {
-      return document.querySelector(`[name="${CSS.escape(descriptor.value)}"]`);
+      return document.querySelector(`[name="${cssEscapeSafe(descriptor.value)}"]`);
     }
     if (descriptor.mode === "path") {
       return document.querySelector(descriptor.value);
@@ -292,7 +303,7 @@
     if (!state || !descriptor) return;
 
     if (descriptor.mode === "name" && state.kind === "radio") {
-      const radios = document.querySelectorAll(`[name="${CSS.escape(descriptor.value)}"]`);
+      const radios = document.querySelectorAll(`[name="${cssEscapeSafe(descriptor.value)}"]`);
       for (const radio of radios) {
         const shouldCheck = String(radio.value || "") === String(state.value || "");
         radio.checked = shouldCheck;
@@ -307,6 +318,7 @@
 
     if (state.kind === "checkbox") {
       el.checked = !!state.checked;
+      el.dispatchEvent(new Event("change", { bubbles: true }));
       return;
     }
     if (state.kind === "select-multiple" && el.options) {
@@ -314,10 +326,13 @@
       for (const option of el.options) {
         option.selected = set.has(String(option.value || ""));
       }
+      el.dispatchEvent(new Event("change", { bubbles: true }));
       return;
     }
 
     el.value = String(state.value ?? "");
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+    el.dispatchEvent(new Event("change", { bubbles: true }));
   }
 
   function ensureLiveInputsListener() {
