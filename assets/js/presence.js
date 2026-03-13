@@ -23,6 +23,7 @@
   let _initialized          = false;
   const _fieldBroadcastTimers = new Map();
   const _fieldLastAppliedTs = new Map();
+  const _lastLocalFieldState = new Map();
 
   // ── helpers ──────────────────────────────────────────────────────────────
 
@@ -285,6 +286,36 @@
     return { kind: "value", value: String(el.value ?? "") };
   }
 
+  function isStateEmpty(state) {
+    if (!state || typeof state !== "object") return true;
+    if (state.kind === "checkbox") return !state.checked;
+    if (state.kind === "radio") return !state.checked;
+    if (state.kind === "select-multiple") {
+      return !Array.isArray(state.values) || state.values.length === 0;
+    }
+    return String(state.value ?? "").trim() === "";
+  }
+
+  function applyStateToElementDirect(el, state) {
+    if (!el || !state) return;
+    if (state.kind === "checkbox") {
+      el.checked = !!state.checked;
+      return;
+    }
+    if (state.kind === "radio") {
+      el.checked = !!state.checked;
+      return;
+    }
+    if (state.kind === "select-multiple" && el.options) {
+      const set = new Set(Array.isArray(state.values) ? state.values.map(String) : []);
+      for (const option of el.options) {
+        option.selected = set.has(String(option.value || ""));
+      }
+      return;
+    }
+    el.value = String(state.value ?? "");
+  }
+
   function findTargetElement(descriptor) {
     if (!descriptor?.mode || !descriptor?.value) return null;
     if (descriptor.mode === "id") {
@@ -299,7 +330,7 @@
     return null;
   }
 
-  function applyRemoteStateToElement(descriptor, state) {
+  function applyRemoteStateToElement(descriptor, state, intent = "update") {
     if (!state || !descriptor) return;
 
     if (descriptor.mode === "name" && state.kind === "radio") {
@@ -315,6 +346,11 @@
     if (!el) return;
 
     if (document.activeElement === el) return;
+
+    const currentState = readElementState(el);
+    if (!isStateEmpty(currentState) && isStateEmpty(state) && intent !== "delete") {
+      return;
+    }
 
     if (state.kind === "checkbox") {
       el.checked = !!state.checked;
@@ -363,7 +399,7 @@
           const lastApplied = Number(_fieldLastAppliedTs.get(fieldKey) || 0);
           if (updatedAt <= lastApplied) continue;
 
-          applyRemoteStateToElement(payload.descriptor, payload.state);
+          applyRemoteStateToElement(payload.descriptor, payload.state, payload.intent || "update");
           _fieldLastAppliedTs.set(fieldKey, updatedAt);
         }
       } finally {
@@ -382,7 +418,7 @@
     _liveChannelKey = "";
   }
 
-  function pushFieldUpdate(el) {
+  function pushFieldUpdate(el, intent = "update") {
     if (!_currentUid || _suppressLocalBroadcast) return;
 
     const descriptor = getElementDescriptor(el);
@@ -405,6 +441,7 @@
         [fieldKey]: {
           descriptor,
           state: readElementState(el),
+          intent,
           updatedAt: Date.now(),
           updatedBy: _currentUid,
           updatedByName: _currentName
@@ -417,7 +454,7 @@
     });
   }
 
-  function queueFieldUpdate(el) {
+  function queueFieldUpdate(el, intent = "update") {
     const descriptor = getElementDescriptor(el);
     const fieldKey = getFieldKeyFromDescriptor(descriptor);
     if (!fieldKey) return;
@@ -429,7 +466,7 @@
 
     const timer = setTimeout(() => {
       _fieldBroadcastTimers.delete(fieldKey);
-      pushFieldUpdate(el);
+      pushFieldUpdate(el, intent);
     }, LIVE_PUSH_DEBOUNCE_MS);
 
     _fieldBroadcastTimers.set(fieldKey, timer);
@@ -446,7 +483,32 @@
 
     const tag = String(target.tagName || "").toLowerCase();
     if (tag !== "input" && tag !== "textarea" && tag !== "select") return;
-    queueFieldUpdate(target);
+
+    const descriptor = getElementDescriptor(target);
+    const fieldKey = getFieldKeyFromDescriptor(descriptor);
+    const nextState = readElementState(target);
+    const prevState = fieldKey ? _lastLocalFieldState.get(fieldKey) : null;
+
+    if (event.type === "change" && fieldKey && prevState && !isStateEmpty(prevState) && isStateEmpty(nextState)) {
+      const confirmDelete = globalThis.confirm("This action will delete an entered value. Continue?");
+      if (!confirmDelete) {
+        _suppressLocalBroadcast = true;
+        try {
+          applyStateToElementDirect(target, prevState);
+        } finally {
+          _suppressLocalBroadcast = false;
+        }
+        return;
+      }
+      _lastLocalFieldState.set(fieldKey, nextState);
+      queueFieldUpdate(target, "delete");
+      return;
+    }
+
+    if (fieldKey) {
+      _lastLocalFieldState.set(fieldKey, nextState);
+    }
+    queueFieldUpdate(target, "update");
   }
 
   // ── listen for others ────────────────────────────────────────────────────
