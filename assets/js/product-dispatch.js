@@ -378,6 +378,13 @@ async function exportDispatchPdf() {
     const sectorLabel = getDispatchSectorLabel(dispatchSectorId);
     const dateLabel = document.getElementById("workingDate")?.value || todayISO();
     const allDates = !!document.getElementById("allDatesToggle")?.checked;
+    const selectedShift = document.getElementById("shiftSelector")?.value || "day";
+    let shiftLabel = "Day";
+    if (allDates) {
+      shiftLabel = "All Shifts";
+    } else if (selectedShift === "night") {
+      shiftLabel = "Night";
+    }
 
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
@@ -391,11 +398,12 @@ async function exportDispatchPdf() {
     doc.setFontSize(8);
     doc.setTextColor(80, 80, 80);
     doc.text(`Sector: ${sectorLabel}`, 15, 20);
+    doc.text(`Shift: ${shiftLabel}`, 15, 24);
     
     doc.setFontSize(7.5);
     doc.setTextColor(100, 100, 100);
-    doc.text(`Date: ${allDates ? "All Dates" : dateLabel}`, 15, 24);
-    doc.text(`Generated: ${new Date().toLocaleString()}`, 15, 28);
+    doc.text(`Date: ${allDates ? "All Dates" : dateLabel}`, 15, 28);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 15, 32);
 
     if (logoDataUrl) {
       const logoWidth = 16;
@@ -407,7 +415,7 @@ async function exportDispatchPdf() {
     
     // Horizontal line
     doc.setDrawColor(150, 150, 150);
-    doc.line(5, 30, pageWidth - 5, 30);
+    doc.line(5, 34, pageWidth - 5, 34);
   };
 
   // Add footer with page numbers
@@ -432,8 +440,8 @@ async function exportDispatchPdf() {
     if (table && typeof doc.autoTable === "function") {
       doc.autoTable({
       html: table,
-      startY: 32,
-      margin: { top: 32, right: 5, bottom: 8, left: 5 },
+      startY: 36,
+      margin: { top: 36, right: 5, bottom: 8, left: 5 },
       styles: {
         fontSize: 7,
         cellPadding: 1.2,
@@ -487,7 +495,8 @@ async function exportDispatchPdf() {
     }
 
     const safeSectorLabel = sectorLabel.replaceAll(/\s+/g, "_").toLowerCase();
-    doc.save(`product_dispatch_${safeSectorLabel}_${dateLabel}.pdf`);
+    const safeShiftLabel = shiftLabel.replaceAll(/\s+/g, "_").toLowerCase();
+    doc.save(`product_dispatch_${safeSectorLabel}_${dateLabel}_${safeShiftLabel}.pdf`);
     setStatus("PDF exported successfully.", "ok");
   } catch (error) {
     console.error("PDF export error:", error);

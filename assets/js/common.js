@@ -926,10 +926,82 @@ function getTableDataForExport(tableId) {
   return { headers, rows };
 }
 
-function exportTableAsPdfFile(tableId, title, filePrefix) {
+function getCurrentSectorMeta() {
+  const sectors = Array.isArray(globalThis.WAREHOUSE_SECTORS) && globalThis.WAREHOUSE_SECTORS.length
+    ? globalThis.WAREHOUSE_SECTORS
+    : [
+      { id: "water", label: "Water & Beverages" },
+      { id: "hh", label: "H&H Products" },
+      { id: "mcberry", label: "Mcberry Products" }
+    ];
+
+  const sectorImages = {
+    water: "assets/images/sector-water.png",
+    hh: "assets/images/sector-hh.png",
+    mcberry: "assets/images/sector-mcberry.png"
+  };
+
+  const currentSector = typeof getCurrentWorkSector === "function" ? getCurrentWorkSector() : "water";
+  const sectorMeta = sectors.find((sector) => sector.id === currentSector) || { id: currentSector, label: currentSector };
+  const logoSrc = sectorImages[sectorMeta.id] || "assets/images/logo.png";
+
+  return {
+    id: sectorMeta.id,
+    label: sectorMeta.label || currentSector,
+    logoSrc
+  };
+}
+
+function imageElementToDataUrl(imageElement) {
+  if (!imageElement?.naturalWidth || !imageElement?.naturalHeight) {
+    return null;
+  }
+
+  try {
+    const canvas = document.createElement("canvas");
+    canvas.width = imageElement.naturalWidth;
+    canvas.height = imageElement.naturalHeight;
+    const context = canvas.getContext("2d");
+    if (!context) return null;
+
+    context.drawImage(imageElement, 0, 0);
+    return canvas.toDataURL("image/png");
+  } catch (error) {
+    console.debug("Unable to convert image to data URL for PDF export:", error);
+    return null;
+  }
+}
+
+function loadImageFromSource(src) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+    image.src = src;
+  });
+}
+
+async function resolveCurrentSectorLogoDataUrl(logoSrc) {
+  const activeLogo = document.querySelector("#activeSectorBadge .sector-header-logo");
+  const fromBadge = imageElementToDataUrl(activeLogo);
+  if (fromBadge) {
+    return fromBadge;
+  }
+
+  try {
+    const loadedImage = await loadImageFromSource(logoSrc);
+    return imageElementToDataUrl(loadedImage);
+  } catch (error) {
+    console.debug("Sector logo not available for PDF export:", error);
+    return null;
+  }
+}
+
+async function exportTableAsPdfFile(tableId, title, filePrefix) {
   const date = getSelectedDate();
   const shift = getSelectedShift();
   const shiftLabel = shift === "night" ? "Night" : "Day";
+  const sectorMeta = getCurrentSectorMeta();
   const { headers, rows } = getTableDataForExport(tableId);
   if (!headers.length || !rows.length) {
     return false;
@@ -941,11 +1013,17 @@ function exportTableAsPdfFile(tableId, title, filePrefix) {
   }
 
   const doc = new jsPdfClass({ orientation: "portrait", unit: "pt", format: "a4" });
+  const logoDataUrl = await resolveCurrentSectorLogoDataUrl(sectorMeta.logoSrc);
 
   doc.setFontSize(14);
-  doc.text(title, 40, 36);
+  doc.text(title, 40, 34);
   doc.setFontSize(10);
-  doc.text(`Date: ${date} | Shift: ${shiftLabel}`, 40, 54);
+  doc.text(`Sector: ${sectorMeta.label}`, 40, 50);
+  doc.text(`Date: ${date} | Shift: ${shiftLabel}`, 40, 64);
+
+  if (logoDataUrl) {
+    doc.addImage(logoDataUrl, "PNG", 520, 18, 48, 48);
+  }
 
   if (typeof doc.autoTable !== "function") {
     return false;
@@ -954,8 +1032,8 @@ function exportTableAsPdfFile(tableId, title, filePrefix) {
   doc.autoTable({
     head: [headers],
     body: rows,
-    startY: 70,
-    margin: { top: 70, right: 20, bottom: 20, left: 20 },
+    startY: 82,
+    margin: { top: 82, right: 20, bottom: 20, left: 20 },
     styles: { 
       fontSize: 9, 
       cellPadding: 5,
@@ -982,22 +1060,23 @@ function exportTableAsPdfFile(tableId, title, filePrefix) {
   return true;
 }
 
-function exportTableAsPdf(tableId, title, filePrefix) {
+async function exportTableAsPdf(tableId, title, filePrefix) {
   const printableTable = buildPrintableTableHtml(tableId);
   if (!printableTable) {
     setStatus("Nothing to export.", "error");
     return;
   }
 
-  const pdfDownloaded = exportTableAsPdfFile(tableId, title, filePrefix);
+  const date = getSelectedDate();
+  const shift = getSelectedShift();
+  const shiftLabel = shift === "night" ? "Night" : "Day";
+  const sectorMeta = getCurrentSectorMeta();
+  const pdfDownloaded = await exportTableAsPdfFile(tableId, title, filePrefix);
   if (pdfDownloaded) {
     setStatus("PDF downloaded to your files.", "ok");
     return;
   }
 
-  const date = getSelectedDate();
-  const shift = getSelectedShift();
-  const shiftLabel = shift === "night" ? "Night" : "Day";
   const popup = window.open("", "_blank");
   if (!popup) {
     setStatus("Please allow popups to export PDF.", "error");
@@ -1010,6 +1089,9 @@ function exportTableAsPdf(tableId, title, filePrefix) {
   const style = doc.createElement("style");
   style.textContent = `
     body { font-family: Arial, sans-serif; padding: 16px; color: #1f2a37; }
+    .pdf-header { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-bottom: 12px; }
+    .pdf-header-text { min-width: 0; }
+    .pdf-logo { width: 48px; height: 48px; object-fit: contain; }
     h1 { margin: 0 0 6px; font-size: 20px; }
     p { margin: 0 0 14px; color: #4b5d73; font-size: 12px; }
     table { width: 100%; border-collapse: collapse; }
@@ -1021,14 +1103,33 @@ function exportTableAsPdf(tableId, title, filePrefix) {
   const heading = doc.createElement("h1");
   heading.textContent = title;
 
+  const sectorLine = doc.createElement("p");
+  sectorLine.textContent = `Sector: ${sectorMeta.label}`;
+
   const dateLine = doc.createElement("p");
   dateLine.textContent = `Date: ${date} | Shift: ${shiftLabel}`;
+
+  const headerWrap = doc.createElement("div");
+  headerWrap.className = "pdf-header";
+
+  const headerTextWrap = doc.createElement("div");
+  headerTextWrap.className = "pdf-header-text";
+  headerTextWrap.appendChild(heading);
+  headerTextWrap.appendChild(sectorLine);
+  headerTextWrap.appendChild(dateLine);
+
+  const logo = doc.createElement("img");
+  logo.className = "pdf-logo";
+  logo.alt = "Sector logo";
+  logo.src = sectorMeta.logoSrc;
+
+  headerWrap.appendChild(headerTextWrap);
+  headerWrap.appendChild(logo);
 
   doc.head.innerHTML = "";
   doc.head.appendChild(style);
   doc.body.innerHTML = "";
-  doc.body.appendChild(heading);
-  doc.body.appendChild(dateLine);
+  doc.body.appendChild(headerWrap);
   doc.body.insertAdjacentHTML("beforeend", printableTable);
 
   popup.focus();
