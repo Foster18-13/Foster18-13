@@ -1971,3 +1971,84 @@ input[data-total] {
     }
   }
 }
+
+/* ── Real-Time Typing Presence Toast ─────────────────────────────────────── */
+.presence-toast-container {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 11000;
+  pointer-events: none;
+}
+
+.presence-typing-toast {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #1a1f2e;
+  color: #e6edf3;
+  padding: 10px 16px;
+  border-radius: 24px;
+  font-size: 13px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  max-width: 360px;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  pointer-events: none;
+}
+
+.presence-typing-toast.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.presence-typing-message {
+  line-height: 1.4;
+}
+
+.presence-typing-message strong {
+  color: #58a6ff;
+}
+
+.presence-typing-message em {
+  color: #adbac7;
+  font-style: normal;
+}
+
+/* Animated typing dots */
+.presence-typing-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: #58a6ff;
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: presenceDotBounce 1.2s infinite ease-in-out;
+}
+
+.presence-typing-dot:nth-child(1) { animation-delay: 0s; }
+.presence-typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.presence-typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes presenceDotBounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.6; }
+  30%           { transform: translateY(-5px); opacity: 1; }
+}
+
+[data-theme="dark"] .presence-typing-toast {
+  background: #161b22;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.55);
+}
+
+@media (max-width: 520px) {
+  .presence-toast-container {
+    bottom: 16px;
+    left: 12px;
+    right: 12px;
+  }
+  .presence-typing-toast {
+    max-width: 100%;
+    font-size: 12px;
+  }
+}
