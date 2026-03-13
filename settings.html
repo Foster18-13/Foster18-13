@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settings | Twellium Warehouse Portal</title>
+  <link rel="stylesheet" href="assets/css/style.css?v=20260224_v2" />
+  <style>
+    .settings-saved {
+      display: none;
+      margin-bottom: 12px;
+    }
+
+    .settings-panel {
+      display: block;
+    }
+
+    .settings-panel + .settings-panel {
+      margin-top: 12px;
+    }
+
+    .settings-title {
+      margin-top: 0;
+    }
+
+    .settings-note {
+      text-align: left;
+      margin-top: 8px;
+    }
+
+    .settings-actions {
+      margin-top: 14px;
+    }
+  </style>
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <img src="assets/images/logo.png" alt="TWI DZW Logo" class="logo">
+        <div class="brand-text">
+          <h1>Twellium Industrial Company Limited</h1>
+          <p>Warehouse Daily Recording Portal</p>
+        </div>
+      </div>
+      <div class="topbar-controls">
+        <button class="sidebar-toggle" id="sidebarToggle" type="button" title="Toggle Navigation">≡</button>
+        <button class="button" id="themeToggle" type="button">🌙 Dark</button>
+        <div id="userControls" class="topbar-user-controls"></div>
+      </div>
+    </div>
+  </header>
+
+  <div id="sidebarOverlay" class="sidebar-overlay"></div>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <nav class="main-nav">
+        <a href="home.html">🏠 Home</a>
+        <a href="dashboard.html">📊 Dashboard</a>
+        <a href="balance.html">📋 Balance Sheet</a>
+        <a href="returns.html">↩️ Returns Sheet</a>
+        <a href="summary.html">📄 Summary Sheet</a>
+        <a href="purchase.html">🛒 Purchase Sheet</a>
+        <a href="customers.html">👥 Customers Entry</a>
+        <a href="product-dispatch.html">📦 Product Dispatch</a>
+        <a href="period-reports.html">📆 Period Reports</a>
+        <a href="notebook.html">📓 Notes for the Day</a>
+        <a href="products.html">📦 Products</a>
+        <a href="profile.html">🏢 Company Profile</a>
+        <a href="account.html">⚙️ Account</a>
+        <a href="settings.html">🛠️ Settings</a>
+      </nav>
+    </aside>
+
+    <main class="page">
+      <section class="card">
+        <h2 class="card-title">Portal Settings</h2>
+        <p class="card-subtitle">Control your preferred behavior for this device/browser.</p>
+
+        <div id="settingsSaved" class="status ok settings-saved">Settings saved.</div>
+
+        <div class="panel-muted settings-panel">
+          <h3 class="settings-title">Appearance</h3>
+          <div class="form-group">
+            <label for="themeMode" class="form-label">Theme Mode</label>
+            <select id="themeMode" class="select">
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="panel-muted settings-panel">
+          <h3 class="settings-title">Data Safety</h3>
+          <label class="entry-permission-row" for="confirmDeleteToggle">
+            <input id="confirmDeleteToggle" type="checkbox" checked />
+            <span>Require confirmation before clearing entered values</span>
+          </label>
+          <p class="text-note-muted settings-note">
+            Recommended: Keep this on to avoid accidental deletion.
+          </p>
+        </div>
+
+        <div class="toolbar settings-actions">
+          <button class="button button-primary" id="saveSettingsBtn" type="button">Save Settings</button>
+          <button class="button" id="resetSettingsBtn" type="button">Reset to Default</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="assets/js/firebase-config.js"></script>
+  <script src="assets/js/user-auth.js"></script>
+  <script src="assets/js/storage.js"></script>
+  <script src="assets/js/common.js"></script>
+  <script src="assets/js/cloud-sync.js?v=20260313b"></script>
+  <script src="assets/js/theme-toggle.js"></script>
+  <script>
+    const SETTINGS_KEYS = {
+      theme: 'twellium_theme',
+      confirmDelete: 'twellium_require_delete_confirm'
+    };
+
+    function loadSettings() {
+      const theme = localStorage.getItem(SETTINGS_KEYS.theme) || 'light';
+      const confirmDelete = localStorage.getItem(SETTINGS_KEYS.confirmDelete);
+
+      document.getElementById('themeMode').value = theme;
+      document.getElementById('confirmDeleteToggle').checked = confirmDelete !== '0';
+    }
+
+    function saveSettings() {
+      const theme = document.getElementById('themeMode').value;
+      const confirmDelete = document.getElementById('confirmDeleteToggle').checked;
+
+      localStorage.setItem(SETTINGS_KEYS.theme, theme);
+      localStorage.setItem(SETTINGS_KEYS.confirmDelete, confirmDelete ? '1' : '0');
+
+      if (typeof applyTheme === 'function') {
+        applyTheme(theme);
+      }
+      if (typeof updateThemeButton === 'function') {
+        updateThemeButton();
+      }
+
+      const saved = document.getElementById('settingsSaved');
+      saved.style.display = 'block';
+      setTimeout(() => {
+        saved.style.display = 'none';
+      }, 1800);
+    }
+
+    function resetSettings() {
+      localStorage.setItem(SETTINGS_KEYS.theme, 'light');
+      localStorage.setItem(SETTINGS_KEYS.confirmDelete, '1');
+      loadSettings();
+      saveSettings();
+    }
+
+    firebase.auth().onAuthStateChanged((user) => {
+      const userControls = document.getElementById('userControls');
+      if (user) {
+        userControls.innerHTML = `
+          <span style="font-size: 14px; color: var(--text);">Welcome, <strong>${user.displayName || user.email}</strong></span>
+          <a class="button" href="account.html" style="padding: 0.5rem 1rem; text-decoration: none; display: inline-block;">Account</a>
+          <button class="button" onclick="logoutUser()">Logout</button>
+        `;
+      } else if (userControls) {
+        userControls.innerHTML = '';
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadSettings();
+      document.getElementById('saveSettingsBtn').addEventListener('click', saveSettings);
+      document.getElementById('resetSettingsBtn').addEventListener('click', resetSettings);
+    });
+  </script>
+</body>
+
+</html>

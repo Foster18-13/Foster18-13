@@ -330,33 +330,27 @@
     return null;
   }
 
-  function applyRemoteStateToElement(descriptor, state, intent = "update") {
-    if (!state || !descriptor) return;
-
-    if (descriptor.mode === "name" && state.kind === "radio") {
-      const radios = document.querySelectorAll(`[name="${cssEscapeSafe(descriptor.value)}"]`);
-      for (const radio of radios) {
-        const shouldCheck = String(radio.value || "") === String(state.value || "");
-        radio.checked = shouldCheck;
-      }
-      return;
+  function applyRadioByName(descriptor, state) {
+    const radios = document.querySelectorAll(`[name="${cssEscapeSafe(descriptor.value)}"]`);
+    for (const radio of radios) {
+      const shouldCheck = String(radio.value || "") === String(state.value || "");
+      radio.checked = shouldCheck;
     }
+  }
 
-    const el = findTargetElement(descriptor);
-    if (!el) return;
-
-    if (document.activeElement === el) return;
-
+  function shouldSkipRemoteOverwrite(el, state, intent) {
+    if (document.activeElement === el) return true;
     const currentState = readElementState(el);
-    if (!isStateEmpty(currentState) && isStateEmpty(state) && intent !== "delete") {
-      return;
-    }
+    return !isStateEmpty(currentState) && isStateEmpty(state) && intent !== "delete";
+  }
 
+  function applyStateWithEvents(el, state) {
     if (state.kind === "checkbox") {
       el.checked = !!state.checked;
       el.dispatchEvent(new Event("change", { bubbles: true }));
       return;
     }
+
     if (state.kind === "select-multiple" && el.options) {
       const set = new Set(Array.isArray(state.values) ? state.values.map(String) : []);
       for (const option of el.options) {
@@ -369,6 +363,21 @@
     el.value = String(state.value ?? "");
     el.dispatchEvent(new Event("input", { bubbles: true }));
     el.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  function applyRemoteStateToElement(descriptor, state, intent = "update") {
+    if (!state || !descriptor) return;
+
+    if (descriptor.mode === "name" && state.kind === "radio") {
+      applyRadioByName(descriptor, state);
+      return;
+    }
+
+    const el = findTargetElement(descriptor);
+    if (!el) return;
+
+    if (shouldSkipRemoteOverwrite(el, state, intent)) return;
+    applyStateWithEvents(el, state);
   }
 
   function ensureLiveInputsListener() {
@@ -489,8 +498,12 @@
     const nextState = readElementState(target);
     const prevState = fieldKey ? _lastLocalFieldState.get(fieldKey) : null;
 
+    const requireDeleteConfirm = localStorage.getItem("twellium_require_delete_confirm") !== "0";
+
     if (event.type === "change" && fieldKey && prevState && !isStateEmpty(prevState) && isStateEmpty(nextState)) {
-      const confirmDelete = globalThis.confirm("This action will delete an entered value. Continue?");
+      const confirmDelete = requireDeleteConfirm
+        ? globalThis.confirm("This action will delete an entered value. Continue?")
+        : true;
       if (!confirmDelete) {
         _suppressLocalBroadcast = true;
         try {
