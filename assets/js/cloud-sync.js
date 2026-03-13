@@ -185,10 +185,6 @@ async function pullFromCloudIfNewer(forceCheck = false) {
   console.log("[Cloud Sync] Attempting to pull from cloud...");
   cloudSyncState.pullInProgress = true;
   try {
-    // Clear any pending push operations
-    globalThis.clearTimeout(cloudSyncState.debounceTimer);
-    cloudSyncState.debounceTimer = null;
-    
     const snapshot = await docRef.get();
     if (!snapshot.exists) {
       console.log("[Cloud Sync] Cloud document does not exist yet");
@@ -213,6 +209,10 @@ async function pullFromCloudIfNewer(forceCheck = false) {
     console.log("[Cloud Sync] Pull check:", {localUpdatedAt, cloudUpdatedAt, shouldRecover: shouldRecoverFromCloud});
 
     if (cloudUpdatedAt > localUpdatedAt || shouldRecoverFromCloud) {
+      // Cancel any pending push before overwriting local with cloud data
+      globalThis.clearTimeout(cloudSyncState.debounceTimer);
+      cloudSyncState.debounceTimer = null;
+
       saveData(cloudData, true); // Preserve timestamp to avoid sync loop
       cloudSyncState.lastPullTime = Date.now(); // Record pull time
       cloudSyncState.lastSeenCloudUpdatedAt = cloudUpdatedAt;
@@ -457,6 +457,23 @@ async function flushCloudPushBeforeSignOut() {
   }
 }
 globalThis.flushCloudPushBeforeSignOut = flushCloudPushBeforeSignOut;
+
+// Flush pending push when user hides/closes the tab without signing out
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden" && cloudSyncState.user && cloudSyncState.debounceTimer !== null) {
+    globalThis.clearTimeout(cloudSyncState.debounceTimer);
+    cloudSyncState.debounceTimer = null;
+    pushLocalToCloud(true).catch(() => {});
+  }
+});
+
+globalThis.addEventListener("beforeunload", () => {
+  if (cloudSyncState.user && cloudSyncState.debounceTimer !== null) {
+    globalThis.clearTimeout(cloudSyncState.debounceTimer);
+    cloudSyncState.debounceTimer = null;
+    pushLocalToCloud(true).catch(() => {});
+  }
+});
 
 async function handleCloudSignOut() {
   if (!cloudSyncState.auth) return;
