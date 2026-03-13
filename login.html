@@ -528,6 +528,41 @@
       }
     }
 
+    function mapLoginErrorToMessage(error) {
+      const code = error?.code || '';
+      const host = globalThis.location?.hostname || 'this domain';
+
+      if (code === 'auth/user-not-found') {
+        return 'No account found with this email. Please register first.';
+      }
+      if (code === 'auth/wrong-password') {
+        return 'Incorrect password.';
+      }
+      if (code === 'auth/invalid-email') {
+        return 'Invalid email address.';
+      }
+      if (code === 'auth/invalid-credential' || code === 'auth/invalid-user-credential') {
+        return 'Invalid email or password. Please check and try again.';
+      }
+      if (code === 'auth/too-many-requests') {
+        return 'Too many failed login attempts. Please try again later.';
+      }
+      if (code === 'auth/user-disabled') {
+        return 'This account has been disabled. Contact an administrator.';
+      }
+      if (code === 'auth/operation-not-allowed') {
+        return 'Email/password login is disabled in Firebase Authentication. Please enable it in the Firebase Console.';
+      }
+      if (code === 'auth/network-request-failed') {
+        return 'Network error while signing in. Check your internet connection and try again.';
+      }
+      if (code === 'auth/unauthorized-domain') {
+        return `This domain is not authorized for Firebase Auth. Add ${host} to Authorized Domains in Firebase Authentication settings.`;
+      }
+
+      return error?.message || 'Login failed. Please try again.';
+    }
+
     // Redirect if already logged in
     firebase.auth().onAuthStateChanged(async (user) => {
       if (user) {
@@ -593,19 +628,7 @@
 
         console.error('Login error:', error.code, error.message);
 
-        if (error.code === 'auth/user-not-found') {
-          errorDiv.textContent = 'No account found with this email. Please register first.';
-        } else if (error.code === 'auth/wrong-password') {
-          errorDiv.textContent = 'Incorrect password.';
-        } else if (error.code === 'auth/invalid-email') {
-          errorDiv.textContent = 'Invalid email address.';
-        } else if (error.code === 'auth/invalid-credential' || error.code === 'auth/invalid-user-credential') {
-          errorDiv.textContent = 'Invalid email or password. Please check and try again.';
-        } else if (error.code === 'auth/too-many-requests') {
-          errorDiv.textContent = 'Too many failed login attempts. Please try again later.';
-        } else {
-          errorDiv.textContent = error.message || 'Login failed. Please try again.';
-        }
+        errorDiv.textContent = mapLoginErrorToMessage(error);
         errorDiv.style.display = 'block';
       }
     });
