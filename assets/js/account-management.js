@@ -661,6 +661,9 @@ async function deleteUserAccount() {
       });
     }
 
+    if (typeof globalThis.flushCloudPushBeforeSignOut === 'function') {
+      try { await globalThis.flushCloudPushBeforeSignOut(); } catch { /* don't block sign-out */ }
+    }
     await firebase.auth().signOut();
     clearUserAuthState();
 

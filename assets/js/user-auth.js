@@ -536,7 +536,10 @@ function clearUserAuthState() {
   clearSectorSelectionPending();
 }
 
-function logoutUser() {
+async function logoutUser() {
+  if (typeof globalThis.flushCloudPushBeforeSignOut === 'function') {
+    try { await globalThis.flushCloudPushBeforeSignOut(); } catch { /* don't block logout */ }
+  }
   firebase.auth().signOut().then(() => {
     clearUserAuthState();
     globalThis.location.href = 'login.html';

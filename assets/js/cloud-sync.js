@@ -300,15 +300,17 @@ function startRealtimeCloudListener() {
   );
 }
 
-async function pushLocalToCloud() {
+async function pushLocalToCloud(force = false) {
   if (!cloudSyncState.user || cloudSyncState.pushing) return;
   const docRef = getCloudDocRef();
   if (!docRef) return;
 
   // Don't push within 5 seconds of pulling to avoid loops
-  const timeSinceLastPull = Date.now() - cloudSyncState.lastPullTime;
-  if (timeSinceLastPull < 5000) {
-    return;
+  if (!force) {
+    const timeSinceLastPull = Date.now() - cloudSyncState.lastPullTime;
+    if (timeSinceLastPull < 5000) {
+      return;
+    }
   }
 
   cloudSyncState.pushing = true;
@@ -431,6 +433,30 @@ async function handleCloudSignIn() {
     setCloudStatus(message, "error");
   }
 }
+
+async function flushCloudPushBeforeSignOut() {
+  if (!cloudSyncState.user || !cloudSyncState.enabled) return;
+  globalThis.clearTimeout(cloudSyncState.debounceTimer);
+  cloudSyncState.debounceTimer = null;
+  if (cloudSyncState.pushing) {
+    await new Promise((resolve) => {
+      const start = Date.now();
+      const check = setInterval(() => {
+        if (!cloudSyncState.pushing || Date.now() - start > 3000) {
+          clearInterval(check);
+          resolve();
+        }
+      }, 50);
+    });
+    return;
+  }
+  try {
+    await pushLocalToCloud(true);
+  } catch (error) {
+    console.warn("[Cloud Sync] Pre-sign-out push failed:", error?.message || error);
+  }
+}
+globalThis.flushCloudPushBeforeSignOut = flushCloudPushBeforeSignOut;
 
 async function handleCloudSignOut() {
   if (!cloudSyncState.auth) return;
