@@ -22,6 +22,7 @@ function syncDamageTotalsToBalance(dayStore) {
     const currentBalance = dayStore.balance[productId] || {};
     dayStore.balance[productId] = {
       ...currentBalance,
+      damages: totalsByProduct[productId] || 0,
       damaged: totalsByProduct[productId] || 0
     };
   });
@@ -30,6 +31,7 @@ function syncDamageTotalsToBalance(dayStore) {
     const currentBalance = dayStore.balance[productId] || {};
     dayStore.balance[productId] = {
       ...currentBalance,
+      damages: total,
       damaged: total
     };
   });

@@ -3,8 +3,14 @@ function renderDashboard() {
   const date = getSelectedDate();
   const dayStore = getShiftStore(data, date);
   const activeProducts = getActiveProductsForDate(data, date);
+  const productIdByName = activeProducts.reduce((lookup, product) => {
+    const key = String(product?.name || '').trim().toLowerCase();
+    if (key) lookup[key] = product.id;
+    return lookup;
+  }, {});
   const damageTotalsByProduct = (dayStore.damageReasons || []).reduce((totals, damage) => {
-    const productId = damage?.productId;
+    const productNameKey = String(damage?.productName || '').trim().toLowerCase();
+    const productId = damage?.productId || productIdByName[productNameKey];
     if (!productId) return totals;
     totals[productId] = (totals[productId] || 0) + asNumber(damage.quantity);
     return totals;
@@ -32,7 +38,7 @@ function renderDashboard() {
     const opening = asNumber(balance.opening);
     const returns = asNumber(balance.returns);
     const delivered = recording.entries.reduce((sum, entry) => sum + asNumber(entry.qty || 0), 0);
-    const damagedFromBalance = asNumber(balance.damaged);
+    const damagedFromBalance = Math.max(asNumber(balance.damages), asNumber(balance.damaged));
     const damagedFromRecords = asNumber(damageTotalsByProduct[product.id]);
     const damaged = Math.max(damagedFromBalance, damagedFromRecords);
     const received = getGoodsReceivedForProduct(dayStore, product.id);
@@ -67,9 +73,16 @@ function renderDashboard() {
   // Count purchases
   totalReceived = dayStore.purchases.reduce((sum, p) => sum + asNumber(p.quantityReceived || p.pallets), 0);
 
-  if (totalDamaged === 0 && dayStore.damageReasons?.length) {
-    totalDamaged = dayStore.damageReasons.reduce((sum, damage) => sum + asNumber(damage.quantity), 0);
-  }
+  const damageFromBalances = activeProducts.reduce((sum, product) => {
+    const balance = dayStore.balance[product.id] || {};
+    return sum + Math.max(asNumber(balance.damages), asNumber(balance.damaged));
+  }, 0);
+
+  const damageFromRecords = (dayStore.damageReasons || []).reduce((sum, damage) => {
+    return sum + asNumber(damage.quantity);
+  }, 0);
+
+  totalDamaged = Math.max(totalDamaged, damageFromBalances, damageFromRecords);
 
   // Count customers
   const totalCustomers = dayStore.customers ? dayStore.customers.length : 0;
