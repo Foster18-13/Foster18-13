@@ -569,9 +569,7 @@ function initCloudSync() {
   }
 }
 
-document.addEventListener("DOMContentLoaded", initCloudSync);
-
-// Also try to initialize immediately in case DOM is already ready
+// Initialize once depending on DOM readiness
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initCloudSync);
 } else {

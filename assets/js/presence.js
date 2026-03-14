@@ -8,7 +8,9 @@
   const LIVE_INPUTS_COLLECTION = "warehousePortalLiveInputs";
   const TYPING_TIMEOUT_MS   = 4000;   // clear "typing" flag after 4 s idle
   const TOAST_HIDE_DELAY_MS = 5000;   // hide toast 5 s after last update
-  const LIVE_PUSH_DEBOUNCE_MS = 120;
+  const LIVE_PUSH_DEBOUNCE_MS = 140;
+  const TYPING_WRITE_THROTTLE_MS = 700;
+  const CHANNEL_WATCH_INTERVAL_MS = 5000;
 
   let _presenceUnsubscribe = null;
   let _liveInputsUnsubscribe = null;
@@ -21,6 +23,7 @@
   let _currentName          = null;
   let _currentSector        = null;
   let _initialized          = false;
+  let _lastTypingWriteAt    = 0;
   const _fieldBroadcastTimers = new Map();
   const _fieldLastAppliedTs = new Map();
   const _lastLocalFieldState = new Map();
@@ -98,7 +101,8 @@
 
   function buildLiveChannelKey() {
     const sector = sanitizePart(getCurrentSector());
-    return `${sector}`;
+    const page = sanitizePart(getCurrentPageFile() || "home.html");
+    return `${sector}__${page}`;
   }
 
   function cssEscapeSafe(value) {
@@ -238,10 +242,13 @@
 
   function markTyping() {
     if (!_currentUid) return;
+    const now = Date.now();
+    if (now - _lastTypingWriteAt < TYPING_WRITE_THROTTLE_MS) return;
     const ref = getPresenceRef();
     if (!ref) return;
 
     const sector = getCurrentSector();
+    _lastTypingWriteAt = now;
     ref.set(
       {
         [_currentUid]: {
@@ -249,7 +256,7 @@
           name:     _currentName,
           sector:   sector,
           page:     getPageLabel(),
-          typingAt: Date.now()
+          typingAt: now
         }
       },
       { merge: true }
@@ -481,6 +488,37 @@
     _fieldBroadcastTimers.set(fieldKey, timer);
   }
 
+  function shouldHandleTypingEvent(target, eventType) {
+    const tag = String(target.tagName || "").toLowerCase();
+    if (tag !== "input" && tag !== "textarea" && tag !== "select") return false;
+
+    const inputType = String(target.type || "").toLowerCase();
+    const isToggle = inputType === "checkbox" || inputType === "radio" || tag === "select";
+    if (eventType === "input" && isToggle) return false;
+    if (eventType === "change" && !isToggle) return false;
+    return true;
+  }
+
+  function shouldProcessDelete(eventType, fieldKey, prevState, nextState) {
+    return eventType === "change" && !!fieldKey && !!prevState && !isStateEmpty(prevState) && isStateEmpty(nextState);
+  }
+
+  function resolveDeleteConfirmation(target, prevState) {
+    const requireDeleteConfirm = localStorage.getItem("twellium_require_delete_confirm") !== "0";
+    if (!requireDeleteConfirm) return true;
+
+    const confirmDelete = globalThis.confirm("This action will delete an entered value. Continue?");
+    if (confirmDelete) return true;
+
+    _suppressLocalBroadcast = true;
+    try {
+      applyStateToElementDirect(target, prevState);
+    } finally {
+      _suppressLocalBroadcast = false;
+    }
+    return false;
+  }
+
   function onUserTyping(event) {
     markTyping();
     clearTimeout(_typingTimer);
@@ -489,30 +527,15 @@
     if (_suppressLocalBroadcast) return;
     const target = event?.target;
     if (!(target instanceof Element)) return;
-
-    const tag = String(target.tagName || "").toLowerCase();
-    if (tag !== "input" && tag !== "textarea" && tag !== "select") return;
+    if (!shouldHandleTypingEvent(target, event.type)) return;
 
     const descriptor = getElementDescriptor(target);
     const fieldKey = getFieldKeyFromDescriptor(descriptor);
     const nextState = readElementState(target);
     const prevState = fieldKey ? _lastLocalFieldState.get(fieldKey) : null;
 
-    const requireDeleteConfirm = localStorage.getItem("twellium_require_delete_confirm") !== "0";
-
-    if (event.type === "change" && fieldKey && prevState && !isStateEmpty(prevState) && isStateEmpty(nextState)) {
-      const confirmDelete = requireDeleteConfirm
-        ? globalThis.confirm("This action will delete an entered value. Continue?")
-        : true;
-      if (!confirmDelete) {
-        _suppressLocalBroadcast = true;
-        try {
-          applyStateToElementDirect(target, prevState);
-        } finally {
-          _suppressLocalBroadcast = false;
-        }
-        return;
-      }
+    if (shouldProcessDelete(event.type, fieldKey, prevState, nextState)) {
+      if (!resolveDeleteConfirmation(target, prevState)) return;
       _lastLocalFieldState.set(fieldKey, nextState);
       queueFieldUpdate(target, "delete");
       return;
@@ -603,7 +626,7 @@
     }, { capture: true, passive: true });
 
     if (!_channelWatchTimer) {
-      _channelWatchTimer = setInterval(ensureLiveInputsListener, 1000);
+      _channelWatchTimer = setInterval(ensureLiveInputsListener, CHANNEL_WATCH_INTERVAL_MS);
     }
   }
 
