@@ -28,6 +28,16 @@ body {
   line-height: 1.45;
 }
 
+/* Global typography preference: keep all interface text bold. */
+body,
+body * {
+  font-weight: 700 !important;
+}
+
+body *::placeholder {
+  font-weight: 700 !important;
+}
+
 .site-header {
   background: var(--surface);
   border-bottom: 1px solid var(--border);
