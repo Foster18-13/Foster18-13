@@ -7,7 +7,7 @@ const DEFAULT_USER_ROLE = "clerk";
 const FORCED_ADMIN_EMAILS = [
   "antwifosterfrimpong@gmail.com"
 ];
-const ROOT_ONLY_URL_MODE = true;
+const ROOT_ONLY_URL_MODE = false;
 const USER_ROLE_PRIORITY = {
   clerk: 1,
   supervisor: 2,
