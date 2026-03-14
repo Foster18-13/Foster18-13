@@ -564,7 +564,7 @@ function renderChecklistInfo(checklistState, checklistMeta, checklistResult, det
     const who = snapshot.lastRunBy ? ` by ${snapshot.lastRunBy}` : "";
     checklistMeta.textContent = `Last run${who} on ${formatApprovalTimestamp(snapshot.lastRunAt)}`;
   } else {
-    checklistMeta.textContent = "Run checklist before locking the day.";
+    checklistMeta.textContent = "";
   }
   checklistMeta.className = "status";
 }
@@ -636,36 +636,11 @@ function initDayLockControls() {
     wrapper.id = "dayLockArea";
     wrapper.className = "day-lock-area";
     wrapper.innerHTML = `
-      <button class="button" id="dayChecklistRun" type="button">Run Checklist</button>
-      <span class="status" id="dayChecklistState"></span>
-      <span class="status" id="dayChecklistMeta"></span>
       <button class="button" id="dayLockToggle" type="button">Lock Day</button>
       <span class="status" id="dayLockState"></span>
       <span class="status" id="dayLockApproval"></span>
     `;
     controls.appendChild(wrapper);
-  }
-
-  const checklistButton = document.getElementById("dayChecklistRun");
-  if (checklistButton) {
-    checklistButton.addEventListener("click", () => {
-      const data = loadData();
-      const date = getSelectedDate();
-      const dayStore = getShiftStore(data, date);
-      const checklistResult = evaluateDailyClosingChecklist(dayStore);
-      const operator = getCurrentOperatorLabel();
-
-      updateChecklistSnapshot(dayStore, checklistResult, operator);
-      saveData(data);
-      renderDayLockControls();
-
-      if (checklistResult.passed) {
-        setStatus("Daily closing checklist passed. You can lock the day.", "ok");
-      } else {
-        const details = checklistResult.missingItems.join(" ");
-        setStatus(`Checklist incomplete: ${details}`, "error");
-      }
-    });
   }
 
   const toggleButton = document.getElementById("dayLockToggle");
