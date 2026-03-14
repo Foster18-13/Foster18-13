@@ -421,32 +421,8 @@ function shiftWorkingDate(days) {
 }
 
 function initDateQuickNavigation() {
-  const controls = document.querySelector(".topbar-controls");
-  const todayButton = document.getElementById("jumpToday");
-  if (!controls || !todayButton) return;
-
-  if (!document.getElementById("jumpPrevDay")) {
-    const prevButton = document.createElement("button");
-    prevButton.id = "jumpPrevDay";
-    prevButton.type = "button";
-    prevButton.className = "button";
-    prevButton.textContent = "Previous Day";
-    todayButton.before(prevButton);
-  }
-
-  if (!document.getElementById("jumpNextDay")) {
-    const nextButton = document.createElement("button");
-    nextButton.id = "jumpNextDay";
-    nextButton.type = "button";
-    nextButton.className = "button";
-    nextButton.textContent = "Next Day";
-    todayButton.after(nextButton);
-  }
-
-  const prevButton = document.getElementById("jumpPrevDay");
-  const nextButton = document.getElementById("jumpNextDay");
-  if (prevButton) prevButton.addEventListener("click", () => shiftWorkingDate(-1));
-  if (nextButton) nextButton.addEventListener("click", () => shiftWorkingDate(1));
+  // Date quick-jump controls were removed to keep date selection deliberate
+  // through the date picker only.
 }
 
 function getCurrentDayLockedState() {

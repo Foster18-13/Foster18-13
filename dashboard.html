@@ -66,6 +66,27 @@
       border-bottom: none;
     }
 
+    [data-theme="dark"] .stat-card h3,
+    [data-theme="dark"] .stat-label,
+    [data-theme="dark"] .chart-card h3 {
+      color: #cbd5e1;
+    }
+
+    [data-theme="dark"] .alert-box {
+      background: #2f2616;
+      border-color: #d97706;
+      color: #fde68a;
+    }
+
+    [data-theme="dark"] .alert-box h3 {
+      color: #facc15;
+    }
+
+    [data-theme="dark"] .alert-item {
+      border-bottom-color: #4a3a22;
+      color: #fde68a;
+    }
+
     .charts-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -117,10 +138,9 @@
         <button class="sidebar-toggle" id="sidebarToggle" type="button" title="Toggle Navigation">☰</button>
         <label for="workingDate">Working Date</label>
         <input class="input" type="date" id="workingDate" />
-        <button class="button" id="jumpToday" type="button">Today</button>
         <input class="input search-input" id="globalSearchInput" placeholder="Search..." />
         <button class="button" id="globalSearchBtn" type="button">Search</button>
-<div id="userControls" class="user-controls"></div>
+        <div id="userControls" class="user-controls"></div>
       </div>
     </div>
   </header>
