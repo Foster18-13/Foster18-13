@@ -5,9 +5,14 @@ const LOCAL_BACKUP_STORAGE_KEY = "twellium_warehouse_portal_backup_v1";
 const SELECTED_DATE_STORAGE_KEY = "twellium_selected_date";
 const SELECTED_SHIFT_STORAGE_KEY = "twellium_selected_shift";
 const LOCAL_BACKUP_LIMIT = 40;
-const CLOUD_LOCAL_CACHE_DAYS = 45;
+const CLOUD_LOCAL_CACHE_DAYS = 365;
 const CLOUD_BACKUP_LIMIT = 5;
 const AUDIT_LOG_LIMIT = 500;
+const OFFLINE_RETENTION_DAYS = 3650;
+const RETENTION_SETTINGS = {
+  offlineDaysKey: "twellium_offline_retention_days",
+  cloudCacheDaysKey: "twellium_cloud_cache_days"
+};
 const WATER_REQUIRED_PRODUCTS = [
   "BIGOO APPLE 350MLX20PCS",
   "BIGOO COCKTAIL 350MLX20PCS",
@@ -438,7 +443,31 @@ function isCloudSessionActive() {
   }
 }
 
-function createCloudLocalCachePayload(data, daysToKeep = CLOUD_LOCAL_CACHE_DAYS) {
+function getConfiguredOfflineRetentionDays() {
+  try {
+    const raw = Number.parseInt(localStorage.getItem(RETENTION_SETTINGS.offlineDaysKey), 10);
+    if (Number.isFinite(raw) && raw >= 365 && raw <= 7300) {
+      return raw;
+    }
+  } catch {
+    // ignore localStorage access errors
+  }
+  return OFFLINE_RETENTION_DAYS;
+}
+
+function getConfiguredCloudCacheDays() {
+  try {
+    const raw = Number.parseInt(localStorage.getItem(RETENTION_SETTINGS.cloudCacheDaysKey), 10);
+    if (Number.isFinite(raw) && raw >= 90 && raw <= 730) {
+      return raw;
+    }
+  } catch {
+    // ignore localStorage access errors
+  }
+  return CLOUD_LOCAL_CACHE_DAYS;
+}
+
+function createCloudLocalCachePayload(data, daysToKeep = getConfiguredCloudCacheDays()) {
   const snapshot = createWarehouseSnapshot(data);
   pruneOldDailyRecords(snapshot, daysToKeep);
 
@@ -728,7 +757,16 @@ function writeStoragePayload(payload) {
 }
 
 function retrySaveAfterPrune(payloadToStore, cloudPriorityMode, originalError) {
-  const daysToKeep = cloudPriorityMode ? 30 : 180;
+  if (!cloudPriorityMode) {
+    console.error("[Storage] Over quota while offline/local-only mode. Auto-prune blocked to protect long-term history.");
+    setStorageStatus(
+      "Storage is full. To protect historical records, auto-delete is blocked. Sign in to cloud sync or export backup, then clear old local cache manually.",
+      "error"
+    );
+    throw originalError;
+  }
+
+  const daysToKeep = getConfiguredCloudCacheDays();
   const removed = pruneOldDailyRecords(payloadToStore, daysToKeep);
 
   if (removed <= 0) {
