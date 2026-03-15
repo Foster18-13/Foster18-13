@@ -684,15 +684,22 @@ function getDeletedRequiredSet(data) {
   return new Set(deleted.map((item) => String(item).toLowerCase().trim()).filter(Boolean));
 }
 
+function normalizeCatalogProductName(value) {
+  return String(value || "")
+    .toLowerCase()
+    .trim()
+    .replaceAll(/\s+/g, " ");
+}
+
 function removeHhProductsFromNonHhSector(data) {
   const sector = getCurrentSectorId();
   if (sector === "hh") return false;
   if (!Array.isArray(data.products) || !data.products.length) return false;
 
-  const hhNames = new Set(HH_REQUIRED_PRODUCTS.map((item) => String(item).toLowerCase().trim()));
+  const hhNames = new Set(HH_REQUIRED_PRODUCTS.map((item) => normalizeCatalogProductName(item)));
   const before = data.products.length;
   data.products = data.products.filter((product) => {
-    const name = String(product?.name || "").toLowerCase().trim();
+    const name = normalizeCatalogProductName(product?.name);
     return !hhNames.has(name);
   });
 
@@ -704,10 +711,10 @@ function removeMcberryProductsFromNonMcberrySector(data) {
   if (sector === "mcberry") return false;
   if (!Array.isArray(data.products) || !data.products.length) return false;
 
-  const mcberryNames = new Set(MCBERRY_REQUIRED_PRODUCTS.map((item) => String(item).toLowerCase().trim()));
+  const mcberryNames = new Set(MCBERRY_REQUIRED_PRODUCTS.map((item) => normalizeCatalogProductName(item)));
   const before = data.products.length;
   data.products = data.products.filter((product) => {
-    const name = String(product?.name || "").toLowerCase().trim();
+    const name = normalizeCatalogProductName(product?.name);
     return !mcberryNames.has(name);
   });
 
