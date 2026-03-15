@@ -241,6 +241,38 @@ function getRequiredProductsForSector() {
   return WATER_REQUIRED_PRODUCTS;
 }
 
+function isHhCatalogProduct(name) {
+  const key = String(name || "").trim().toLowerCase();
+  if (!key) return false;
+  return HH_REQUIRED_PRODUCTS.some((productName) => productName.toLowerCase() === key);
+}
+
+function validateProductForSector(name) {
+  const sector = getCurrentSectorId();
+  const clean = String(name || "").trim();
+  if (!clean) {
+    return { ok: false, message: "Product name is required." };
+  }
+
+  const isHhItem = isHhCatalogProduct(clean);
+
+  if (sector === "hh" && !isHhItem) {
+    return {
+      ok: false,
+      message: "H&H sector accepts only approved H&H products."
+    };
+  }
+
+  if (sector !== "hh" && isHhItem) {
+    return {
+      ok: false,
+      message: "This product is H&H-only. Switch to H&H sector to use it."
+    };
+  }
+
+  return { ok: true };
+}
+
 function generateId(prefix = "id") {
   return `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
 }
@@ -1158,6 +1190,9 @@ function addProduct(name) {
   const clean = String(name || "").trim();
   if (!clean) return { ok: false, message: "Product name is required." };
 
+  const validation = validateProductForSector(clean);
+  if (!validation.ok) return validation;
+
   const data = loadData();
   const currentDate = getCurrentWorkingDate();
   
@@ -1210,6 +1245,9 @@ function updateProductPalletFactor(productId, factor) {
 function updateProduct(productId, newName) {
   const clean = String(newName || "").trim();
   if (!clean) return { ok: false, message: "Product name is required." };
+
+  const validation = validateProductForSector(clean);
+  if (!validation.ok) return validation;
 
   const data = loadData();
   const target = data.products.find((item) => item.id === productId);
