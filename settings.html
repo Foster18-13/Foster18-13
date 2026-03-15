@@ -51,7 +51,7 @@
       </div>
       <div class="topbar-controls">
         <button class="sidebar-toggle" id="sidebarToggle" type="button" title="Toggle Navigation">≡</button>
-<div id="userControls" class="topbar-user-controls"></div>
+        <div id="userControls" class="topbar-user-controls"></div>
       </div>
     </div>
   </header>
@@ -124,7 +124,8 @@
           </div>
 
           <p class="text-note-muted settings-note">
-            Browser storage is never unlimited. For effectively unlimited record history, use Cloud Sign In on the home page. This device then keeps only a rolling local cache.
+            Browser storage is never unlimited. For effectively unlimited record history, use Cloud Sign In on the home
+            page. This device then keeps only a rolling local cache.
           </p>
         </div>
 
@@ -154,7 +155,7 @@
     };
 
     function loadSettings() {
-      const theme = localStorage.getItem(SETTINGS_KEYS.theme) || 'light';
+      const theme = typeof getTheme === 'function' ? getTheme() : (localStorage.getItem(SETTINGS_KEYS.theme) || 'light');
       const confirmDelete = localStorage.getItem(SETTINGS_KEYS.confirmDelete);
       const offlineRetentionDays = localStorage.getItem(SETTINGS_KEYS.offlineRetentionDays) || '3650';
       const cloudCacheDays = localStorage.getItem(SETTINGS_KEYS.cloudCacheDays) || '365';
@@ -171,14 +172,15 @@
       const offlineRetentionDays = document.getElementById('offlineRetentionYears').value;
       const cloudCacheDays = document.getElementById('cloudCacheDays').value;
 
-      localStorage.setItem(SETTINGS_KEYS.theme, theme);
+      if (typeof setTheme === 'function') {
+        setTheme(theme);
+      } else {
+        localStorage.setItem(SETTINGS_KEYS.theme, theme);
+      }
       localStorage.setItem(SETTINGS_KEYS.confirmDelete, confirmDelete ? '1' : '0');
       localStorage.setItem(SETTINGS_KEYS.offlineRetentionDays, offlineRetentionDays);
       localStorage.setItem(SETTINGS_KEYS.cloudCacheDays, cloudCacheDays);
 
-      if (typeof applyTheme === 'function') {
-        applyTheme(theme);
-      }
       if (typeof updateThemeButton === 'function') {
         updateThemeButton();
       }
@@ -214,6 +216,13 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       loadSettings();
+      document.getElementById('themeMode').addEventListener('change', (event) => {
+        if (typeof setTheme === 'function') {
+          setTheme(event.target.value);
+        } else if (typeof applyTheme === 'function') {
+          applyTheme(event.target.value);
+        }
+      });
       document.getElementById('saveSettingsBtn').addEventListener('click', saveSettings);
       document.getElementById('resetSettingsBtn').addEventListener('click', resetSettings);
     });

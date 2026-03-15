@@ -343,4 +343,8 @@ document.addEventListener('DOMContentLoaded', () => {
       setTimeout(renderDashboard, 0);
     });
   }
+
+  globalThis.addEventListener('twellium:theme-changed', () => {
+    setTimeout(renderDashboard, 0);
+  });
 });

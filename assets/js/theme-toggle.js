@@ -1,16 +1,34 @@
 // Day/Night Theme Toggle
 
+function normalizeTheme(theme) {
+  return theme === 'dark' ? 'dark' : 'light';
+}
+
 function getTheme() {
-  return localStorage.getItem('twellium_theme') || 'light';
+  return normalizeTheme(localStorage.getItem('twellium_theme'));
 }
 
 function setTheme(theme) {
-  localStorage.setItem('twellium_theme', theme);
-  applyTheme(theme);
+  const normalizedTheme = normalizeTheme(theme);
+  localStorage.setItem('twellium_theme', normalizedTheme);
+  applyTheme(normalizedTheme);
 }
 
 function applyTheme(theme) {
-  document.documentElement.setAttribute('data-theme', theme);
+  const normalizedTheme = normalizeTheme(theme);
+  document.documentElement.dataset.theme = normalizedTheme;
+  document.documentElement.style.colorScheme = normalizedTheme;
+  if (document.body) {
+    document.body.dataset.theme = normalizedTheme;
+  }
+
+  if (typeof globalThis.dispatchEvent === 'function') {
+    globalThis.dispatchEvent(
+      new CustomEvent('twellium:theme-changed', {
+        detail: { theme: normalizedTheme }
+      })
+    );
+  }
 }
 
 function toggleTheme() {
