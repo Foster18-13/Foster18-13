@@ -770,7 +770,7 @@ function retrySaveAfterPrune(payloadToStore, cloudPriorityMode, originalError) {
   if (!cloudPriorityMode) {
     console.error("[Storage] Over quota while offline/local-only mode. Auto-prune blocked to protect long-term history.");
     setStorageStatus(
-      "Storage is full. To protect historical records, auto-delete is blocked. Sign in to cloud sync or export backup, then clear old local cache manually.",
+      "Browser storage is limited. For effectively unlimited history, sign in to cloud sync on Home. This device keeps only a local cache.",
       "error"
     );
     throw originalError;
@@ -781,18 +781,18 @@ function retrySaveAfterPrune(payloadToStore, cloudPriorityMode, originalError) {
 
   if (removed <= 0) {
     console.error("[Storage] Over quota but no old records to prune");
-    setStorageStatus("Storage: Critical - no space available. Please archive records in reports section.", "error");
+    setStorageStatus("Local cache is full, but cloud history can remain complete. Reduce local cache days in Settings.", "error");
     throw originalError;
   }
 
   try {
     writeStoragePayload(payloadToStore);
     console.log("[Storage] Successfully saved after cleanup");
-    setStorageStatus(`Storage: Cleaned up ${removed} old records. Data saved successfully.`, "warning");
+    setStorageStatus(`Local cache trimmed by ${removed} old record(s). Cloud history remains intact.`, "warning");
   } catch (retryError) {
     console.error("[Storage] Still over quota even after cleanup", retryError);
     setStorageStatus(
-      "Storage: Critical - over quota even after cleanup. Archive old records in the reports section.",
+      "Local cache is still over quota. Keep using cloud sync for full history and lower local cache days in Settings.",
       "error"
     );
     throw retryError;
