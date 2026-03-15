@@ -7,6 +7,8 @@ const SELECTED_SHIFT_STORAGE_KEY = "twellium_selected_shift";
 const LOCAL_BACKUP_LIMIT = 40;
 const CLOUD_LOCAL_CACHE_DAYS = 365;
 const CLOUD_BACKUP_LIMIT = 5;
+const LOCAL_BACKUP_MIN_INTERVAL_MS = 60 * 1000;
+const CLOUD_BACKUP_MIN_INTERVAL_MS = 5 * 60 * 1000;
 const AUDIT_LOG_LIMIT = 500;
 const OFFLINE_RETENTION_DAYS = 3650;
 const RETENTION_SETTINGS = {
@@ -486,7 +488,15 @@ function addLocalBackupSnapshot(data, source = "auto-save") {
   const snapshot = createWarehouseSnapshot(data);
   const score = getDailySnapshotScore(snapshot);
   const history = safeReadBackupHistory();
-  const backupLimit = isCloudSessionActive() ? CLOUD_BACKUP_LIMIT : LOCAL_BACKUP_LIMIT;
+  const cloudSessionActive = isCloudSessionActive();
+  const backupLimit = cloudSessionActive ? CLOUD_BACKUP_LIMIT : LOCAL_BACKUP_LIMIT;
+  const minIntervalMs = cloudSessionActive ? CLOUD_BACKUP_MIN_INTERVAL_MS : LOCAL_BACKUP_MIN_INTERVAL_MS;
+  const latest = history[0];
+
+  if (latest?.timestamp && Date.now() - latest.timestamp < minIntervalMs) {
+    return;
+  }
+
   const backupItem = {
     timestamp: Date.now(),
     source,
