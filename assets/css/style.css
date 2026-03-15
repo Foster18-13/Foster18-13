@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Space+Grotesk:wght@700&display=swap");
+
 :root {
   --bg: #f9fbff;
   --surface: #ffffff;
@@ -14,6 +16,8 @@
   --danger: #b42318;
   --success: #4f9f95;
   --warning: #d28a2d;
+  --font-body: "Manrope", "Segoe UI", Arial, sans-serif;
+  --font-display: "Space Grotesk", "Manrope", "Segoe UI", Arial, sans-serif;
 }
 
 * {
@@ -22,10 +26,12 @@
 
 body {
   margin: 0;
-  font-family: "Segoe UI", Arial, sans-serif;
+  font-family: var(--font-body);
   background-color: var(--bg);
   color: var(--text);
   line-height: 1.45;
+  letter-spacing: 0.01em;
+  text-rendering: geometricPrecision;
 }
 
 /* Global typography preference: keep all interface text bold. */
@@ -36,6 +42,21 @@ body * {
 
 body *::placeholder {
   font-weight: 700 !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.card-title,
+.main-nav a,
+.button,
+.stat-value,
+.form-label {
+  font-family: var(--font-display);
+  letter-spacing: 0.02em;
 }
 
 .site-header {
