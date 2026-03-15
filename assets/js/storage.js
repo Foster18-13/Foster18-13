@@ -699,6 +699,21 @@ function removeHhProductsFromNonHhSector(data) {
   return data.products.length !== before;
 }
 
+function removeMcberryProductsFromNonMcberrySector(data) {
+  const sector = getCurrentSectorId();
+  if (sector === "mcberry") return false;
+  if (!Array.isArray(data.products) || !data.products.length) return false;
+
+  const mcberryNames = new Set(MCBERRY_REQUIRED_PRODUCTS.map((item) => String(item).toLowerCase().trim()));
+  const before = data.products.length;
+  data.products = data.products.filter((product) => {
+    const name = String(product?.name || "").toLowerCase().trim();
+    return !mcberryNames.has(name);
+  });
+
+  return data.products.length !== before;
+}
+
 function applyFreshStartPolicy(data) {
   data._meta = data._meta && typeof data._meta === "object" ? data._meta : {};
   const currentVersion = asNumber(data._meta.freshStartPolicyVersion);
@@ -735,6 +750,7 @@ function loadData() {
     const changed =
       ensureRequiredProducts(parsed) ||
       removeHhProductsFromNonHhSector(parsed) ||
+      removeMcberryProductsFromNonMcberrySector(parsed) ||
       tryMigrateLegacyStorage(parsed) ||
       tryRecoverFromAlternativeLocalStorage(parsed) ||
       tryRecoverFromBackupHistory(parsed);
