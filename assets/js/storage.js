@@ -684,6 +684,21 @@ function getDeletedRequiredSet(data) {
   return new Set(deleted.map((item) => String(item).toLowerCase().trim()).filter(Boolean));
 }
 
+function removeHhProductsFromNonHhSector(data) {
+  const sector = getCurrentSectorId();
+  if (sector === "hh") return false;
+  if (!Array.isArray(data.products) || !data.products.length) return false;
+
+  const hhNames = new Set(HH_REQUIRED_PRODUCTS.map((item) => String(item).toLowerCase().trim()));
+  const before = data.products.length;
+  data.products = data.products.filter((product) => {
+    const name = String(product?.name || "").toLowerCase().trim();
+    return !hhNames.has(name);
+  });
+
+  return data.products.length !== before;
+}
+
 function applyFreshStartPolicy(data) {
   data._meta = data._meta && typeof data._meta === "object" ? data._meta : {};
   const currentVersion = asNumber(data._meta.freshStartPolicyVersion);
@@ -719,6 +734,7 @@ function loadData() {
     parsed._meta.updatedAt = asNumber(parsed._meta.updatedAt) || 0;
     const changed =
       ensureRequiredProducts(parsed) ||
+      removeHhProductsFromNonHhSector(parsed) ||
       tryMigrateLegacyStorage(parsed) ||
       tryRecoverFromAlternativeLocalStorage(parsed) ||
       tryRecoverFromBackupHistory(parsed);
