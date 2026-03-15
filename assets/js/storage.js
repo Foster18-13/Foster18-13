@@ -799,7 +799,7 @@ function saveData(data, preserveTimestamp = false) {
   let payloadToStore = data;
 
   if (cloudPriorityMode) {
-    payloadToStore = createCloudLocalCachePayload(data, CLOUD_LOCAL_CACHE_DAYS);
+    payloadToStore = createCloudLocalCachePayload(data, getConfiguredCloudCacheDays());
   }
 
   try {
