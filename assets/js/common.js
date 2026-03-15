@@ -87,6 +87,14 @@ function isClerkEntryDateAutoLocked(dateString = getSelectedDate(), role = curre
 }
 
 function ensureEntryPermission(actionLabel = "perform this action") {
+  const selectedDate = typeof getSelectedDate === "function" ? getSelectedDate() : "";
+  const today = typeof todayISO === "function" ? todayISO() : "";
+
+  if (selectedDate && today && selectedDate < today) {
+    setStatus("Past dates are locked. You can only enter data from today onward.", "error");
+    return false;
+  }
+
   if (!currentUserCanMakeEntries()) {
     setStatus(`You are not allowed to ${actionLabel}. Contact an admin to enable entry permission.`, "error");
     return false;
@@ -262,10 +270,19 @@ function initSharedHeader() {
   const dateInput = document.getElementById("workingDate");
   if (!dateInput) return;
 
+  const today = todayISO();
+  dateInput.min = today;
   dateInput.value = getSelectedDate();
+  if (dateInput.value < today) {
+    dateInput.value = today;
+    setSelectedDate(today);
+  }
   initDateQuickNavigation();
   dateInput.addEventListener("change", () => {
     if (!dateInput.value) return;
+    if (dateInput.value < today) {
+      dateInput.value = today;
+    }
     setSelectedDate(dateInput.value);
     location.reload();
   });

@@ -9,6 +9,7 @@ const CLOUD_LOCAL_CACHE_DAYS = 365;
 const CLOUD_BACKUP_LIMIT = 5;
 const LOCAL_BACKUP_MIN_INTERVAL_MS = 60 * 1000;
 const CLOUD_BACKUP_MIN_INTERVAL_MS = 5 * 60 * 1000;
+const FRESH_START_POLICY_VERSION = 1;
 const AUDIT_LOG_LIMIT = 500;
 const OFFLINE_RETENTION_DAYS = 3650;
 const RETENTION_SETTINGS = {
@@ -683,6 +684,21 @@ function getDeletedRequiredSet(data) {
   return new Set(deleted.map((item) => String(item).toLowerCase().trim()).filter(Boolean));
 }
 
+function applyFreshStartPolicy(data) {
+  data._meta = data._meta && typeof data._meta === "object" ? data._meta : {};
+  const currentVersion = asNumber(data._meta.freshStartPolicyVersion);
+  if (currentVersion >= FRESH_START_POLICY_VERSION) {
+    return false;
+  }
+
+  data.daily = {};
+  data.auditLogs = [];
+  data._meta.freshStartPolicyVersion = FRESH_START_POLICY_VERSION;
+  data._meta.freshStartAppliedAt = Date.now();
+  data._meta.forceCloudReset = true;
+  return true;
+}
+
 function loadData() {
   try {
     const raw = localStorage.getItem(getStorageDataKey());
@@ -691,6 +707,7 @@ function loadData() {
       tryMigrateLegacyStorage(initial);
       tryRecoverFromAlternativeLocalStorage(initial);
       tryRecoverFromBackupHistory(initial);
+      applyFreshStartPolicy(initial);
       saveData(initial);
       return initial;
     }
@@ -705,11 +722,13 @@ function loadData() {
       tryMigrateLegacyStorage(parsed) ||
       tryRecoverFromAlternativeLocalStorage(parsed) ||
       tryRecoverFromBackupHistory(parsed);
-    if (changed) saveData(parsed);
+    const freshStartChanged = applyFreshStartPolicy(parsed);
+    if (changed || freshStartChanged) saveData(parsed);
     return parsed;
   } catch {
     const fallback = defaultData();
     tryRecoverFromBackupHistory(fallback);
+    applyFreshStartPolicy(fallback);
     saveData(fallback);
     return fallback;
   }
@@ -1019,11 +1038,19 @@ function ensureDayStore(data, date) {
 }
 
 function getSelectedDate() {
-  return localStorage.getItem(getSelectedDateStorageKey()) || localStorage.getItem(SELECTED_DATE_STORAGE_KEY) || todayISO();
+  const stored = localStorage.getItem(getSelectedDateStorageKey()) || localStorage.getItem(SELECTED_DATE_STORAGE_KEY) || todayISO();
+  const today = todayISO();
+  if (!stored || stored < today) {
+    return today;
+  }
+  return stored;
 }
 
 function setSelectedDate(date) {
-  localStorage.setItem(getSelectedDateStorageKey(), date);
+  const normalized = String(date || "").trim();
+  const today = todayISO();
+  const clampedDate = normalized && normalized >= today ? normalized : today;
+  localStorage.setItem(getSelectedDateStorageKey(), clampedDate);
 }
 
 function getSelectedShift() {

@@ -203,8 +203,9 @@ async function pullFromCloudIfNewer(forceCheck = false) {
     const cloudUpdatedAt = asNumber(cloudData?._meta?.updatedAt);
     const localHasData = hasMeaningfulDailyData(localData);
     const cloudHasData = hasMeaningfulDailyData(cloudData);
+    const forceCloudReset = !!localData?._meta?.forceCloudReset;
 
-    const shouldRecoverFromCloud = !localHasData && cloudHasData;
+    const shouldRecoverFromCloud = !localHasData && cloudHasData && !forceCloudReset;
 
     console.log("[Cloud Sync] Pull check:", {localUpdatedAt, cloudUpdatedAt, shouldRecover: shouldRecoverFromCloud});
 
@@ -272,7 +273,8 @@ function startRealtimeCloudListener() {
       const cloudUpdatedAt = asNumber(cloudData?._meta?.updatedAt);
       const cloudHasData = hasMeaningfulDailyData(cloudData);
       const localHasData = hasMeaningfulDailyData(localData);
-      const shouldRecoverFromCloud = !localHasData && cloudHasData;
+      const forceCloudReset = !!localData?._meta?.forceCloudReset;
+      const shouldRecoverFromCloud = !localHasData && cloudHasData && !forceCloudReset;
       const wasAlreadyHandled = cloudUpdatedAt > 0 && cloudUpdatedAt <= cloudSyncState.lastSeenCloudUpdatedAt;
 
       if (wasAlreadyHandled) return;
@@ -317,13 +319,14 @@ async function pushLocalToCloud(force = false) {
   try {
     const localData = loadData();
     const localHasData = hasMeaningfulDailyData(localData);
+    const forceCloudReset = !!localData?._meta?.forceCloudReset;
     const existing = await docRef.get();
     const cloudData = existing.exists ? existing.data()?.data : null;
     const dataToUpload = mergeCloudHistoryIfWindowedLocal(localData, cloudData);
 
     if (!localHasData) {
       if (existing.exists) {
-        if (cloudData && hasMeaningfulDailyData(cloudData)) {
+        if (cloudData && hasMeaningfulDailyData(cloudData) && !forceCloudReset) {
           setCloudStatus("Cloud sync paused: local data is empty", "error");
           return;
         }
@@ -338,6 +341,13 @@ async function pushLocalToCloud(force = false) {
       },
       { merge: true }
     );
+
+    if (forceCloudReset) {
+      localData._meta = localData._meta && typeof localData._meta === "object" ? localData._meta : {};
+      localData._meta.forceCloudReset = false;
+      saveData(localData, true);
+    }
+
     setCloudStatus("Cloud sync: up to date", "ok");
   } catch (error) {
     const errorMsg = getCloudSyncErrorMessage(error, "push");
