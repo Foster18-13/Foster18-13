@@ -1,5 +1,3 @@
-document.documentElement.classList.add("js-nav");
-
 function markActiveNav() {
   const current = location.pathname.split("/").pop() || "home.html";
   document.querySelectorAll(".main-nav a").forEach((link) => {
