@@ -121,7 +121,7 @@ function choosePrintLayout() {
 
   const normalized = String(answer || "").trim().toLowerCase();
   let layout = "auto";
-  if (normalized === "portrait" || normalized === "p") {
+  if (normalized === "portrait" || normalized === "potrait" || normalized === "p") {
     layout = "portrait";
   } else if (normalized === "landscape" || normalized === "l") {
     layout = "landscape";
@@ -217,8 +217,23 @@ function printSection(sectionId, title) {
   styleEl.textContent = `
     @page {
       size: ${layoutChoice === "portrait" || layoutChoice === "landscape" ? `A4 ${layoutChoice}` : "auto"};
+      margin: 8mm;
     }
-    body { background: #fff; }
+    * { box-sizing: border-box; }
+    body {
+      background: #fff;
+      margin: 0;
+      color: #0f172a;
+      font-size: 12px;
+    }
+    .layout {
+      max-width: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    .card {
+      overflow: visible !important;
+    }
     .print-export-header {
       display: flex;
       align-items: center;
@@ -261,6 +276,54 @@ function printSection(sectionId, title) {
     .print-export-meta strong {
       color: #0f172a;
     }
+    table {
+      width: 100% !important;
+      border-collapse: collapse;
+      table-layout: auto;
+    }
+    th,
+    td {
+      padding: 6px 6px !important;
+      font-size: 11px !important;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+    th:first-child,
+    td:first-child {
+      white-space: normal;
+      width: 26%;
+    }
+    input,
+    select,
+    textarea {
+      width: 100% !important;
+      min-width: 0 !important;
+      font-size: 10px !important;
+      padding: 3px 4px !important;
+      border: 1px solid #cbd5e1 !important;
+    }
+    .toolbar,
+    .button {
+      display: none !important;
+    }
+    body.print-layout-portrait table {
+      table-layout: fixed;
+    }
+    body.print-layout-portrait th,
+    body.print-layout-portrait td {
+      padding: 4px 4px !important;
+      font-size: 9px !important;
+    }
+    body.print-layout-portrait th:first-child,
+    body.print-layout-portrait td:first-child {
+      width: 24%;
+    }
+    body.print-layout-portrait input,
+    body.print-layout-portrait select,
+    body.print-layout-portrait textarea {
+      font-size: 9px !important;
+      padding: 2px 3px !important;
+    }
     @media print {
       .print-export-header {
         break-inside: avoid;
@@ -271,6 +334,7 @@ function printSection(sectionId, title) {
 
   const layout = doc.createElement("div");
   layout.className = "layout";
+  doc.body.classList.add(`print-layout-${layoutChoice}`);
 
   const header = doc.createElement("div");
   header.className = "print-export-header";
