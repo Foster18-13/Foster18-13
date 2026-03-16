@@ -231,7 +231,7 @@ td {
 th {
   background: linear-gradient(180deg, #f0f6ff 0%, var(--primary-soft) 100%);
   color: var(--heading);
-  font-weight: 600;
+  font-weight: 800;
   font-size: 12px;
   letter-spacing: .03em;
   text-transform: uppercase;
