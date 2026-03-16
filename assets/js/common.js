@@ -313,7 +313,7 @@ function initSharedHeader() {
       dateInput.value = ENTRY_OPEN_FROM_DATE;
     }
     setSelectedDate(dateInput.value);
-    location.reload();
+    updateCurrentContextBadge();
   });
 
   const todayButton = document.getElementById("jumpToday");
@@ -322,7 +322,7 @@ function initSharedHeader() {
       const date = todayISO();
       setSelectedDate(date);
       dateInput.value = date;
-      location.reload();
+      updateCurrentContextBadge();
     });
   }
 
@@ -1323,78 +1323,96 @@ function refreshCurrentPageInPlace() {
 
   if (currentPage === "summary.html") {
     invokeIfFunction("renderSummary");
-    return;
+    return true;
   }
 
   if (currentPage === "products.html") {
     invokeIfFunction("renderProducts");
-    return;
+    return true;
   }
 
   if (currentPage === "purchase.html") {
     invokeIfFunction("renderPurchaseProductOptions");
     invokeIfFunction("renderPurchaseTable");
-    return;
+    return true;
   }
 
   if (currentPage === "recording.html") {
     invokeIfFunction("renderRecordingTable");
-    return;
+    return true;
   }
 
   if (currentPage === "balance.html") {
     invokeIfFunction("renderBalanceTable");
-    return;
+    return true;
   }
 
   if (currentPage === "returns.html") {
     invokeIfFunction("renderReturnProductOptions");
     invokeIfFunction("renderReturnsTable");
-    return;
+    return true;
   }
 
   if (currentPage === "damages.html") {
     invokeIfFunction("renderDamageProductOptions");
     invokeIfFunction("renderDamagesTable");
-    return;
+    return true;
   }
 
   if (currentPage === "vehicles.html") {
     invokeIfFunction("renderVehiclesTable");
-    return;
+    return true;
   }
 
   if (currentPage === "customers.html") {
     invokeIfFunction("renderCustomerProductOptions");
     invokeIfFunction("renderCustomerNameSuggestions");
     invokeIfFunction("renderCustomersTable");
-    return;
+    return true;
   }
 
   if (currentPage === "dashboard.html") {
     invokeIfFunction("renderDashboard");
-    return;
+    return true;
   }
 
   if (currentPage === "reports.html") {
     invokeIfFunction("generateReport");
-    return;
+    return true;
   }
 
   if (currentPage === "period-reports.html") {
     invokeIfFunction("initializePage");
-    return;
+    return true;
   }
 
   if (currentPage === "product-movement.html") {
     invokeIfFunction("populateProductSelect");
     invokeIfFunction("viewProductMovement");
-    return;
+    return true;
   }
 
   if (currentPage === "customer-history.html") {
     invokeIfFunction("searchCustomerHistory");
+    return true;
   }
+
+  return false;
+}
+
+function initContextDrivenRefresh() {
+  const subscribe = globalThis.onWarehouseContextChange;
+  if (typeof subscribe !== "function") return;
+
+  subscribe(() => {
+    updateCurrentContextBadge();
+    renderDayLockControls();
+
+    const refreshedInPlace = refreshCurrentPageInPlace();
+    if (!refreshedInPlace) {
+      location.reload();
+    }
+  });
 }
 
 function initRealtimeInPlaceRefresh() {
@@ -1413,6 +1431,7 @@ function initCommon() {
   initSharedHeader();
   initAuthAccessGuard();
   initSidebarToggle();
+  initContextDrivenRefresh();
   initRealtimeInPlaceRefresh();
 }
 

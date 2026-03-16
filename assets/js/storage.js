@@ -13,6 +13,7 @@ const CLOUD_BACKUP_MIN_INTERVAL_MS = 5 * 60 * 1000;
 const FRESH_START_POLICY_VERSION = 1;
 const AUDIT_LOG_LIMIT = 500;
 const OFFLINE_RETENTION_DAYS = 3650;
+const WAREHOUSE_CONTEXT_EVENT = "warehouse:context-changed";
 const RETENTION_SETTINGS = {
   offlineDaysKey: "twellium_offline_retention_days",
   cloudCacheDaysKey: "twellium_cloud_cache_days"
@@ -1096,9 +1097,40 @@ function getSelectedDate() {
   return normalizeWorkingDate(stored, ENTRY_OPEN_FROM_DATE);
 }
 
+function emitWarehouseContextChange(partial = {}) {
+  if (typeof globalThis.dispatchEvent !== "function" || typeof globalThis.CustomEvent !== "function") return;
+
+  const detail = {
+    date: getSelectedDate(),
+    shift: getSelectedShift(),
+    sector: getCurrentSectorId(),
+    ...partial
+  };
+
+  globalThis.dispatchEvent(new CustomEvent(WAREHOUSE_CONTEXT_EVENT, { detail }));
+}
+
+function onWarehouseContextChange(listener) {
+  if (typeof listener !== "function" || typeof globalThis.addEventListener !== "function") {
+    return () => {};
+  }
+
+  const handler = (event) => {
+    listener(event?.detail || {});
+  };
+
+  globalThis.addEventListener(WAREHOUSE_CONTEXT_EVENT, handler);
+  return () => {
+    if (typeof globalThis.removeEventListener === "function") {
+      globalThis.removeEventListener(WAREHOUSE_CONTEXT_EVENT, handler);
+    }
+  };
+}
+
 function setSelectedDate(date) {
   const clampedDate = normalizeWorkingDate(date, ENTRY_OPEN_FROM_DATE);
   localStorage.setItem(getSelectedDateStorageKey(), clampedDate);
+  emitWarehouseContextChange({ source: "setSelectedDate", date: clampedDate });
 }
 
 function getSelectedShift() {
@@ -1112,10 +1144,12 @@ function getSelectedShift() {
 function setSelectedShift(shift) {
   if (isDayOnlySector()) {
     localStorage.setItem(getSelectedShiftStorageKey(), "day");
+    emitWarehouseContextChange({ source: "setSelectedShift", shift: "day" });
     return;
   }
   const normalized = shift === "night" ? "night" : "day";
   localStorage.setItem(getSelectedShiftStorageKey(), normalized);
+  emitWarehouseContextChange({ source: "setSelectedShift", shift: normalized });
 }
 
 function getShiftStore(data, date, shift = null) {
@@ -1368,3 +1402,5 @@ function getStockAvailable(dayStore, productId) {
   const closing = Number(balance.closing);
   return Number.isFinite(closing) ? closing : computedBalance;
 }
+
+globalThis.onWarehouseContextChange = onWarehouseContextChange;
