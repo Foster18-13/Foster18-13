@@ -243,6 +243,7 @@ function emptyDay() {
     recordingColumnCount: 3,
     recordingEntries: {},
     customerEntries: [],
+    returnsEntries: [],
     opening: {},
     returns: {},
     damages: {},
@@ -347,6 +348,19 @@ function deleteProduct(productId) {
     day.customerEntries = Array.isArray(day.customerEntries)
       ? day.customerEntries.filter((entry) => entry.productId !== productId)
       : [];
+    day.returnsEntries = Array.isArray(day.returnsEntries)
+      ? day.returnsEntries.filter((entry) => entry.productId !== productId)
+      : [];
+
+    if (Array.isArray(day.returnsEntries) && day.returnsEntries.length > 0) {
+      const totals = {};
+      day.returnsEntries.forEach((entry) => {
+        const key = String(entry.productId || "");
+        if (!key) return;
+        totals[key] = numeric(totals[key]) + numeric(entry.quantity);
+      });
+      day.returns = totals;
+    }
   });
   saveDB(db);
 }
@@ -384,12 +398,133 @@ function addCustomerEntry(date, entry) {
   return id;
 }
 
+function updateCustomerEntry(date, entryId, entry) {
+  const db = loadDB();
+  const day = ensureDay(db, date);
+  if (!Array.isArray(day.customerEntries)) day.customerEntries = [];
+
+  const target = day.customerEntries.find((item) => item.id === entryId);
+  if (!target) return false;
+
+  const customerName = String(entry?.customerName || "").trim();
+  const productId = String(entry?.productId || "").trim();
+  const waybillNumber = String(entry?.waybillNumber || "").trim();
+  const quantity = Math.max(0, numeric(entry?.quantity));
+  if (!customerName || !productId || quantity <= 0) return false;
+
+  target.customerName = customerName;
+  target.productId = productId;
+  target.quantity = quantity;
+  target.waybillNumber = waybillNumber;
+  saveDB(db);
+  return true;
+}
+
 function deleteCustomerEntry(date, entryId) {
   const db = loadDB();
   const day = ensureDay(db, date);
   day.customerEntries = Array.isArray(day.customerEntries)
     ? day.customerEntries.filter((entry) => entry.id !== entryId)
     : [];
+  saveDB(db);
+}
+
+function readReturnsEntries(date) {
+  const db = loadDB();
+  const day = ensureDay(db, date);
+  if (Array.isArray(day.returnsEntries)) return day.returnsEntries;
+
+  const seeded = Object.entries(day.returns || {})
+    .map(([productId, qty], idx) => {
+      const quantity = numeric(qty);
+      if (quantity <= 0) return null;
+      return {
+        id: `returns-entry-legacy-${Date.now()}-${idx}`,
+        customerName: "",
+        productId,
+        quantity,
+        waybillNumber: "",
+        createdAt: Date.now()
+      };
+    })
+    .filter(Boolean);
+
+  day.returnsEntries = seeded;
+  saveDB(db);
+  return day.returnsEntries;
+}
+
+function syncReturnsFromEntries(day) {
+  const totals = {};
+  const entries = Array.isArray(day.returnsEntries) ? day.returnsEntries : [];
+  entries.forEach((entry) => {
+    const key = String(entry.productId || "");
+    if (!key) return;
+    totals[key] = numeric(totals[key]) + numeric(entry.quantity);
+  });
+  day.returns = totals;
+}
+
+function addReturnEntry(date, entry) {
+  const db = loadDB();
+  const day = ensureDay(db, date);
+  if (!Array.isArray(day.returnsEntries)) day.returnsEntries = [];
+
+  const customerName = String(entry?.customerName || "").trim();
+  const productId = String(entry?.productId || "").trim();
+  const waybillNumber = String(entry?.waybillNumber || "").trim();
+  const quantity = Math.max(0, numeric(entry?.quantity));
+  if (!customerName || !productId || quantity <= 0) return null;
+
+  const createdAt = Date.now();
+  const id = `returns-entry-${createdAt}-${Math.floor(Math.random() * 1000)}`;
+
+  day.returnsEntries.push({
+    id,
+    customerName,
+    productId,
+    quantity,
+    waybillNumber,
+    createdAt
+  });
+
+  syncReturnsFromEntries(day);
+  saveDB(db);
+  return id;
+}
+
+function updateReturnEntry(date, entryId, entry) {
+  const db = loadDB();
+  const day = ensureDay(db, date);
+  if (!Array.isArray(day.returnsEntries)) day.returnsEntries = [];
+
+  const target = day.returnsEntries.find((item) => item.id === entryId);
+  if (!target) return false;
+
+  const customerName = String(entry?.customerName || "").trim();
+  const productId = String(entry?.productId || "").trim();
+  const waybillNumber = String(entry?.waybillNumber || "").trim();
+  const quantity = Math.max(0, numeric(entry?.quantity));
+  if (!customerName || !productId || quantity <= 0) return false;
+
+  target.customerName = customerName;
+  target.productId = productId;
+  target.quantity = quantity;
+  target.waybillNumber = waybillNumber;
+
+  syncReturnsFromEntries(day);
+  saveDB(db);
+  return true;
+}
+
+function deleteReturnEntry(date, entryId) {
+  const db = loadDB();
+  const day = ensureDay(db, date);
+  day.returnsEntries = Array.isArray(day.returnsEntries)
+    ? day.returnsEntries.filter((entry) => entry.id !== entryId)
+    : [];
+
+  syncReturnsFromEntries(day);
   saveDB(db);
 }
 

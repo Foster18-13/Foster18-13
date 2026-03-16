@@ -1,7 +1,10 @@
-function renderRecordingTable() {
-  const host = document.getElementById("recordingTableHost");
-  const date = selectedDate();
+function renderReturnsSheet() {
+  const host = document.getElementById("returnsTableHost");
+  const totalEl = document.getElementById("returnsGrandTotal");
   if (!host) return;
+
+  const date = selectedDate();
+  const products = readProducts();
 
   const escapeHtml = (value) => String(value || "")
     .replaceAll("&", "&amp;")
@@ -10,9 +13,9 @@ function renderRecordingTable() {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 
-  const products = readProducts();
   const productById = new Map(products.map((product) => [product.id, product.name]));
-  const entries = readCustomerEntries(date);
+  const entries = readReturnsEntries(date);
+  const grandTotal = entries.reduce((sum, entry) => sum + Number(entry.quantity || 0), 0);
 
   const productOptions = products
     .map((product) => `<option value="${escapeHtml(product.id)}">${escapeHtml(product.name)}</option>`)
@@ -20,17 +23,17 @@ function renderRecordingTable() {
 
   host.innerHTML = `
     <div class="toolbar">
-      <input id="customerNameInput" class="input" type="text" placeholder="Customer Name" />
-      <select id="customerProductInput" class="input">
+      <input id="returnsCustomerNameInput" class="input" type="text" placeholder="Customer Name" />
+      <select id="returnsProductInput" class="input">
         <option value="">Select Product</option>
         ${productOptions}
       </select>
-      <input id="customerQuantityInput" class="input" type="number" min="1" step="1" placeholder="Quantity" />
-      <input id="customerWaybillInput" class="input" type="text" placeholder="Waybill Number" />
-      <button id="saveCustomerEntryBtn" class="button primary" type="button">Save</button>
-      <button id="cancelCustomerEntryEditBtn" class="button" type="button" style="display:none;">Cancel Edit</button>
+      <input id="returnsQuantityInput" class="input" type="number" min="1" step="1" placeholder="Quantity" />
+      <input id="returnsWaybillInput" class="input" type="text" placeholder="Waybill Number" />
+      <button id="saveReturnEntryBtn" class="button primary" type="button">Save</button>
+      <button id="cancelReturnEditBtn" class="button" type="button" style="display:none;">Cancel Edit</button>
     </div>
-    <div id="customerEntryMessage" class="auth-message"></div>
+    <div id="returnsEntryMessage" class="auth-message"></div>
     <table>
       <thead>
         <tr>
@@ -42,15 +45,19 @@ function renderRecordingTable() {
           <th>Actions</th>
         </tr>
       </thead>
-      <tbody id="customerEntryRows"></tbody>
+      <tbody id="returnsEntryRows"></tbody>
     </table>
   `;
 
-  const rows = host.querySelector("#customerEntryRows");
+  if (totalEl) {
+    totalEl.textContent = String(grandTotal);
+  }
+
+  const rows = host.querySelector("#returnsEntryRows");
   if (!rows) return;
 
   if (entries.length === 0) {
-    rows.innerHTML = `<tr><td colspan="6">No customer entries saved for this date yet.</td></tr>`;
+    rows.innerHTML = `<tr><td colspan="6">No returns entries saved for this date yet.</td></tr>`;
   } else {
     rows.innerHTML = entries
       .map((entry) => {
@@ -73,19 +80,19 @@ function renderRecordingTable() {
       .join("");
   }
 
-  const msg = host.querySelector("#customerEntryMessage");
-  const customerNameInput = host.querySelector("#customerNameInput");
-  const customerProductInput = host.querySelector("#customerProductInput");
-  const customerQuantityInput = host.querySelector("#customerQuantityInput");
-  const customerWaybillInput = host.querySelector("#customerWaybillInput");
-  const saveBtn = host.querySelector("#saveCustomerEntryBtn");
-  const cancelBtn = host.querySelector("#cancelCustomerEntryEditBtn");
+  const msg = host.querySelector("#returnsEntryMessage");
+  const customerNameInput = host.querySelector("#returnsCustomerNameInput");
+  const productInput = host.querySelector("#returnsProductInput");
+  const quantityInput = host.querySelector("#returnsQuantityInput");
+  const waybillInput = host.querySelector("#returnsWaybillInput");
+  const saveBtn = host.querySelector("#saveReturnEntryBtn");
+  const cancelBtn = host.querySelector("#cancelReturnEditBtn");
 
   const resetForm = () => {
     if (customerNameInput) customerNameInput.value = "";
-    if (customerProductInput) customerProductInput.value = "";
-    if (customerQuantityInput) customerQuantityInput.value = "";
-    if (customerWaybillInput) customerWaybillInput.value = "";
+    if (productInput) productInput.value = "";
+    if (quantityInput) quantityInput.value = "";
+    if (waybillInput) waybillInput.value = "";
     if (saveBtn) {
       saveBtn.textContent = "Save";
       saveBtn.dataset.editingId = "";
@@ -95,9 +102,9 @@ function renderRecordingTable() {
 
   saveBtn?.addEventListener("click", () => {
     const customerName = String(customerNameInput?.value || "").trim();
-    const productId = String(customerProductInput?.value || "").trim();
-    const quantity = Number(customerQuantityInput?.value || 0);
-    const waybillNumber = String(customerWaybillInput?.value || "").trim();
+    const productId = String(productInput?.value || "").trim();
+    const quantity = Number(quantityInput?.value || 0);
+    const waybillNumber = String(waybillInput?.value || "").trim();
 
     if (!customerName || !productId || !Number.isFinite(quantity) || quantity <= 0) {
       if (msg) {
@@ -109,23 +116,23 @@ function renderRecordingTable() {
 
     const editingId = String(saveBtn.dataset.editingId || "").trim();
     const ok = editingId
-      ? updateCustomerEntry(date, editingId, { customerName, productId, quantity, waybillNumber })
-      : !!addCustomerEntry(date, { customerName, productId, quantity, waybillNumber });
+      ? updateReturnEntry(date, editingId, { customerName, productId, quantity, waybillNumber })
+      : !!addReturnEntry(date, { customerName, productId, quantity, waybillNumber });
 
     if (!ok) {
       if (msg) {
         msg.className = "auth-message error";
-        msg.textContent = "Could not save entry. Please check all fields.";
+        msg.textContent = "Could not save return entry. Please check all fields.";
       }
       return;
     }
 
     if (msg) {
       msg.className = "auth-message ok";
-      msg.textContent = editingId ? "Customer entry updated." : "Customer entry saved.";
+      msg.textContent = editingId ? "Return entry updated." : "Return entry saved.";
     }
     resetForm();
-    renderRecordingTable();
+    renderReturnsSheet();
   });
 
   cancelBtn?.addEventListener("click", () => {
@@ -143,8 +150,8 @@ function renderRecordingTable() {
 
       const action = button.dataset.action;
       if (action === "delete") {
-        deleteCustomerEntry(date, entryId);
-        renderRecordingTable();
+        deleteReturnEntry(date, entryId);
+        renderReturnsSheet();
         return;
       }
 
@@ -152,9 +159,9 @@ function renderRecordingTable() {
       if (!entry) return;
 
       if (customerNameInput) customerNameInput.value = entry.customerName || "";
-      if (customerProductInput) customerProductInput.value = entry.productId || "";
-      if (customerQuantityInput) customerQuantityInput.value = String(entry.quantity || "");
-      if (customerWaybillInput) customerWaybillInput.value = entry.waybillNumber || "";
+      if (productInput) productInput.value = entry.productId || "";
+      if (quantityInput) quantityInput.value = String(entry.quantity || "");
+      if (waybillInput) waybillInput.value = entry.waybillNumber || "";
       if (saveBtn) {
         saveBtn.textContent = "Update";
         saveBtn.dataset.editingId = entry.id;
@@ -162,13 +169,18 @@ function renderRecordingTable() {
       if (cancelBtn) cancelBtn.style.display = "inline-block";
       if (msg) {
         msg.className = "auth-message";
-        msg.textContent = "Editing selected entry.";
+        msg.textContent = "Editing selected return entry.";
       }
     });
   });
 }
 
-function initRecordingPage() {
+function initReturnsPage() {
   initProtectedPage();
-  renderRecordingTable();
+  renderReturnsSheet();
+
+  const printBtn = document.getElementById("printReturnsBtn");
+  printBtn?.addEventListener("click", () => {
+    printSection("returnsTableHost", "Returns Sheet");
+  });
 }
