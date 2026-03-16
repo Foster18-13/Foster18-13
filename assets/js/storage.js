@@ -1143,6 +1143,16 @@ function getClosingFromShift(shiftStore, productId) {
 
 function getPreviousClosingStock(data, date, productId, shift = null) {
   const selectedShift = shift || getSelectedShift();
+  const sectorId = getCurrentSectorId();
+
+  if (sectorId === "water") {
+    if (selectedShift === "night") {
+      return getClosingFromShift(data.daily?.[date]?.day, productId);
+    }
+
+    const sameDateNightClosing = getClosingFromShift(data.daily?.[date]?.night, productId);
+    if (hasStockValue(sameDateNightClosing)) return sameDateNightClosing;
+  }
 
   if (selectedShift === "night") {
     return getClosingFromShift(data.daily?.[date]?.day, productId);

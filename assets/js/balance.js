@@ -3,6 +3,7 @@ function renderBalanceTable() {
   const data = loadData();
   const date = getSelectedDate();
   const selectedShift = getSelectedShift();
+  const isWaterSector = typeof getCurrentSectorId === "function" ? getCurrentSectorId() === "water" : true;
   const dayStore = getShiftStore(data, date);
   const activeProducts = getActiveProductsForDate(data, date);
 
@@ -19,10 +20,13 @@ function renderBalanceTable() {
   tbody.innerHTML = sortedProducts
     .map((product) => {
       const existing = dayStore.balance[product.id] || {};
-      const openingValue =
-        existing.opening === null || existing.opening === undefined || existing.opening === ""
-          ? getPreviousClosingStock(data, date, product.id, selectedShift)
-          : existing.opening;
+      const linkedOpening = getPreviousClosingStock(data, date, product.id, selectedShift);
+      const hasExistingOpening = !(existing.opening === null || existing.opening === undefined || existing.opening === "");
+
+      let openingValue = hasExistingOpening ? existing.opening : linkedOpening;
+      if (isWaterSector && linkedOpening !== "") {
+        openingValue = linkedOpening;
+      }
       const loading = getLoadingForProduct(dayStore, product.id);
       const goodsReceived = getGoodsReceivedForProduct(dayStore, product.id);
       const balanceValue = computeBalanceValue({
