@@ -1250,76 +1250,93 @@ function initGlobalSearch() {
 function initSidebarToggle() {
   const sidebarToggle = document.getElementById("sidebarToggle");
   const sidebar = document.querySelector(".sidebar");
-  const overlay = document.getElementById("sidebarOverlay");
   const header = document.querySelector(".site-header");
   const root = document.body;
 
-  if (!sidebarToggle || !sidebar) return;
+  if (!sidebarToggle || !sidebar || !root) return;
+  if (sidebarToggle.dataset.sidebarBound === "1") return;
 
-  // Defensive fallback: keep toggle visible even if some CSS rule hides it.
+  let overlay = document.getElementById("sidebarOverlay");
+  if (!overlay) {
+    overlay = document.createElement("div");
+    overlay.id = "sidebarOverlay";
+    overlay.className = "sidebar-overlay";
+    root.appendChild(overlay);
+  }
+
+  sidebarToggle.dataset.sidebarBound = "1";
   sidebarToggle.style.display = "flex";
+  sidebarToggle.setAttribute("aria-expanded", "false");
+  sidebarToggle.setAttribute("aria-controls", "sidebarOverlay");
 
-  function openSidebar() {
-    // Position the panel below the sticky header so the header stays visible.
+  function syncPanelOffset() {
     const headerH = header ? Math.round(header.getBoundingClientRect().height) : 0;
     sidebar.style.top = headerH + "px";
     sidebar.style.height = "calc(100vh - " + headerH + "px)";
-    sidebar.style.left = "auto";
-    if (overlay) {
-      overlay.style.top = headerH + "px";
-    }
+    overlay.style.top = headerH + "px";
+  }
 
+  function openSidebar() {
+    syncPanelOffset();
     root.classList.add("sidebar-open");
     sidebar.classList.add("active");
+    sidebar.style.left = "auto";
     sidebar.style.right = "0";
     sidebar.style.display = "block";
-    if (overlay) overlay.classList.add("active");
-    if (overlay) overlay.style.display = "block";
+    overlay.classList.add("active");
+    overlay.style.display = "block";
     sidebarToggle.setAttribute("aria-expanded", "true");
   }
 
   function closeSidebar() {
     root.classList.remove("sidebar-open");
     sidebar.classList.remove("active");
-    sidebar.style.right = "-290px";
     sidebar.style.left = "auto";
+    sidebar.style.right = "-290px";
     sidebar.style.display = "block";
-    if (overlay) overlay.classList.remove("active");
-    if (overlay) overlay.style.display = "none";
+    overlay.classList.remove("active");
+    overlay.style.display = "none";
     sidebarToggle.setAttribute("aria-expanded", "false");
   }
 
   closeSidebar();
 
-  sidebarToggle.addEventListener("click", (e) => {
-    e.stopPropagation();
+  const toggleSidebar = (event) => {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
     root.classList.contains("sidebar-open") ? closeSidebar() : openSidebar();
+  };
+
+  sidebarToggle.addEventListener("click", toggleSidebar);
+  sidebarToggle.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      toggleSidebar(event);
+    }
   });
 
-  // Close when clicking a nav link
   sidebar.querySelectorAll(".main-nav a").forEach((link) => {
     link.addEventListener("click", (event) => {
       closeSidebar();
-
-      // Respect browser default behavior for modifier clicks and non-left clicks.
       if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
         return;
       }
-
       const href = link.getAttribute("href");
       if (!href || href.startsWith("#")) {
         return;
       }
-
       event.preventDefault();
       location.href = href;
     });
   });
 
-  // Close when clicking the overlay
-  if (overlay) {
-    overlay.addEventListener("click", closeSidebar);
-  }
+  overlay.addEventListener("click", closeSidebar);
+  globalThis.addEventListener("resize", () => {
+    if (root.classList.contains("sidebar-open")) {
+      syncPanelOffset();
+    }
+  });
 }
 
 function invokeIfFunction(functionName) {
