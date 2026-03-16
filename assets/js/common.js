@@ -1251,6 +1251,7 @@ function initSidebarToggle() {
   const sidebarToggle = document.getElementById("sidebarToggle");
   const sidebar = document.querySelector(".sidebar");
   const overlay = document.getElementById("sidebarOverlay");
+  const header = document.querySelector(".site-header");
   const root = document.body;
 
   if (!sidebarToggle || !sidebar) return;
@@ -1259,9 +1260,18 @@ function initSidebarToggle() {
   sidebarToggle.style.display = "flex";
 
   function openSidebar() {
+    // Position the panel below the sticky header so the header stays visible.
+    const headerH = header ? Math.round(header.getBoundingClientRect().height) : 0;
+    sidebar.style.top = headerH + "px";
+    sidebar.style.height = "calc(100vh - " + headerH + "px)";
+    sidebar.style.left = "auto";
+    if (overlay) {
+      overlay.style.top = headerH + "px";
+    }
+
     root.classList.add("sidebar-open");
     sidebar.classList.add("active");
-    sidebar.style.left = "0";
+    sidebar.style.right = "0";
     sidebar.style.display = "block";
     if (overlay) overlay.classList.add("active");
     if (overlay) overlay.style.display = "block";
@@ -1271,7 +1281,8 @@ function initSidebarToggle() {
   function closeSidebar() {
     root.classList.remove("sidebar-open");
     sidebar.classList.remove("active");
-    sidebar.style.left = "-280px";
+    sidebar.style.right = "-290px";
+    sidebar.style.left = "auto";
     sidebar.style.display = "block";
     if (overlay) overlay.classList.remove("active");
     if (overlay) overlay.style.display = "none";

@@ -570,27 +570,30 @@ textarea {
 .sidebar {
   position: fixed;
   top: 0;
-  left: -280px;
+  left: auto;
+  right: -290px;
   width: 260px;
   height: 100vh;
   background: var(--surface);
-  border-right: 1px solid var(--border);
-  border-radius: 0 12px 12px 0;
+  border-left: 1px solid var(--border);
+  border-radius: 12px 0 0 12px;
   padding: 16px 10px;
   z-index: 200;
   overflow-y: auto;
-  transition: left 0.25s ease;
+  transition: right 0.25s ease;
   box-shadow: none;
 }
 
 .sidebar.active {
-  left: 0;
-  box-shadow: 4px 0 16px rgba(0,0,0,0.12);
+  right: 0;
+  left: auto;
+  box-shadow: -4px 0 16px rgba(0,0,0,0.12);
 }
 
 body.sidebar-open .sidebar {
-  left: 0;
-  box-shadow: 4px 0 16px rgba(0,0,0,0.12);
+  right: 0;
+  left: auto;
+  box-shadow: -4px 0 16px rgba(0,0,0,0.12);
 }
 
 .sidebar-overlay {
@@ -1904,8 +1907,8 @@ input[data-total] {
   }
 
   .sidebar {
-    border-radius: 0 14px 14px 0;
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+    border-radius: 14px 0 0 14px;
+    box-shadow: -4px 0 24px rgba(15, 23, 42, 0.12);
   }
 
   .main-nav {
