@@ -219,6 +219,29 @@ table td:first-child {
   box-shadow: var(--shadow-xs);
 }
 
+/* Compact layout for Balance Sheet numeric columns. */
+#balanceTableHost table {
+  table-layout: fixed;
+}
+
+#balanceTableHost table th:first-child,
+#balanceTableHost table td:first-child {
+  width: 36%;
+  min-width: 260px;
+}
+
+#balanceTableHost table th:not(:first-child),
+#balanceTableHost table td:not(:first-child) {
+  width: 8%;
+  padding: 6px 6px;
+}
+
+#balanceTableHost table td .input {
+  min-width: 0;
+  width: 100%;
+  padding: 6px 6px;
+}
+
 th,
 td {
   border: 1px solid var(--border);
