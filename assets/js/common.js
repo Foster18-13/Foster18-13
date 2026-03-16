@@ -1255,17 +1255,26 @@ function initSidebarToggle() {
 
   if (!sidebarToggle || !sidebar) return;
 
+  // Defensive fallback: keep toggle visible even if some CSS rule hides it.
+  sidebarToggle.style.display = "flex";
+
   function openSidebar() {
     root.classList.add("sidebar-open");
     sidebar.classList.add("active");
+    sidebar.style.left = "0";
+    sidebar.style.display = "block";
     if (overlay) overlay.classList.add("active");
+    if (overlay) overlay.style.display = "block";
     sidebarToggle.setAttribute("aria-expanded", "true");
   }
 
   function closeSidebar() {
     root.classList.remove("sidebar-open");
     sidebar.classList.remove("active");
+    sidebar.style.left = "-280px";
+    sidebar.style.display = "block";
     if (overlay) overlay.classList.remove("active");
+    if (overlay) overlay.style.display = "none";
     sidebarToggle.setAttribute("aria-expanded", "false");
   }
 
