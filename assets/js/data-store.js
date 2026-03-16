@@ -242,6 +242,7 @@ function emptyDay() {
   return {
     recordingColumnCount: 3,
     recordingEntries: {},
+    customerEntries: [],
     opening: {},
     returns: {},
     damages: {},
@@ -343,7 +344,52 @@ function deleteProduct(productId) {
     delete day.closing[productId];
     delete day.remarks[productId];
     day.purchases = day.purchases.filter((entry) => entry.productId !== productId);
+    day.customerEntries = Array.isArray(day.customerEntries)
+      ? day.customerEntries.filter((entry) => entry.productId !== productId)
+      : [];
   });
+  saveDB(db);
+}
+
+function readCustomerEntries(date) {
+  const db = loadDB();
+  const day = ensureDay(db, date);
+  return Array.isArray(day.customerEntries) ? day.customerEntries : [];
+}
+
+function addCustomerEntry(date, entry) {
+  const db = loadDB();
+  const day = ensureDay(db, date);
+  if (!Array.isArray(day.customerEntries)) day.customerEntries = [];
+
+  const customerName = String(entry?.customerName || "").trim();
+  const productId = String(entry?.productId || "").trim();
+  const waybillNumber = String(entry?.waybillNumber || "").trim();
+  const quantity = Math.max(0, numeric(entry?.quantity));
+  if (!customerName || !productId || quantity <= 0) return null;
+
+  const createdAt = Date.now();
+  const id = `customer-entry-${createdAt}-${Math.floor(Math.random() * 1000)}`;
+
+  day.customerEntries.push({
+    id,
+    customerName,
+    productId,
+    quantity,
+    waybillNumber,
+    createdAt
+  });
+
+  saveDB(db);
+  return id;
+}
+
+function deleteCustomerEntry(date, entryId) {
+  const db = loadDB();
+  const day = ensureDay(db, date);
+  day.customerEntries = Array.isArray(day.customerEntries)
+    ? day.customerEntries.filter((entry) => entry.id !== entryId)
+    : [];
   saveDB(db);
 }
 
@@ -375,6 +421,13 @@ function setRecordingValue(date, productId, columnIndex, value) {
 function loadingByProduct(date, productId) {
   const db = loadDB();
   const day = ensureDay(db, date);
+
+  if (Array.isArray(day.customerEntries) && day.customerEntries.length > 0) {
+    return day.customerEntries
+      .filter((entry) => entry.productId === String(productId || ""))
+      .reduce((sum, entry) => sum + numeric(entry.quantity), 0);
+  }
+
   const entries = day.recordingEntries[String(productId || "")] || [];
   return entries.reduce((sum, value) => sum + numeric(value), 0);
 }
