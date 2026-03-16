@@ -1,16 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard | Warehouse Portal</title>
-  <link rel="stylesheet" href="assets/css/style.css?v=20260316a" />
+  <title>Dashboard | Twellium Warehouse Daily Recording Portal</title>
+  <link rel="stylesheet" href="assets/css/style.css?v=20260316p" />
 </head>
+
 <body>
   <header class="site-header">
     <div class="header-inner">
-      <div class="brand">Warehouse Portal</div>
+      <div class="brand">Twellium Industrial Company Limited - Warehouse Portal</div>
       <div class="topbar-controls">
+        <label for="workingDate">Working Date</label>
+        <input id="workingDate" class="input" type="date" />
         <span>Sector: <strong id="sectorLabel">-</strong></span>
         <span>User: <strong id="userLabel">-</strong></span>
         <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-expanded="false">Menu</button>
@@ -21,28 +25,40 @@
   <div id="sidebarOverlay" class="sidebar-overlay"></div>
   <aside class="sidebar">
     <nav>
-      <a href="dashboard.html">Dashboard</a>
-      <a href="balance.html">Balance Sheet</a>
-      <a href="returns.html">Returns Sheet</a>
-      <a href="settings.html">Settings</a>
-      <a href="sector-select.html">Switch Sector</a>
+      <a data-page="dashboard.html" href="dashboard.html">Dashboard</a>
+      <a data-page="balance.html" href="balance.html">Balance Sheet</a>
+      <a data-page="recording.html" href="recording.html">Recording Sheet</a>
+      <a data-page="summary.html" href="summary.html">Summary Sheet</a>
+      <a data-page="purchase.html" href="purchase.html">Purchase Sheet</a>
+      <a data-page="products.html" href="products.html">Products</a>
+      <a data-page="settings.html" href="settings.html">Settings</a>
+      <a data-page="sector-select.html" href="sector-select.html">Switch Sector</a>
       <a href="#" id="logoutBtn">Logout</a>
     </nav>
   </aside>
 
   <main class="layout">
     <section class="card">
-      <h2>Dashboard</h2>
-      <p>Use the navigation menu to open Balance Sheet, Returns Sheet, and Settings.</p>
+      <h2>Warehouse Daily Recording Dashboard</h2>
+      <p>This portal stores daily records and lets users access previous days by selecting a working date.</p>
+      <ul>
+        <li>Balance Sheet: Opening + Returns + Goods Received - Loading - Damages</li>
+        <li>Recording Sheet: Product rows with expandable columns and total loading</li>
+        <li>Summary Sheet: Product and stock available</li>
+        <li>Purchase Sheet: Goods received from factories</li>
+        <li>Products: Add and edit product names anytime</li>
+      </ul>
     </section>
   </main>
 
-  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
-  <script src="assets/js/firebase-config.js?v=20260316a"></script>
-  <script src="assets/js/auth.js?v=20260316a"></script>
-  <script src="assets/js/sidebar.js?v=20260316a"></script>
-  <script src="assets/js/app.js?v=20260316a"></script>
-  <script>initProtectedPage();</script>
+  <script src="assets/js/auth.js?v=20260316p"></script>
+  <script src="assets/js/data-store.js?v=20260316p"></script>
+  <script src="assets/js/sidebar.js?v=20260316p"></script>
+  <script src="assets/js/app.js?v=20260316p"></script>
+  <script>
+    initProtectedPage();
+    initDateControl();
+  </script>
 </body>
+
 </html>

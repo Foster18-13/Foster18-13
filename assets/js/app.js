@@ -10,10 +10,33 @@ function setSectorLabel() {
   el.textContent = getSector();
 }
 
+function setActiveNav() {
+  const current = (globalThis.location.pathname.split("/").pop() || "dashboard.html").toLowerCase();
+  document.querySelectorAll(".sidebar a[data-page]").forEach((link) => {
+    if (link.dataset.page === current) {
+      link.classList.add("active");
+    }
+  });
+}
+
+function initDateControl(onDateChange) {
+  const dateInput = document.getElementById("workingDate");
+  if (!dateInput) return;
+  dateInput.value = selectedDate();
+  dateInput.addEventListener("change", () => {
+    if (!dateInput.value) return;
+    setSelectedDateValue(dateInput.value);
+    if (typeof onDateChange === "function") {
+      onDateChange();
+    }
+  });
+}
+
 async function initProtectedPage() {
   const user = await requireAuth();
   setUserLabel(user);
   setSectorLabel();
+  setActiveNav();
   initSidebar();
 
   const logoutBtn = document.getElementById("logoutBtn");
@@ -44,6 +67,7 @@ async function initSectorPage() {
   buttons.forEach((button) => {
     button.addEventListener("click", () => {
       setSector(button.dataset.sector);
+      setSelectedDateValue(todayISO());
       globalThis.location.href = "dashboard.html";
     });
   });

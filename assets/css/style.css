@@ -37,6 +37,7 @@ body {
 .topbar-controls {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
@@ -47,6 +48,13 @@ body {
   border-radius: 8px;
   cursor: pointer;
   padding: 8px 12px;
+}
+
+.input {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  min-width: 80px;
 }
 
 .button.primary {
@@ -66,6 +74,40 @@ body {
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 16px;
+}
+
+.toolbar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.list-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) auto auto;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--border);
+  background: #fff;
+}
+
+th,
+td {
+  border: 1px solid var(--border);
+  padding: 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  background: var(--primary-soft);
 }
 
 .auth-wrap {
@@ -135,6 +177,11 @@ body {
   background: #fff;
 }
 
+.sidebar a.active {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+}
+
 .sidebar-overlay {
   position: fixed;
   inset: 0;
@@ -164,4 +211,5 @@ body {
 
 @media (max-width: 700px) {
   .sector-grid { grid-template-columns: 1fr; }
+  .list-row { grid-template-columns: 1fr; }
 }

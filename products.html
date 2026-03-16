@@ -4,14 +4,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Balance Sheet | Twellium Warehouse Portal</title>
+  <title>Products | Twellium Warehouse Portal</title>
   <link rel="stylesheet" href="assets/css/style.css?v=20260316p" />
 </head>
 
 <body>
   <header class="site-header">
     <div class="header-inner">
-      <div class="brand">Balance Sheet</div>
+      <div class="brand">Products Setup</div>
       <div class="topbar-controls">
         <label for="workingDate">Working Date</label>
         <input id="workingDate" class="input" type="date" />
@@ -39,9 +39,12 @@
 
   <main class="layout">
     <section class="card">
-      <h2>Daily Balance Sheet</h2>
-      <p>Formula: Balance = Opening Stock + Returns + Goods Received - Loading - Damages.</p>
-      <div id="balanceTableHost"></div>
+      <h2>Products Management</h2>
+      <div class="toolbar">
+        <input id="newProductName" class="input" type="text" placeholder="New product name" />
+        <button id="addProductBtn" class="button primary" type="button">Add Product</button>
+      </div>
+      <div id="productsList"></div>
     </section>
   </main>
 
@@ -49,10 +52,10 @@
   <script src="assets/js/data-store.js?v=20260316p"></script>
   <script src="assets/js/sidebar.js?v=20260316p"></script>
   <script src="assets/js/app.js?v=20260316p"></script>
-  <script src="assets/js/page-balance.js?v=20260316p"></script>
+  <script src="assets/js/page-products.js?v=20260316p"></script>
   <script>
-    initBalancePage();
-    initDateControl(renderBalanceSheet);
+    initProductsPage();
+    initDateControl();
   </script>
 </body>
 
