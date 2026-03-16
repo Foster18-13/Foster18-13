@@ -1251,22 +1251,29 @@ function initSidebarToggle() {
   const sidebarToggle = document.getElementById("sidebarToggle");
   const sidebar = document.querySelector(".sidebar");
   const overlay = document.getElementById("sidebarOverlay");
+  const root = document.body;
 
   if (!sidebarToggle || !sidebar) return;
 
   function openSidebar() {
+    root.classList.add("sidebar-open");
     sidebar.classList.add("active");
     if (overlay) overlay.classList.add("active");
+    sidebarToggle.setAttribute("aria-expanded", "true");
   }
 
   function closeSidebar() {
+    root.classList.remove("sidebar-open");
     sidebar.classList.remove("active");
     if (overlay) overlay.classList.remove("active");
+    sidebarToggle.setAttribute("aria-expanded", "false");
   }
+
+  closeSidebar();
 
   sidebarToggle.addEventListener("click", (e) => {
     e.stopPropagation();
-    sidebar.classList.contains("active") ? closeSidebar() : openSidebar();
+    root.classList.contains("sidebar-open") ? closeSidebar() : openSidebar();
   });
 
   // Close when clicking a nav link

@@ -570,7 +570,7 @@ textarea {
 .sidebar {
   position: fixed;
   top: 0;
-  left: 0;
+  left: -280px;
   width: 260px;
   height: 100vh;
   background: var(--surface);
@@ -588,6 +588,11 @@ textarea {
   box-shadow: 4px 0 16px rgba(0,0,0,0.12);
 }
 
+body.sidebar-open .sidebar {
+  left: 0;
+  box-shadow: 4px 0 16px rgba(0,0,0,0.12);
+}
+
 .sidebar-overlay {
   display: none;
   position: fixed;
@@ -597,6 +602,10 @@ textarea {
 }
 
 .sidebar-overlay.active {
+  display: block;
+}
+
+body.sidebar-open .sidebar-overlay {
   display: block;
 }
 
