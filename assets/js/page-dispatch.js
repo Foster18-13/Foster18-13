@@ -39,13 +39,39 @@ function renderDispatchSheet() {
     }
   });
 
+  const productsWithEntries = products.filter((product) => {
+    const data = dispatchByProduct[product.id];
+    return data && data.entries.length > 0;
+  });
+
+  if (productsWithEntries.length === 0) {
+    host.innerHTML = '<div class="empty-state">No dispatch records found for the selected date.</div>';
+    return;
+  }
+
+  const maxEntryCount = productsWithEntries.reduce((maxCount, product) => {
+    const data = dispatchByProduct[product.id];
+    return Math.max(maxCount, data.entries.length);
+  }, 0);
+
+  // Keep at least 4 waybill/quantity column pairs so the sheet has wider dispatch visibility.
+  const dispatchColumnPairs = Math.max(4, maxEntryCount);
+
   const table = document.createElement("table");
+  const columnHeaders = Array.from({ length: dispatchColumnPairs }, (_, index) => {
+    const n = index + 1;
+    return `
+      <th>Waybill ${n}</th>
+      <th>Qty ${n}</th>
+    `;
+  }).join("");
+
   table.innerHTML = `
     <thead>
       <tr>
         <th>Product Name</th>
         <th>Total Quantity</th>
-        <th>Dispatch Details (Waybill | Qty)</th>
+        ${columnHeaders}
       </tr>
     </thead>
     <tbody></tbody>
@@ -53,9 +79,8 @@ function renderDispatchSheet() {
 
   const tbody = table.querySelector("tbody");
 
-  products.forEach((product) => {
+  productsWithEntries.forEach((product) => {
     const data = dispatchByProduct[product.id];
-    if (!data || data.entries.length === 0) return;
 
     const row = document.createElement("tr");
 
@@ -68,22 +93,31 @@ function renderDispatchSheet() {
     totalCell.textContent = String(totalQty);
     row.appendChild(totalCell);
 
-    const detailsCell = document.createElement("td");
-    const detailsList = document.createElement("ul");
-    detailsList.style.margin = "4px 0";
-    detailsList.style.paddingLeft = "20px";
+    for (let index = 0; index < dispatchColumnPairs; index += 1) {
+      const entry = data.entries[index];
 
-    data.entries.forEach((entry) => {
-      const li = document.createElement("li");
-      li.style.fontSize = "13px";
-      li.style.color = entry.type === "return" ? "#dc2626" : "inherit";
-      const typeLabel = entry.type === "return" ? " (Return)" : "";
-      li.textContent = `${entry.waybill} | ${entry.quantity}${typeLabel}`;
-      detailsList.appendChild(li);
-    });
+      const waybillCell = document.createElement("td");
+      const qtyCell = document.createElement("td");
 
-    detailsCell.appendChild(detailsList);
-    row.appendChild(detailsCell);
+      if (entry) {
+        const waybillText = String(entry.waybill || "-");
+        waybillCell.textContent = entry.type === "return" ? `${waybillText} (R)` : waybillText;
+        qtyCell.textContent = String(entry.quantity || 0);
+
+        if (entry.type === "return") {
+          waybillCell.style.color = "#b91c1c";
+          qtyCell.style.color = "#b91c1c";
+          waybillCell.style.fontWeight = "700";
+          qtyCell.style.fontWeight = "700";
+        }
+      } else {
+        waybillCell.textContent = "-";
+        qtyCell.textContent = "-";
+      }
+
+      row.appendChild(waybillCell);
+      row.appendChild(qtyCell);
+    }
 
     tbody.appendChild(row);
   });
