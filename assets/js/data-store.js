@@ -7,6 +7,39 @@ const LEGACY_GENERIC_PRODUCT_NAMES = [
   "Soft Drink"
 ];
 
+const WATER_PRODUCT_NAMES = [
+  "Verna Shrink 500ml x 24",
+  "Verna Shrink 500ml x 16",
+  "Verna Shrink 750ml x 16",
+  "Verna Shrink 1.5L x 6",
+  "Verna Active Sport Water 500ml x 12",
+  "Verna Jar 19L",
+  "Slemfit Water 500ml x 16",
+  "Run Energy 350ml x 16",
+  "Run Energy 500ml x 12",
+  "Rush Energy 350ml x 12",
+  "Ch. Vim Energy 500ml x 12",
+  "Rosa Still Water 1L x 12",
+  "Bigoo Cola 350ml x 20",
+  "Bigoo Lemonlime 350ml x 20",
+  "Bigoo Lemonade 350ml x 20",
+  "Bigoo Apple 350ml x 20",
+  "Bigoo Grapes 350ml x 20",
+  "Bigoo Orange 350ml x 20",
+  "Bigoo Coconut 350ml x 20",
+  "Bigoo Cocktail 350ml x 20",
+  "Bigoo Strawberry 350ml x 20",
+  "Rasta Ch. Malt 350ml x16",
+  "Rasta Ch. Malt 500ml x 12",
+  "Easy Sport Energy 500ml x 12",
+  "Can Planet Orange 330ml x 24",
+  "Can Dr. Malt 330ml x 24",
+  "Can Ch. Soursop 330ml x 24",
+  "Can Bubble Up Tonic 330ml x 24",
+  "Planet Orange 350ml x 16",
+  "Planet Coconut 350ml x 16"
+];
+
 const HH_PRODUCT_NAMES = [
   "H&H CHINESE GREEN TEA 25G -(20KG-BOX)",
   "H&H BRAND CANNED CHICKEN SAUSAGE (HOTDOGS)",
@@ -189,6 +222,9 @@ function namesToProducts(names) {
 }
 
 function sectorDefaultProducts() {
+  if (currentSector() === "water") {
+    return namesToProducts(WATER_PRODUCT_NAMES);
+  }
   if (currentSector() === "hh") {
     return namesToProducts(HH_PRODUCT_NAMES);
   }
@@ -228,7 +264,7 @@ function loadDB() {
     const parsedProducts = Array.isArray(parsed.products) ? parsed.products : defaultProducts();
     const parsedNames = parsedProducts.map((item) => String(item?.name || "")).filter(Boolean);
     const looksLegacyGeneric =
-      (currentSector() === "hh" || currentSector() === "mcberry") &&
+      (currentSector() === "water" || currentSector() === "hh" || currentSector() === "mcberry") &&
       parsedNames.length > 0 &&
       parsedNames.every((name) => LEGACY_GENERIC_PRODUCT_NAMES.includes(name));
 
