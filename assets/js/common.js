@@ -1176,7 +1176,22 @@ function initSidebarToggle() {
 
   // Close when clicking a nav link
   sidebar.querySelectorAll(".main-nav a").forEach((link) => {
-    link.addEventListener("click", closeSidebar);
+    link.addEventListener("click", (event) => {
+      closeSidebar();
+
+      // Respect browser default behavior for modifier clicks and non-left clicks.
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+        return;
+      }
+
+      const href = link.getAttribute("href");
+      if (!href || href.startsWith("#")) {
+        return;
+      }
+
+      event.preventDefault();
+      location.href = href;
+    });
   });
 
   // Close when clicking the overlay
