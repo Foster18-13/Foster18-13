@@ -10,6 +10,51 @@ function setSectorLabel() {
   el.textContent = getSector();
 }
 
+function initShiftControl(onShiftChange) {
+  const controls = document.querySelector(".topbar-controls");
+  if (!controls) return;
+
+  const existing = document.getElementById("shiftControlWrap");
+  if (!usesShiftStorage()) {
+    existing?.remove();
+    return;
+  }
+
+  let wrapper = existing;
+  if (!wrapper) {
+    wrapper = document.createElement("span");
+    wrapper.id = "shiftControlWrap";
+    wrapper.className = "shift-control-wrap";
+    wrapper.innerHTML = `
+      <label for="workingShift">Shift</label>
+      <select id="workingShift" class="input">
+        <option value="day">Day Shift (6:00 AM - 6:00 PM)</option>
+        <option value="night">Night Shift (6:00 PM - 6:00 AM)</option>
+      </select>
+    `;
+
+    const menuButton = document.getElementById("sidebarToggle");
+    if (menuButton) {
+      menuButton.before(wrapper);
+    } else {
+      controls.appendChild(wrapper);
+    }
+  }
+
+  const shiftSelect = document.getElementById("workingShift");
+  if (!shiftSelect) return;
+  shiftSelect.value = selectedShift();
+
+  if (shiftSelect.dataset.bound === "true") return;
+  shiftSelect.dataset.bound = "true";
+  shiftSelect.addEventListener("change", () => {
+    setSelectedShiftValue(shiftSelect.value);
+    if (typeof onShiftChange === "function") {
+      onShiftChange();
+    }
+  });
+}
+
 function setActiveNav() {
   const current = (globalThis.location.pathname.split("/").pop() || "dashboard.html").toLowerCase();
   document.querySelectorAll(".sidebar a[data-page]").forEach((link) => {
@@ -76,6 +121,7 @@ function attachBrandLogo() {
 
 function initDateControl(onDateChange) {
   const dateInput = document.getElementById("workingDate");
+  initShiftControl(onDateChange);
   if (!dateInput) return;
   dateInput.value = selectedDate();
   dateInput.addEventListener("change", () => {
@@ -95,6 +141,7 @@ function printSection(sectionId, title) {
   const printWin = globalThis.open("", "_blank", "width=1200,height=900");
   if (!printWin) return;
 
+  const shiftSegment = usesShiftStorage() ? ` | Shift: ${selectedShiftLabel()}` : "";
   printWin.document.write(`
     <!DOCTYPE html>
     <html lang="en">
@@ -110,7 +157,7 @@ function printSection(sectionId, title) {
       </head>
       <body>
         <div class="layout">
-          <div class="print-header">${title} | Date: ${selectedDate()} | Sector: ${getSector()}</div>
+          <div class="print-header">${title} | Date: ${selectedDate()} | Sector: ${getSector()}${shiftSegment}</div>
           <div class="card">${source.innerHTML}</div>
         </div>
       </body>
@@ -126,6 +173,7 @@ async function initProtectedPage() {
   attachBrandLogo();
   setUserLabel(user);
   setSectorLabel();
+  initShiftControl();
   setActiveNav();
   initSidebar();
 }
@@ -152,6 +200,7 @@ async function initSectorPage() {
     button.addEventListener("click", () => {
       setSector(button.dataset.sector);
       setSelectedDateValue(todayISO());
+      setSelectedShiftValue("day");
       globalThis.location.href = "dashboard.html";
     });
   });

@@ -51,6 +51,7 @@ async function loginWithEmail(email, password) {
 function logoutUser() {
   sessionStorage.removeItem("warehouseSector");
   localStorage.removeItem("warehouseSector");
+  sessionStorage.removeItem("twelliumWarehouseShift:water");
   globalThis.location.href = "sector-select.html";
   return Promise.resolve();
 }

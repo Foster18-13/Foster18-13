@@ -62,6 +62,16 @@ a:hover {
   gap: 8px;
 }
 
+.shift-control-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.shift-control-wrap label {
+  color: var(--muted);
+}
+
 .button, .sidebar-toggle, .sector-btn {
   border: 1px solid var(--border);
   background: var(--surface);
@@ -482,6 +492,10 @@ th {
   .dashboard-hero {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .shift-control-wrap {
+    flex-wrap: wrap;
   }
 
   .dashboard-metrics,

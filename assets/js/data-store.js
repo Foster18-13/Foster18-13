@@ -1,5 +1,6 @@
 const STORAGE_PREFIX = "twelliumWarehousePortal";
 const DATE_KEY_PREFIX = "twelliumWarehouseDate";
+const SHIFT_KEY_PREFIX = "twelliumWarehouseShift";
 
 const LEGACY_GENERIC_PRODUCT_NAMES = [
   "Water 500ml",
@@ -206,6 +207,41 @@ function dateKey() {
   return `${DATE_KEY_PREFIX}:${currentSector()}`;
 }
 
+function shiftKey() {
+  return `${SHIFT_KEY_PREFIX}:${currentSector()}`;
+}
+
+function usesShiftStorage() {
+  return currentSector() === "water";
+}
+
+function selectedShift() {
+  if (!usesShiftStorage()) return "day";
+  const stored = String(sessionStorage.getItem(shiftKey()) || "day").toLowerCase();
+  return stored === "night" ? "night" : "day";
+}
+
+function setSelectedShiftValue(value) {
+  const normalized = String(value || "day").toLowerCase() === "night" ? "night" : "day";
+  if (!usesShiftStorage()) {
+    sessionStorage.removeItem(shiftKey());
+    return;
+  }
+  sessionStorage.setItem(shiftKey(), normalized);
+}
+
+function selectedShiftLabel() {
+  if (selectedShift() === "night") {
+    return "Night Shift (6:00 PM - 6:00 AM)";
+  }
+  return "Day Shift (6:00 AM - 6:00 PM)";
+}
+
+function dayStoreKey(date) {
+  const baseDate = String(date || selectedDate());
+  return usesShiftStorage() ? `${baseDate}::${selectedShift()}` : baseDate;
+}
+
 function slugifyProductName(name) {
   return String(name || "")
     .toLowerCase()
@@ -236,6 +272,25 @@ function sectorDefaultProducts() {
 
 function defaultProducts() {
   return sectorDefaultProducts();
+}
+
+function migrateWaterShiftDays(days) {
+  if (currentSector() !== "water" || !days || typeof days !== "object") {
+    return days && typeof days === "object" ? days : {};
+  }
+
+  const nextDays = { ...days };
+  Object.keys(days).forEach((key) => {
+    if (String(key).includes("::")) return;
+
+    const shiftedKey = `${key}::day`;
+    if (!nextDays[shiftedKey]) {
+      nextDays[shiftedKey] = days[key];
+    }
+    delete nextDays[key];
+  });
+
+  return nextDays;
 }
 
 function emptyDay() {
@@ -272,7 +327,7 @@ function loadDB() {
 
     return {
       products: looksLegacyGeneric ? defaultProducts() : parsedProducts,
-      days: parsed.days && typeof parsed.days === "object" ? parsed.days : {}
+      days: migrateWaterShiftDays(parsed.days && typeof parsed.days === "object" ? parsed.days : {})
     };
   } catch {
     return {
@@ -298,7 +353,7 @@ function setSelectedDateValue(value) {
 }
 
 function ensureDay(db, date) {
-  const key = String(date || selectedDate());
+  const key = dayStoreKey(date);
   if (!db.days[key]) {
     db.days[key] = emptyDay();
   }
