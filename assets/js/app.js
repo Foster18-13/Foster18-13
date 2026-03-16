@@ -1,7 +1,7 @@
 function setUserLabel(user) {
   const el = document.getElementById("userLabel");
   if (!el || !user) return;
-  el.textContent = user.email || "Signed in";
+  el.textContent = user.email || "Guest Access";
 }
 
 function setSectorLabel() {
@@ -26,6 +26,7 @@ async function initProtectedPage() {
 
 function mapAuthError(error) {
   const code = error?.code || "";
+  if (code === "auth/operation-not-allowed") return "Login portal has been removed.";
   if (code === "auth/invalid-email") return "Invalid email format.";
   if (code === "auth/user-not-found") return "No account found for this email.";
   if (code === "auth/wrong-password" || code === "auth/invalid-credential") return "Wrong email or password.";
@@ -34,38 +35,7 @@ function mapAuthError(error) {
 }
 
 function initLoginPage() {
-  initFirebase();
-
-  const form = document.getElementById("loginForm");
-  const message = document.getElementById("authMessage");
-  if (!form || !message) return;
-
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-    const submit = document.getElementById("submitBtn");
-
-    message.textContent = "";
-    submit.disabled = true;
-    submit.textContent = "Signing in...";
-
-    try {
-      await loginWithEmail(email, password);
-      message.className = "auth-message ok";
-      message.textContent = "Login successful. Redirecting...";
-      setTimeout(() => {
-        globalThis.location.href = "sector-select.html";
-      }, 500);
-    } catch (error) {
-      message.className = "auth-message error";
-      message.textContent = mapAuthError(error);
-    } finally {
-      submit.disabled = false;
-      submit.textContent = "Login";
-    }
-  });
+  globalThis.location.href = "sector-select.html";
 }
 
 async function initSectorPage() {

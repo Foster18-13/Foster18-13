@@ -1,6 +1,6 @@
 function initFirebase() {
   if (!globalThis.firebase?.initializeApp) {
-    throw new Error("Firebase SDK not loaded.");
+    return null;
   }
   if (!firebase.apps.length) {
     firebase.initializeApp(globalThis.FIREBASE_CONFIG);
@@ -19,20 +19,19 @@ function getSector() {
 }
 
 function requireAuth() {
-  const auth = initFirebase();
-  return new Promise((resolve) => {
-    auth.onAuthStateChanged((user) => {
-      if (!user) {
-        globalThis.location.href = "login.html";
-        return;
-      }
-      resolve(user);
-    });
+  return Promise.resolve({
+    email: "Guest Access",
+    uid: "guest"
   });
 }
 
 async function loginWithEmail(email, password) {
   const auth = initFirebase();
+  if (!auth) {
+    const err = new Error("Login portal has been removed.");
+    err.code = "auth/operation-not-allowed";
+    throw err;
+  }
   const normalizedEmail = String(email || "").trim().toLowerCase();
   const rawPassword = String(password || "");
   const trimmedPassword = rawPassword.trim();
@@ -50,8 +49,8 @@ async function loginWithEmail(email, password) {
 }
 
 function logoutUser() {
-  const auth = initFirebase();
-  return auth.signOut().then(() => {
-    globalThis.location.href = "login.html";
-  });
+  sessionStorage.removeItem("warehouseSector");
+  localStorage.removeItem("warehouseSector");
+  globalThis.location.href = "sector-select.html";
+  return Promise.resolve();
 }
