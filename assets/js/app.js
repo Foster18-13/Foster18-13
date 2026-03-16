@@ -19,6 +19,30 @@ function setActiveNav() {
   });
 }
 
+function attachBrandLogo() {
+  const brandEl = document.querySelector(".brand");
+  if (!brandEl || brandEl.querySelector(".brand-logo-wrap")) return;
+
+  const text = brandEl.textContent?.trim() || "Warehouse Portal";
+  brandEl.textContent = "";
+
+  const logoWrap = document.createElement("span");
+  logoWrap.className = "brand-logo-wrap";
+
+  const logo = document.createElement("img");
+  logo.className = "brand-logo";
+  logo.src = "assets/img/hh-logo.png";
+  logo.alt = "H and H Logo";
+  logoWrap.appendChild(logo);
+
+  const textEl = document.createElement("span");
+  textEl.className = "brand-text";
+  textEl.textContent = text;
+
+  brandEl.appendChild(logoWrap);
+  brandEl.appendChild(textEl);
+}
+
 function initDateControl(onDateChange) {
   const dateInput = document.getElementById("workingDate");
   if (!dateInput) return;
@@ -32,8 +56,43 @@ function initDateControl(onDateChange) {
   });
 }
 
+function printSection(sectionId, title) {
+  const source = document.getElementById(sectionId);
+  if (!source) return;
+
+  const styleHref = "assets/css/style.css?v=20260316q";
+  const printWin = globalThis.open("", "_blank", "width=1200,height=900");
+  if (!printWin) return;
+
+  printWin.document.write(`
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>${title}</title>
+        <link rel="stylesheet" href="${styleHref}" />
+        <style>
+          body { background: #fff; }
+          .print-header { margin: 12px 0 10px; font-weight: 700; }
+        </style>
+      </head>
+      <body>
+        <div class="layout">
+          <div class="print-header">${title} | Date: ${selectedDate()} | Sector: ${getSector()}</div>
+          <div class="card">${source.innerHTML}</div>
+        </div>
+      </body>
+    </html>
+  `);
+  printWin.document.close();
+  printWin.focus();
+  printWin.print();
+}
+
 async function initProtectedPage() {
   const user = await requireAuth();
+  attachBrandLogo();
   setUserLabel(user);
   setSectorLabel();
   setActiveNav();
@@ -63,6 +122,7 @@ function initLoginPage() {
 
 async function initSectorPage() {
   await requireAuth();
+  attachBrandLogo();
   const buttons = document.querySelectorAll("[data-sector]");
   buttons.forEach((button) => {
     button.addEventListener("click", () => {
