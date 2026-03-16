@@ -83,6 +83,7 @@
       <div class="sector-grid" id="sectorGrid"></div>
       <p class="sector-note" id="sectorStatus"></p>
       <div class="toolbar mt-12">
+        <button class="button button-primary" type="button" id="openAllSectorsBtn">Open All Three Sectors</button>
         <button class="button" type="button" onclick="logoutUser()">Logout</button>
       </div>
     </section>
@@ -92,7 +93,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
   <script src="assets/js/firebase-config.js"></script>
-  <script src="assets/js/user-auth.js"></script>
+  <script src="assets/js/user-auth.js?v=20260316d"></script>
   <script>
     (function initSectorSelectionPage() {
       const statusEl = document.getElementById('sectorStatus');
@@ -115,6 +116,15 @@
       const nextPage = nextRaw && !nextRaw.includes('://') && !nextRaw.startsWith('javascript:')
         ? nextRaw
         : 'home.html';
+      const buildTargetUrl = (sectorId) => {
+        if (typeof buildSectorUrl === 'function') {
+          return buildSectorUrl(nextPage, sectorId);
+        }
+
+        const target = new URL(nextPage, globalThis.location.href);
+        target.searchParams.set('sector', sectorId);
+        return `${target.pathname}${target.search}${target.hash}`;
+      };
 
       grid.innerHTML = sectors.map((sector) => (
         `<button class="sector-btn" type="button" data-sector="${sector.id}">
@@ -134,10 +144,29 @@
           }
           statusEl.textContent = `Sector selected: ${btn.textContent}. Redirecting...`;
           setTimeout(() => {
-            globalThis.location.replace(nextPage || 'home.html');
+            globalThis.location.replace(buildTargetUrl(selected));
           }, 150);
         });
       });
+
+      const openAllSectorsBtn = document.getElementById('openAllSectorsBtn');
+      if (openAllSectorsBtn) {
+        openAllSectorsBtn.addEventListener('click', () => {
+          sectors.forEach((sector, index) => {
+            const url = buildTargetUrl(sector.id);
+            if (index === 0 && typeof setCurrentWorkSector === 'function') {
+              setCurrentWorkSector(sector.id);
+            }
+            globalThis.open(url, '_blank', 'noopener');
+          });
+
+          if (typeof clearSectorSelectionPending === 'function') {
+            clearSectorSelectionPending();
+          }
+
+          statusEl.textContent = 'Opened Water, H&H, and Mcberry in separate tabs.';
+        });
+      }
 
       firebase.auth().onAuthStateChanged((user) => {
         if (!user) {

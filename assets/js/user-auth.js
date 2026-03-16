@@ -119,8 +119,47 @@ function normalizeWorkSector(value) {
   return KNOWN_WORK_SECTORS.has(normalized) ? normalized : DEFAULT_WORK_SECTOR;
 }
 
+function getSectorFromUrl() {
+  try {
+    const currentUrl = new URL(globalThis.location.href);
+    const requested = String(currentUrl.searchParams.get("sector") || "").trim().toLowerCase();
+    return KNOWN_WORK_SECTORS.has(requested) ? requested : "";
+  } catch {
+    return "";
+  }
+}
+
+function buildSectorUrl(target, sectorId = getCurrentWorkSector()) {
+  const normalizedSector = normalizeWorkSector(sectorId);
+
+  try {
+    const resolved = new URL(String(target || "home.html"), globalThis.location.href);
+    if (resolved.origin !== globalThis.location.origin) {
+      return resolved.pathname || "home.html";
+    }
+
+    resolved.searchParams.set("sector", normalizedSector);
+    return `${resolved.pathname}${resolved.search}${resolved.hash}`;
+  } catch {
+    const fallbackPath = String(target || "home.html").split("?")[0] || "home.html";
+    return `${fallbackPath}?sector=${encodeURIComponent(normalizedSector)}`;
+  }
+}
+
+function syncSectorUrl(sectorId) {
+  try {
+    const nextUrl = buildSectorUrl(globalThis.location.href, sectorId);
+    globalThis.history?.replaceState?.({}, "", nextUrl);
+  } catch {
+    // ignore URL sync errors
+  }
+}
+
 function getCurrentWorkSector() {
   try {
+    const urlSector = getSectorFromUrl();
+    if (urlSector) return urlSector;
+
     const stored = localStorage.getItem(WORK_SECTOR_STORAGE_KEY);
     return normalizeWorkSector(stored || DEFAULT_WORK_SECTOR);
   } catch {
@@ -130,6 +169,8 @@ function getCurrentWorkSector() {
 
 function hasSelectedWorkSector() {
   try {
+    if (getSectorFromUrl()) return true;
+
     const stored = localStorage.getItem(WORK_SECTOR_STORAGE_KEY);
     if (!stored) return false;
     return KNOWN_WORK_SECTORS.has(String(stored).trim().toLowerCase());
@@ -141,6 +182,7 @@ function hasSelectedWorkSector() {
 function setCurrentWorkSector(sectorId) {
   const normalized = normalizeWorkSector(sectorId);
   localStorage.setItem(WORK_SECTOR_STORAGE_KEY, normalized);
+  syncSectorUrl(normalized);
   if (typeof globalThis.dispatchEvent === "function") {
     globalThis.dispatchEvent(
       new CustomEvent("warehouse:sector-changed", {
@@ -566,6 +608,7 @@ globalThis.getCurrentWorkSector = getCurrentWorkSector;
 globalThis.hasSelectedWorkSector = hasSelectedWorkSector;
 globalThis.setCurrentWorkSector = setCurrentWorkSector;
 globalThis.clearCurrentWorkSector = clearCurrentWorkSector;
+globalThis.buildSectorUrl = buildSectorUrl;
 globalThis.getCurrentSectorConfig = getCurrentSectorConfig;
 globalThis.markSectorSelectionPending = markSectorSelectionPending;
 globalThis.clearSectorSelectionPending = clearSectorSelectionPending;
@@ -609,7 +652,7 @@ function protectPortalPageWithAuth() {
         }
 
         if (normalizedPage === 'sector-select.html' && hasSelectedWorkSector() && !forceSectorSelection && !pendingSectorSelection) {
-          globalThis.location.replace(safeNext);
+          globalThis.location.replace(buildSectorUrl(safeNext));
         }
       });
       return;
