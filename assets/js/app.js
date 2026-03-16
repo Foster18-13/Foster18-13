@@ -107,6 +107,30 @@ function getSectorDisplayName() {
   return getSector();
 }
 
+const PRINT_LAYOUT_KEY = "twelliumPrintLayout";
+
+function choosePrintLayout() {
+  const saved = String(sessionStorage.getItem(PRINT_LAYOUT_KEY) || "auto").toLowerCase();
+  const suggestion = saved === "portrait" || saved === "landscape" ? saved : "auto";
+  const answer = globalThis.prompt(
+    "Choose print layout: auto, portrait, or landscape",
+    suggestion
+  );
+
+  if (answer === null) return null;
+
+  const normalized = String(answer || "").trim().toLowerCase();
+  let layout = "auto";
+  if (normalized === "portrait" || normalized === "p") {
+    layout = "portrait";
+  } else if (normalized === "landscape" || normalized === "l") {
+    layout = "landscape";
+  }
+
+  sessionStorage.setItem(PRINT_LAYOUT_KEY, layout);
+  return layout;
+}
+
 function attachBrandLogo() {
   const brandEl = document.querySelector(".brand");
   if (!brandEl || brandEl.querySelector(".brand-logo-wrap")) return;
@@ -154,6 +178,9 @@ function printSection(sectionId, title) {
   const source = document.getElementById(sectionId);
   if (!source) return;
 
+  const layoutChoice = choosePrintLayout();
+  if (!layoutChoice) return;
+
   const styleHref = document.querySelector('link[href*="assets/css/style.css"]')?.href || "assets/css/style.css?v=20260317a";
   const printWin = globalThis.open("", "_blank", "width=1200,height=900");
   if (!printWin) return;
@@ -188,6 +215,9 @@ function printSection(sectionId, title) {
 
   const styleEl = doc.createElement("style");
   styleEl.textContent = `
+    @page {
+      size: ${layoutChoice === "portrait" || layoutChoice === "landscape" ? `A4 ${layoutChoice}` : "auto"};
+    }
     body { background: #fff; }
     .print-export-header {
       display: flex;
@@ -277,6 +307,10 @@ function printSection(sectionId, title) {
   const shiftRow = doc.createElement("div");
   shiftRow.innerHTML = `<strong>Shift:</strong> ${shiftLabel}`;
   meta.appendChild(shiftRow);
+
+  const layoutRow = doc.createElement("div");
+  layoutRow.innerHTML = `<strong>Layout:</strong> ${layoutChoice[0].toUpperCase()}${layoutChoice.slice(1)}`;
+  meta.appendChild(layoutRow);
 
   const sectorRow = doc.createElement("div");
   sectorRow.innerHTML = `<strong>Sector:</strong> ${getSectorDisplayName()}`;
