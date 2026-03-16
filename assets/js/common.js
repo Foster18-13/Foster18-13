@@ -270,7 +270,34 @@ function initSharedHeader() {
     printDateElement.textContent = formatted;
   }
 
-  const dateInput = document.getElementById("workingDate");
+  let dateInput = document.getElementById("workingDate");
+  if (!dateInput) {
+    const controls = document.querySelector(".topbar-controls");
+    if (controls) {
+      const dateLabel = document.createElement("label");
+      dateLabel.setAttribute("for", "workingDate");
+      dateLabel.textContent = "Working Date";
+
+      dateInput = document.createElement("input");
+      dateInput.className = "input";
+      dateInput.type = "date";
+      dateInput.id = "workingDate";
+
+      const searchInput = controls.querySelector("#globalSearchInput");
+      if (searchInput) {
+        searchInput.before(dateLabel);
+        dateLabel.after(dateInput);
+      } else {
+        controls.appendChild(dateLabel);
+        controls.appendChild(dateInput);
+      }
+
+      initSectorHeaderBadge();
+      initCurrentContextBadge();
+      initSectorSwitcher();
+    }
+  }
+
   if (!dateInput) return;
 
   dateInput.min = ENTRY_OPEN_FROM_DATE;

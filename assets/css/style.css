@@ -570,7 +570,7 @@ textarea {
 .sidebar {
   position: fixed;
   top: 0;
-  left: -280px;
+  left: 0;
   width: 260px;
   height: 100vh;
   background: var(--surface);
