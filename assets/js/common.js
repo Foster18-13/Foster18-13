@@ -1283,8 +1283,14 @@ function initSidebarToggle() {
     sidebar.style.left = "auto";
     sidebar.style.right = "0";
     sidebar.style.display = "block";
+    sidebar.style.visibility = "visible";
+    sidebar.style.opacity = "1";
+    sidebar.style.pointerEvents = "auto";
     overlay.classList.add("active");
     overlay.style.display = "block";
+    overlay.style.visibility = "visible";
+    overlay.style.opacity = "1";
+    overlay.style.pointerEvents = "auto";
     sidebarToggle.setAttribute("aria-expanded", "true");
   }
 
@@ -1294,8 +1300,14 @@ function initSidebarToggle() {
     sidebar.style.left = "auto";
     sidebar.style.right = "-290px";
     sidebar.style.display = "block";
+    sidebar.style.visibility = "visible";
+    sidebar.style.opacity = "0";
+    sidebar.style.pointerEvents = "none";
     overlay.classList.remove("active");
     overlay.style.display = "none";
+    overlay.style.visibility = "hidden";
+    overlay.style.opacity = "0";
+    overlay.style.pointerEvents = "none";
     sidebarToggle.setAttribute("aria-expanded", "false");
   }
 

@@ -580,43 +580,59 @@ textarea {
   padding: 16px 10px;
   z-index: 200;
   overflow-y: auto;
+  display: block;
+  visibility: visible;
   opacity: 0;
   transform: scale(0.97);
   transform-origin: top right;
-  transition: right 0.25s ease, opacity 0.2s ease, transform 0.2s ease;
+  transition: right 0.3s ease-out, opacity 0.3s ease-out, transform 0.3s ease-out;
   box-shadow: none;
+  pointer-events: none;
 }
 
 .sidebar.active {
-  right: 0;
-  left: auto;
-  opacity: 1;
-  transform: scale(1);
+  right: 0 !important;
+  left: auto !important;
+  opacity: 1 !important;
+  transform: scale(1) !important;
+  visibility: visible !important;
+  display: block !important;
+  pointer-events: auto !important;
   box-shadow: -4px 0 16px rgba(0,0,0,0.12);
 }
 
 body.sidebar-open .sidebar {
-  right: 0;
-  left: auto;
-  opacity: 1;
-  transform: scale(1);
+  right: 0 !important;
+  left: auto !important;
+  opacity: 1 !important;
+  transform: scale(1) !important;
+  visibility: visible !important;
+  display: block !important;
+  pointer-events: auto !important;
   box-shadow: -4px 0 16px rgba(0,0,0,0.12);
 }
 
 .sidebar-overlay {
-  display: none;
+  display: none !important;
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.3);
   z-index: 199;
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+  pointer-events: none;
 }
 
 .sidebar-overlay.active {
-  display: block;
+  display: block !important;
+  opacity: 1;
+  pointer-events: auto;
 }
 
 body.sidebar-open .sidebar-overlay {
-  display: block;
+  display: block !important;
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .sidebar-toggle {
