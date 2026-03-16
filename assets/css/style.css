@@ -153,6 +153,19 @@ h6,
   line-height: 1.2;
 }
 
+.current-context-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-alt);
+  color: var(--text);
+  font-size: 11px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
 .print-date {
   display: none;
   margin: 5px 0 0 0;

@@ -256,6 +256,7 @@ function initSharedHeader() {
 
   enforceSectorShiftRules();
   initSectorHeaderBadge();
+  initCurrentContextBadge();
   initSectorSwitcher();
 
   // Set print date
@@ -348,6 +349,73 @@ function initSectorHeaderBadge() {
   const label = badge.querySelector(".sector-header-label");
   if (logo) logo.src = logoSrc;
   if (label) label.textContent = sectorMeta.label || currentSector;
+}
+
+function formatWorkingDateLabel(dateValue) {
+  const iso = String(dateValue || "").trim();
+  const parsed = new Date(`${iso}T00:00:00`);
+  if (Number.isNaN(parsed.getTime())) return iso || "N/A";
+  return parsed.toLocaleDateString("en-GB");
+}
+
+function formatShiftLabel(shiftValue) {
+  const normalized = String(shiftValue || "").trim().toLowerCase();
+  if (normalized === "night") return "Night";
+  return "Day";
+}
+
+function getCurrentShiftForBadge() {
+  const shiftSelector = document.querySelector('#shiftSelector, select[id*="shiftSelector"]');
+  if (shiftSelector?.value) {
+    return formatShiftLabel(shiftSelector.value);
+  }
+
+  if (typeof getSelectedShift === "function") {
+    return formatShiftLabel(getSelectedShift());
+  }
+
+  return "Day";
+}
+
+function updateCurrentContextBadge() {
+  const badge = document.getElementById("currentContextBadge");
+  if (!badge) return;
+
+  const dateLabel = formatWorkingDateLabel(typeof getSelectedDate === "function" ? getSelectedDate() : "");
+  const shiftLabel = getCurrentShiftForBadge();
+  badge.textContent = `Current Date: ${dateLabel} | Current Shift: ${shiftLabel}`;
+}
+
+function initCurrentContextBadge() {
+  const controls = document.querySelector(".topbar-controls");
+  if (!controls) return;
+
+  let badge = document.getElementById("currentContextBadge");
+  if (!badge) {
+    badge = document.createElement("div");
+    badge.id = "currentContextBadge";
+    badge.className = "current-context-badge";
+
+    const dateLabel = controls.querySelector('label[for="workingDate"]');
+    if (dateLabel) {
+      dateLabel.before(badge);
+    } else {
+      controls.prepend(badge);
+    }
+  }
+
+  updateCurrentContextBadge();
+
+  const dateInput = document.getElementById("workingDate");
+  if (dateInput) {
+    dateInput.addEventListener("change", updateCurrentContextBadge);
+  }
+
+  document.querySelectorAll('#shiftSelector, select[id*="shiftSelector"]').forEach((selector) => {
+    selector.addEventListener("change", () => {
+      updateCurrentContextBadge();
+    });
+  });
 }
 
 function initSectorSwitcher() {
