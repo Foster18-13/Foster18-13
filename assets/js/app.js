@@ -19,6 +19,26 @@ function setActiveNav() {
   });
 }
 
+function getBrandLogoConfig() {
+  const sector = (getSector() || "").toLowerCase();
+  if (sector === "water") {
+    return {
+      src: "assets/img/water-logo.png",
+      alt: "Water and Beverages Logo"
+    };
+  }
+  if (sector === "hh") {
+    return {
+      src: "assets/img/hh-logo.png",
+      alt: "H and H Logo"
+    };
+  }
+  return {
+    src: "assets/img/hh-logo.png",
+    alt: "Warehouse Portal Logo"
+  };
+}
+
 function attachBrandLogo() {
   const brandEl = document.querySelector(".brand");
   if (!brandEl || brandEl.querySelector(".brand-logo-wrap")) return;
@@ -29,10 +49,15 @@ function attachBrandLogo() {
   const logoWrap = document.createElement("span");
   logoWrap.className = "brand-logo-wrap";
 
+  const logoConfig = getBrandLogoConfig();
   const logo = document.createElement("img");
   logo.className = "brand-logo";
-  logo.src = "assets/img/hh-logo.png";
-  logo.alt = "H and H Logo";
+  logo.src = logoConfig.src;
+  logo.alt = logoConfig.alt;
+  logo.addEventListener("error", () => {
+    logo.src = "assets/img/hh-logo.png";
+    logo.alt = "Warehouse Portal Logo";
+  });
   logoWrap.appendChild(logo);
 
   const textEl = document.createElement("span");
