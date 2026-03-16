@@ -259,6 +259,20 @@ function todayISO() {
   return formatDateToLocalISO(new Date());
 }
 
+function isValidISODateString(value) {
+  const text = String(value || "").trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return false;
+  const parsed = new Date(`${text}T00:00:00`);
+  return !Number.isNaN(parsed.getTime()) && formatDateToLocalISO(parsed) === text;
+}
+
+function normalizeWorkingDate(value, fallbackDate = ENTRY_OPEN_FROM_DATE) {
+  const text = String(value || "").trim();
+  if (!isValidISODateString(text)) return fallbackDate;
+  if (text < ENTRY_OPEN_FROM_DATE) return ENTRY_OPEN_FROM_DATE;
+  return text;
+}
+
 function inferPalletFactorFromName(name) {
   const text = String(name || "");
   const match = /x\s*(\d+)/i.exec(text);
@@ -1079,17 +1093,11 @@ function ensureDayStore(data, date) {
 
 function getSelectedDate() {
   const stored = localStorage.getItem(getSelectedDateStorageKey()) || localStorage.getItem(SELECTED_DATE_STORAGE_KEY) || todayISO();
-  const openFromDate = ENTRY_OPEN_FROM_DATE;
-  if (!stored || stored < openFromDate) {
-    return openFromDate;
-  }
-  return stored;
+  return normalizeWorkingDate(stored, ENTRY_OPEN_FROM_DATE);
 }
 
 function setSelectedDate(date) {
-  const normalized = String(date || "").trim();
-  const openFromDate = ENTRY_OPEN_FROM_DATE;
-  const clampedDate = normalized && normalized >= openFromDate ? normalized : openFromDate;
+  const clampedDate = normalizeWorkingDate(date, ENTRY_OPEN_FROM_DATE);
   localStorage.setItem(getSelectedDateStorageKey(), clampedDate);
 }
 
@@ -1112,18 +1120,8 @@ function setSelectedShift(shift) {
 
 function getShiftStore(data, date, shift = null) {
   const selectedShift = shift || getSelectedShift();
-  const day = ensureDayStore(data, date);
-
-  if (
-    !shift &&
-    getCurrentSectorId() === "water" &&
-    selectedShift === "day" &&
-    !hasShiftData(day.day) &&
-    hasShiftData(day.night)
-  ) {
-    return day.night;
-  }
-
+  const safeDate = normalizeWorkingDate(date, getSelectedDate());
+  const day = ensureDayStore(data, safeDate);
   return day[selectedShift];
 }
 
@@ -1189,9 +1187,9 @@ function getActiveProductsForDate(data, dateString) {
 function getCurrentWorkingDate() {
   const dateInput = document.getElementById('workingDate');
   if (dateInput?.value) {
-    return dateInput.value;
+    return normalizeWorkingDate(dateInput.value, getSelectedDate());
   }
-  return todayISO();
+  return getSelectedDate();
 }
 
 function addProduct(name) {
