@@ -128,13 +128,6 @@ async function initProtectedPage() {
   setSectorLabel();
   setActiveNav();
   initSidebar();
-
-  const logoutBtn = document.getElementById("logoutBtn");
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => {
-      logoutUser();
-    });
-  }
 }
 
 function mapAuthError(error) {
