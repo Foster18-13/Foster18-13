@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -27,8 +27,9 @@
     <nav>
       <a data-page="dashboard.html" href="dashboard.html">Dashboard</a>
       <a data-page="balance.html" href="balance.html">Balance Sheet</a>
-      <a data-page="recording.html" href="recording.html">Recording Sheet</a>
+      <a data-page="recording.html" href="recording.html">Customer Entry Sheet</a>
       <a data-page="summary.html" href="summary.html">Summary Sheet</a>
+      <a data-page="returns.html" href="returns.html">Returns Sheet</a>
       <a data-page="purchase.html" href="purchase.html">Purchase Sheet</a>
       <a data-page="products.html" href="products.html">Products</a>
       <a data-page="settings.html" href="settings.html">Settings</a>
@@ -39,9 +40,13 @@
 
   <main class="layout">
     <section class="card">
-      <h2>Returns Are Managed In Balance Sheet</h2>
-      <p>Use the Returns column in the Balance Sheet for each product and date.</p>
-      <p><a class="button primary" href="balance.html">Open Balance Sheet</a></p>
+      <h2>Daily Returns Sheet</h2>
+      <p>Enter product returns for the selected date. These values also feed into the Balance Sheet formula.</p>
+      <div class="toolbar">
+        <div>Total Returns: <strong id="returnsGrandTotal">0</strong></div>
+        <button id="printReturnsBtn" class="button" type="button">Print / Save PDF</button>
+      </div>
+      <div id="returnsTableHost"></div>
     </section>
   </main>
 
@@ -49,9 +54,10 @@
   <script src="assets/js/data-store.js?v=20260316p"></script>
   <script src="assets/js/sidebar.js?v=20260316p"></script>
   <script src="assets/js/app.js?v=20260316p"></script>
+  <script src="assets/js/page-returns.js?v=20260316p"></script>
   <script>
-    initProtectedPage();
-    initDateControl();
+    initReturnsPage();
+    initDateControl(renderReturnsSheet);
   </script>
 </body>
 
