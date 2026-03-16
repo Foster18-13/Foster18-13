@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Purchase Sheet | Twellium Warehouse Portal</title>
+  <title>Product Dispatch | Twellium Warehouse Portal</title>
   <link rel="stylesheet" href="assets/css/style.css?v=20260317a" />
 </head>
 
@@ -16,7 +16,7 @@
   </div>
   <header class="site-header">
     <div class="header-inner">
-      <div class="brand">Purchase Sheet</div>
+      <div class="brand">Product Dispatch</div>
       <div class="topbar-controls">
         <label for="workingDate">Working Date</label>
         <input id="workingDate" class="input" type="date" />
@@ -44,32 +44,23 @@
 
   <main class="layout">
     <section class="card">
-      <h2>Goods Received From Factory</h2>
-      <form id="purchaseForm" class="toolbar">
-        <label for="purchaseProduct">Product</label>
-        <select id="purchaseProduct" class="input" title="Product"></select>
-        <label for="waybillNo">Waybill Number</label>
-        <input id="waybillNo" class="input" placeholder="Waybill Number" required />
-        <label for="batchCode">Batch Code</label>
-        <input id="batchCode" class="input" placeholder="Batch Code" required />
-        <label for="pallets">No. of Pallets</label>
-        <input id="pallets" class="input" type="number" min="0" step="1" placeholder="No. of Pallets" required />
-        <label for="dateReceived">Date Received</label>
-        <input id="dateReceived" class="input" type="date" title="Date Received" required />
-        <button class="button primary" type="submit">Add Entry</button>
-      </form>
-      <div id="purchaseTableHost"></div>
+      <h2>Product Dispatch Sheet</h2>
+      <p>All product quantities and waybill numbers for the selected date.</p>
+      <div class="toolbar">
+        <button id="printDispatchBtn" class="button" type="button">Print / Save PDF</button>
+      </div>
+      <div id="dispatchTableHost"></div>
     </section>
   </main>
 
   <script src="assets/js/auth.js?v=20260316w"></script>
-  <script src="assets/js/data-store.js?v=20260316w"></script>
+  <script src="assets/js/data-store.js?v=20260316z"></script>
   <script src="assets/js/sidebar.js?v=20260316q"></script>
   <script src="assets/js/app.js?v=20260316w"></script>
-  <script src="assets/js/page-purchase.js?v=20260316q"></script>
+  <script src="assets/js/page-dispatch.js?v=20260317a"></script>
   <script>
-    initPurchasePage();
-    initDateControl(renderPurchaseTable);
+    initDispatchPage();
+    initDateControl(renderDispatchSheet);
   </script>
 </body>
 
