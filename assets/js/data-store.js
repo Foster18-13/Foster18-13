@@ -242,6 +242,13 @@ function dayStoreKey(date) {
   return usesShiftStorage() ? `${baseDate}::${selectedShift()}` : baseDate;
 }
 
+function oppositeShiftStoreKey(date) {
+  if (!usesShiftStorage()) return null;
+  const baseDate = String(date || selectedDate());
+  const opposite = selectedShift() === "day" ? "night" : "day";
+  return `${baseDate}::${opposite}`;
+}
+
 function slugifyProductName(name) {
   return String(name || "")
     .toLowerCase()
@@ -627,6 +634,18 @@ function setBalanceField(date, fieldName, productId, value) {
   const day = ensureDay(db, date);
   if (!day[fieldName]) day[fieldName] = {};
   day[fieldName][productId] = fieldName === "remarks" ? String(value || "") : numeric(value);
+
+  // When closing stock is saved for a Water shift, auto-seed the opening
+  // stock of the opposite shift for the same date.
+  if (fieldName === "closing" && usesShiftStorage()) {
+    const oppKey = oppositeShiftStoreKey(date);
+    if (oppKey) {
+      if (!db.days[oppKey]) db.days[oppKey] = emptyDay();
+      if (!db.days[oppKey].opening) db.days[oppKey].opening = {};
+      db.days[oppKey].opening[productId] = numeric(value);
+    }
+  }
+
   saveDB(db);
 }
 

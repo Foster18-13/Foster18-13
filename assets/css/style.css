@@ -625,7 +625,24 @@ th {
 .sector-hh .sector-active-badge      { background: #d0ede0; color: #04522f; }
 .sector-mcberry .sector-active-badge { background: #f6dfcc; color: #7a2e00; }
 
-/* ---------- Morph Display Background ---------- */
+/* ---------- Balance Sheet Remark Cell ---------- */
+.remark-surplus {
+  background: #e7f6ee;
+  color: #04522f;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.remark-deficit {
+  background: #fef0f0;
+  color: #8b1a1a;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.remark-zero {
+  color: var(--muted);
+}
 .morph-bg {
   position: fixed;
   inset: 0;

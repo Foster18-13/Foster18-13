@@ -43,10 +43,10 @@ function renderBalanceSheet() {
     const returnsValue = getBalanceField(date, "returns", product.id);
     const damages = getBalanceField(date, "damages", product.id);
     const closing = getBalanceField(date, "closing", product.id);
-    const remark = getBalanceRemark(date, product.id);
     const loading = loadingByProduct(date, product.id);
     const goods = goodsReceivedByProduct(date, product.id);
     const balance = balanceComputed(date, product.id);
+    const remarkValue = closing - balance;
 
     const productCell = document.createElement("td");
     productCell.textContent = product.name;
@@ -93,14 +93,17 @@ function renderBalanceSheet() {
     row.appendChild(closingCell);
 
     const remarkCell = document.createElement("td");
-    const remarkInput = document.createElement("input");
-    remarkInput.type = "text";
-    remarkInput.className = "input";
-    remarkInput.value = remark;
-    remarkInput.addEventListener("change", () => {
-      setBalanceField(date, "remarks", product.id, remarkInput.value);
-    });
-    remarkCell.appendChild(remarkInput);
+    let remarkClass = "remark-zero";
+    let remarkText = "—";
+    if (remarkValue > 0) {
+      remarkClass = "remark-surplus";
+      remarkText = `+${remarkValue}`;
+    } else if (remarkValue < 0) {
+      remarkClass = "remark-deficit";
+      remarkText = String(remarkValue);
+    }
+    remarkCell.className = remarkClass;
+    remarkCell.textContent = remarkText;
     row.appendChild(remarkCell);
 
     tbody.appendChild(row);
@@ -113,4 +116,9 @@ function renderBalanceSheet() {
 function initBalancePage() {
   initProtectedPage();
   renderBalanceSheet();
+
+  const printBtn = document.getElementById("printBalanceBtn");
+  printBtn?.addEventListener("click", () => {
+    printSection("balanceTableHost", "Balance Sheet");
+  });
 }
