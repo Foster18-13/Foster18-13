@@ -4,6 +4,7 @@ const LEGACY_DAILY_BALANCE_KEY = "dailyBalanceSheetData";
 const LOCAL_BACKUP_STORAGE_KEY = "twellium_warehouse_portal_backup_v1";
 const SELECTED_DATE_STORAGE_KEY = "twellium_selected_date";
 const SELECTED_SHIFT_STORAGE_KEY = "twellium_selected_shift";
+const ENTRY_OPEN_FROM_DATE = "2026-03-15";
 const LOCAL_BACKUP_LIMIT = 40;
 const CLOUD_LOCAL_CACHE_DAYS = 365;
 const CLOUD_BACKUP_LIMIT = 5;
@@ -1078,17 +1079,17 @@ function ensureDayStore(data, date) {
 
 function getSelectedDate() {
   const stored = localStorage.getItem(getSelectedDateStorageKey()) || localStorage.getItem(SELECTED_DATE_STORAGE_KEY) || todayISO();
-  const today = todayISO();
-  if (!stored || stored < today) {
-    return today;
+  const openFromDate = ENTRY_OPEN_FROM_DATE;
+  if (!stored || stored < openFromDate) {
+    return openFromDate;
   }
   return stored;
 }
 
 function setSelectedDate(date) {
   const normalized = String(date || "").trim();
-  const today = todayISO();
-  const clampedDate = normalized && normalized >= today ? normalized : today;
+  const openFromDate = ENTRY_OPEN_FROM_DATE;
+  const clampedDate = normalized && normalized >= openFromDate ? normalized : openFromDate;
   localStorage.setItem(getSelectedDateStorageKey(), clampedDate);
 }
 

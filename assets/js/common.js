@@ -272,7 +272,6 @@ function initSharedHeader() {
   const dateInput = document.getElementById("workingDate");
   if (!dateInput) return;
 
-  const today = todayISO();
   dateInput.min = ENTRY_OPEN_FROM_DATE;
   dateInput.value = getSelectedDate();
   if (dateInput.value < ENTRY_OPEN_FROM_DATE) {
