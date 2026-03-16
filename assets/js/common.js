@@ -119,16 +119,8 @@ function roleAllowsPage(role, pageName) {
 }
 
 function applyRoleNavAccess(role) {
-  const showSettingsLink = isHomePage(getCurrentPageName());
-
   document.querySelectorAll(".main-nav a").forEach((link) => {
     const target = String(link.getAttribute("href") || "").split("?")[0];
-    if (target === "settings.html" && !showSettingsLink) {
-      link.style.display = "none";
-      link.setAttribute("aria-disabled", "true");
-      return;
-    }
-
     const allowed = roleAllowsPage(role, target);
 
     if (allowed) {
