@@ -1,13 +1,14 @@
 // User Account Authentication System
 const USER_AUTH_STORAGE_KEY = "warehousePortalUserAuth";
 const WORK_SECTOR_STORAGE_KEY = "warehousePortalWorkSector";
+const WORK_SECTOR_SESSION_KEY = "warehousePortalWorkSectorSession";
 const WORK_SECTOR_PENDING_KEY = "warehousePortalWorkSectorPending";
 const DEFAULT_WORK_SECTOR = "water";
 const DEFAULT_USER_ROLE = "clerk";
 const FORCED_ADMIN_EMAILS = [
   "antwifosterfrimpong@gmail.com"
 ];
-const ROOT_ONLY_URL_MODE = false;
+const ROOT_ONLY_URL_MODE = true;
 const USER_ROLE_PRIORITY = {
   clerk: 1,
   supervisor: 2,
@@ -77,6 +78,17 @@ function applyCleanUrlCanonicalPath() {
       globalThis._originalPathname = pathname;
     }
     const currentUrl = globalThis.location?.href || '';
+
+    // Preserve sector context before stripping query text from the visible URL.
+    try {
+      const parsed = new URL(currentUrl);
+      const requestedSector = String(parsed.searchParams.get("sector") || "").trim().toLowerCase();
+      if (KNOWN_WORK_SECTORS.has(requestedSector)) {
+        sessionStorage.setItem(WORK_SECTOR_SESSION_KEY, requestedSector);
+      }
+    } catch {
+      // ignore sector capture failures
+    }
     
     // Safety check: If URL is too long (>2000 chars), force clean it
     if (currentUrl.length > 2000) {
@@ -160,6 +172,11 @@ function getCurrentWorkSector() {
     const urlSector = getSectorFromUrl();
     if (urlSector) return urlSector;
 
+    const sessionSector = sessionStorage.getItem(WORK_SECTOR_SESSION_KEY);
+    if (KNOWN_WORK_SECTORS.has(String(sessionSector || "").trim().toLowerCase())) {
+      return String(sessionSector).trim().toLowerCase();
+    }
+
     const stored = localStorage.getItem(WORK_SECTOR_STORAGE_KEY);
     return normalizeWorkSector(stored || DEFAULT_WORK_SECTOR);
   } catch {
@@ -171,6 +188,11 @@ function hasSelectedWorkSector() {
   try {
     if (getSectorFromUrl()) return true;
 
+    const sessionSector = sessionStorage.getItem(WORK_SECTOR_SESSION_KEY);
+    if (KNOWN_WORK_SECTORS.has(String(sessionSector || "").trim().toLowerCase())) {
+      return true;
+    }
+
     const stored = localStorage.getItem(WORK_SECTOR_STORAGE_KEY);
     if (!stored) return false;
     return KNOWN_WORK_SECTORS.has(String(stored).trim().toLowerCase());
@@ -181,6 +203,7 @@ function hasSelectedWorkSector() {
 
 function setCurrentWorkSector(sectorId) {
   const normalized = normalizeWorkSector(sectorId);
+  sessionStorage.setItem(WORK_SECTOR_SESSION_KEY, normalized);
   localStorage.setItem(WORK_SECTOR_STORAGE_KEY, normalized);
   syncSectorUrl(normalized);
   if (typeof globalThis.dispatchEvent === "function") {
@@ -195,6 +218,7 @@ function setCurrentWorkSector(sectorId) {
 
 function clearCurrentWorkSector() {
   try {
+    sessionStorage.removeItem(WORK_SECTOR_SESSION_KEY);
     localStorage.removeItem(WORK_SECTOR_STORAGE_KEY);
   } catch {
     // ignore storage errors

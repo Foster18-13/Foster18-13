@@ -580,19 +580,26 @@ textarea {
   padding: 16px 10px;
   z-index: 200;
   overflow-y: auto;
-  transition: right 0.25s ease;
+  opacity: 0;
+  transform: scale(0.97);
+  transform-origin: top right;
+  transition: right 0.25s ease, opacity 0.2s ease, transform 0.2s ease;
   box-shadow: none;
 }
 
 .sidebar.active {
   right: 0;
   left: auto;
+  opacity: 1;
+  transform: scale(1);
   box-shadow: -4px 0 16px rgba(0,0,0,0.12);
 }
 
 body.sidebar-open .sidebar {
   right: 0;
   left: auto;
+  opacity: 1;
+  transform: scale(1);
   box-shadow: -4px 0 16px rgba(0,0,0,0.12);
 }
 
