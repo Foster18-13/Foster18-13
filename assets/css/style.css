@@ -557,7 +557,7 @@ textarea {
 .sidebar {
   position: fixed;
   top: 0;
-  left: -280px;
+  left: 0;
   width: 260px;
   height: 100vh;
   background: var(--surface);
@@ -568,6 +568,10 @@ textarea {
   overflow-y: auto;
   transition: left 0.25s ease;
   box-shadow: none;
+}
+
+.js-nav .sidebar {
+  left: -280px;
 }
 
 .sidebar.active {
