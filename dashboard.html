@@ -38,28 +38,123 @@
     </nav>
   </aside>
 
-  <main class="layout">
-    <section class="card">
-      <h2>Warehouse Daily Recording Dashboard</h2>
-      <p>This portal stores daily records and lets users access previous days by selecting a working date.</p>
-      <ul>
-        <li>Balance Sheet: Opening + Returns + Goods Received - Loading - Damages</li>
-        <li>Customer Entry Sheet: Product rows with expandable columns and total loading</li>
-        <li>Summary Sheet: Product and stock available</li>
-        <li>Returns Sheet: Product-level returns entry for each day</li>
-        <li>Purchase Sheet: Goods received from factories</li>
-        <li>Products: Add and edit product names anytime</li>
-      </ul>
+  <main class="layout dashboard-layout">
+    <section class="card dashboard-hero">
+      <div>
+        <p class="eyebrow">Operations Overview</p>
+        <h2>Warehouse Control Dashboard</h2>
+        <p id="dashboardSummaryText">Track loading, returns, purchases, and product activity for the selected working date.</p>
+      </div>
+      <div class="dashboard-hero-actions">
+        <a class="button primary" href="recording.html">Open Customer Entry</a>
+        <a class="button" href="returns.html">Open Returns</a>
+        <a class="button" href="balance.html">Open Balance Sheet</a>
+      </div>
+    </section>
+
+    <section class="dashboard-metrics" aria-label="Dashboard metrics">
+      <article class="card metric-card">
+        <small>Products Tracked</small>
+        <strong id="metricProductsCount">0</strong>
+        <span id="metricProductsNote" class="metric-note">Across selected sector</span>
+      </article>
+      <article class="card metric-card accent-blue">
+        <small>Customer Entries</small>
+        <strong id="metricCustomerEntries">0</strong>
+        <span id="metricCustomerEntriesNote" class="metric-note">Saved today</span>
+      </article>
+      <article class="card metric-card accent-green">
+        <small>Total Loading</small>
+        <strong id="metricTotalLoading">0</strong>
+        <span id="metricTotalLoadingNote" class="metric-note">Units issued</span>
+      </article>
+      <article class="card metric-card accent-amber">
+        <small>Returns Logged</small>
+        <strong id="metricReturnsTotal">0</strong>
+        <span id="metricReturnsNote" class="metric-note">Units returned</span>
+      </article>
+      <article class="card metric-card accent-violet">
+        <small>Purchases Logged</small>
+        <strong id="metricPurchasesCount">0</strong>
+        <span id="metricPurchasesNote" class="metric-note">Waybills received</span>
+      </article>
+      <article class="card metric-card accent-slate">
+        <small>Goods Received</small>
+        <strong id="metricGoodsReceived">0</strong>
+        <span id="metricGoodsReceivedNote" class="metric-note">Total pallets</span>
+      </article>
+    </section>
+
+    <section class="dashboard-panels">
+      <article class="card">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Daily Status</p>
+            <h3>Operational Readiness</h3>
+          </div>
+        </div>
+        <div id="dashboardStatusList" class="status-list"></div>
+      </article>
+
+      <article class="card">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Recent Activity</p>
+            <h3>Latest Entries</h3>
+          </div>
+        </div>
+        <div id="dashboardActivityList" class="activity-list"></div>
+      </article>
+    </section>
+
+    <section class="dashboard-panels">
+      <article class="card">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Movement Focus</p>
+            <h3>Top Product Movement</h3>
+          </div>
+        </div>
+        <div id="dashboardMovementList" class="movement-list"></div>
+      </article>
+
+      <article class="card">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Quick Access</p>
+            <h3>Open a Work Area</h3>
+          </div>
+        </div>
+        <div class="quick-links-grid">
+          <a class="quick-link-card" href="recording.html">
+            <strong>Customer Entry</strong>
+            <span>Capture deliveries by customer and product.</span>
+          </a>
+          <a class="quick-link-card" href="returns.html">
+            <strong>Returns Sheet</strong>
+            <span>Log customer returns and keep balance totals aligned.</span>
+          </a>
+          <a class="quick-link-card" href="purchase.html">
+            <strong>Purchase Sheet</strong>
+            <span>Register goods received from suppliers or factories.</span>
+          </a>
+          <a class="quick-link-card" href="summary.html">
+            <strong>Summary Sheet</strong>
+            <span>Review stock position and product availability.</span>
+          </a>
+        </div>
+      </article>
     </section>
   </main>
 
   <script src="assets/js/auth.js?v=20260316q"></script>
-  <script src="assets/js/data-store.js?v=20260316q"></script>
+  <script src="assets/js/data-store.js?v=20260316v"></script>
   <script src="assets/js/sidebar.js?v=20260316q"></script>
-  <script src="assets/js/app.js?v=20260316q"></script>
+  <script src="assets/js/app.js?v=20260316v"></script>
+  <script src="assets/js/page-dashboard.js?v=20260316v"></script>
   <script>
-    initProtectedPage();
-    initDateControl();
+    initDashboardPage();
+    initDateControl(renderDashboard);
   </script>
 </body>
 
