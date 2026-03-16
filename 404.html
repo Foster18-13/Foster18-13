@@ -1,57 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Redirecting...</title>
+  <title>Not Found</title>
+  <link rel="stylesheet" href="assets/css/style.css?v=20260316a" />
 </head>
-
 <body>
-  <script>
-    (function () {
-      const knownRoutes = new Set([
-        'access',
-        'account',
-        'add-product',
-        'admin-setup',
-        'balance',
-        'customer-history',
-        'customers',
-        'damages',
-        'dashboard',
-        'force-admin-init',
-        'home',
-        'login',
-        'notebook',
-        'period-reports',
-        'product-movement',
-        'products',
-        'profile',
-        'purchase',
-        'register',
-        'reports',
-        'reset-products',
-        'returns',
-        'saved-sheets',
-        'summary',
-        'vehicles'
-      ]);
-
-      const path = String(location.pathname || '/');
-      const trimmed = path.replace(/\/+$/, '');
-      const route = trimmed.split('/').pop();
-
-      if (route && knownRoutes.has(route.toLowerCase())) {
-        // Redirect without query strings to prevent URI bloat
-        location.replace('/' + route + '.html');
-        return;
-      }
-
-      location.replace('/index.html');
-    })();
-  </script>
-  Redirecting...
+  <main class="layout">
+    <section class="card">
+      <h1>404</h1>
+      <p>Page not found.</p>
+      <a class="button primary" href="login.html">Go to Login</a>
+    </section>
+  </main>
 </body>
-
 </html>

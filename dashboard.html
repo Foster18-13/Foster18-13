@@ -1,314 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard | Twellium Warehouse Portal</title>
-  <link rel="stylesheet" href="assets/css/style.css?v=20260316m" />
-  <style>
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 14px;
-      margin-bottom: 14px;
-    }
-
-    .stat-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .stat-card h3 {
-      margin: 0;
-      font-size: 12px;
-      color: var(--text-muted);
-      font-weight: 600;
-    }
-
-    .stat-value {
-      font-size: 28px;
-      font-weight: 700;
-      color: var(--text);
-    }
-
-    .stat-label {
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .alert-box {
-      background: #fff3cd;
-      border: 1px solid #ffc107;
-      border-radius: 8px;
-      padding: 12px;
-      margin-bottom: 12px;
-    }
-
-    .alert-box h3 {
-      margin: 0 0 8px 0;
-      font-size: 12px;
-      color: #856404;
-    }
-
-    .alert-item {
-      padding: 6px 0;
-      border-bottom: 1px solid #ffeaa7;
-      font-size: 11px;
-    }
-
-    .alert-item:last-child {
-      border-bottom: none;
-    }
-
-    [data-theme="dark"] .stat-card h3,
-    [data-theme="dark"] .stat-label,
-    [data-theme="dark"] .chart-card h3 {
-      color: #cbd5e1;
-    }
-
-    [data-theme="dark"] .alert-box {
-      background: #2f2616;
-      border-color: #d97706;
-      color: #fde68a;
-    }
-
-    [data-theme="dark"] .alert-box h3 {
-      color: #facc15;
-    }
-
-    [data-theme="dark"] .alert-item {
-      border-bottom-color: #4a3a22;
-      color: #fde68a;
-    }
-
-    .charts-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 14px;
-    }
-
-    .chart-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 14px;
-    }
-
-    .chart-card h3 {
-      margin: 0 0 10px 0;
-      font-size: 13px;
-      color: var(--text-muted);
-      font-weight: 600;
-    }
-
-    .chart-canvas {
-      width: 100%;
-      height: 260px;
-      display: block;
-      border-radius: 8px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-    }
-
-    .user-controls {
-      display: flex;
-      gap: 1rem;
-      align-items: center;
-    }
-  </style>
+  <title>Dashboard | Warehouse Portal</title>
+  <link rel="stylesheet" href="assets/css/style.css?v=20260316a" />
 </head>
-
 <body>
   <header class="site-header">
     <div class="header-inner">
-      <div class="brand">
-        <img src="assets/images/logo.png" alt="TWI DZW Logo" class="logo">
-        <div class="brand-text">
-          <h1>Twellium Industrial Company Limited Accra Branch (Dzorwulu)</h1>
-          <p>Warehouse Daily Recording Portal</p>
-        </div>
-      </div>
+      <div class="brand">Warehouse Portal</div>
       <div class="topbar-controls">
-        <button class="sidebar-toggle" id="sidebarToggle" type="button" title="Toggle Navigation">☰</button>
-        <label for="workingDate">Working Date</label>
-        <input class="input" type="date" id="workingDate" min="2026-03-01" />
-        <input class="input search-input" id="globalSearchInput" placeholder="Search..." />
-        <button class="button" id="globalSearchBtn" type="button">Search</button>
-        <div id="userControls" class="user-controls"></div>
+        <span>Sector: <strong id="sectorLabel">-</strong></span>
+        <span>User: <strong id="userLabel">-</strong></span>
+        <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-expanded="false">Menu</button>
       </div>
     </div>
   </header>
 
   <div id="sidebarOverlay" class="sidebar-overlay"></div>
-  <div class="app-shell">
-    <aside class="sidebar">
-      <nav class="main-nav">
-        <a href="home.html">🏠 Home</a>
-        <a href="dashboard.html">📊 Dashboard</a>
-        <a href="balance.html">📋 Balance Sheet</a>
-        <a href="returns.html">↩️ Returns Sheet</a>
-        <a href="summary.html">📄 Summary Sheet</a>
-        <a href="purchase.html">🛒 Purchase Sheet</a>
-        <a href="customers.html">👥 Customers Entry</a>
-        <a href="product-dispatch.html">📦 Product Dispatch</a>
-        <a href="period-reports.html">📆 Period Reports</a>
-        <a href="notebook.html">📓 Notes for the Day</a>
-        <a href="products.html">📦 Products</a>
-        <a href="profile.html">🏢 Company Profile</a>
-        <a href="account.html">⚙️ Account</a>
-      </nav>
-    </aside>
+  <aside class="sidebar">
+    <nav>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="balance.html">Balance Sheet</a>
+      <a href="returns.html">Returns Sheet</a>
+      <a href="settings.html">Settings</a>
+      <a href="sector-select.html">Switch Sector</a>
+      <a href="#" id="logoutBtn">Logout</a>
+    </nav>
+  </aside>
 
-    <main class="page">
-      <section class="card">
-        <h2 class="card-title">Dashboard & Analytics</h2>
-        <p class="card-subtitle">Overview of warehouse operations for the selected date.</p>
-
-        <div id="lowStockAlerts"></div>
-
-        <div class="dashboard-grid">
-          <div class="stat-card">
-            <h3>Opening Stock</h3>
-            <div class="stat-value" id="totalOpening">0</div>
-            <div class="stat-label">Start-of-day stock</div>
-          </div>
-
-          <div class="stat-card">
-            <h3>Total Products</h3>
-            <div class="stat-value" id="totalProducts">0</div>
-            <div class="stat-label">Active products</div>
-          </div>
-
-          <div class="stat-card">
-            <h3>Total Stock</h3>
-            <div class="stat-value" id="totalStock">0</div>
-            <div class="stat-label">Current inventory</div>
-          </div>
-
-          <div class="stat-card">
-            <h3>Balance / Outstanding</h3>
-            <div class="stat-value" id="totalOutstanding">0</div>
-            <div class="stat-label">Calculated day balance</div>
-          </div>
-
-          <div class="stat-card">
-            <h3>Goods Delivered</h3>
-            <div class="stat-value" id="totalLoaded">0</div>
-            <div class="stat-label">Today's dispatches</div>
-          </div>
-
-          <div class="stat-card">
-            <h3>Goods Received</h3>
-            <div class="stat-value" id="totalReceived">0</div>
-            <div class="stat-label">Today's purchases</div>
-          </div>
-
-          <div class="stat-card">
-            <h3>Damaged Goods</h3>
-            <div class="stat-value" id="totalDamaged">0</div>
-            <div class="stat-label">Today's damages</div>
-          </div>
-
-          <div class="stat-card">
-            <h3>Closing Stock</h3>
-            <div class="stat-value" id="totalClosing">0</div>
-            <div class="stat-label">End-of-day stock</div>
-          </div>
-
-          <div class="stat-card">
-            <h3>Customer Orders</h3>
-            <div class="stat-value" id="totalCustomers">0</div>
-            <div class="stat-label">Today's orders</div>
-          </div>
-        </div>
-      </section>
-
-      <section class="card">
-        <h2 class="card-title">Top Products by Movement</h2>
-        <div class="table-wrap">
-          <table id="topProductsTable">
-            <thead>
-              <tr>
-                <th>Product Name</th>
-                <th>Delivered</th>
-                <th>Received</th>
-                <th>Current Stock</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="card">
-        <h2 class="card-title">Top Customers</h2>
-        <div class="table-wrap">
-          <table id="topCustomersTable">
-            <thead>
-              <tr>
-                <th>Customer Name</th>
-                <th>Orders</th>
-                <th>Total Quantity</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="card">
-        <h2 class="card-title">Data Visualization</h2>
-        <p class="card-subtitle">Movement and stock insights for the selected date.</p>
-        <div class="charts-grid">
-          <div class="chart-card">
-            <h3>Top 5 Product Movement</h3>
-            <canvas id="movementChart" class="chart-canvas" width="600" height="260"></canvas>
-          </div>
-          <div class="chart-card">
-            <h3>Stock Status Overview</h3>
-            <canvas id="stockStatusChart" class="chart-canvas" width="600" height="260"></canvas>
-          </div>
-        </div>
-      </section>
-    </main>
-  </div>
+  <main class="layout">
+    <section class="card">
+      <h2>Dashboard</h2>
+      <p>Use the navigation menu to open Balance Sheet, Returns Sheet, and Settings.</p>
+    </section>
+  </main>
 
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
-  <script src="assets/js/firebase-config.js"></script>
-  <script src="assets/js/user-auth.js?v=20260316h"></script>
-  <script src="assets/js/storage.js?v=20260316e"></script>
-  <script src="assets/js/common.js?v=20260316n"></script>
-  <script src="assets/js/cloud-sync.js?v=20260313b"></script>
-  <script src="assets/js/presence.js?v=20260313f"></script>
-  <script src="assets/js/dashboard.js?v=20260313"></script>
-  <script src="assets/js/keyboard-shortcuts.js"></script>
-  <script src="assets/js/theme-toggle.js?v=20260315"></script>
-  <script src="assets/js/alerts.js"></script>
-  <script src="assets/js/enhanced-search.js"></script>
-  <script>
-    firebase.auth().onAuthStateChanged((user) => {
-      const userControls = document.getElementById('userControls');
-      if (user) {
-        userControls.innerHTML = `
-          <span style="font-size: 14px; color: var(--text);">Welcome, <strong>${user.displayName || user.email}</strong></span>
-          <button class="button" onclick="logoutUser()">Logout</button>
-        `;
-      }
-    });
-
-    // Initialize alert system
-    if (typeof initAlertSystem === 'function') {
-      initAlertSystem();
-    }
-  </script>
+  <script src="assets/js/firebase-config.js?v=20260316a"></script>
+  <script src="assets/js/auth.js?v=20260316a"></script>
+  <script src="assets/js/sidebar.js?v=20260316a"></script>
+  <script src="assets/js/app.js?v=20260316a"></script>
+  <script>initProtectedPage();</script>
 </body>
-
 </html>
