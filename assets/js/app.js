@@ -195,6 +195,17 @@ function initLoginPage() {
 async function initSectorPage() {
   await requireAuth();
   attachBrandLogo();
+
+  const current = sessionStorage.getItem("warehouseSector") || localStorage.getItem("warehouseSector");
+  if (current) {
+    const activeCard = document.querySelector(`[data-sector="${current}"]`);
+    if (activeCard) {
+      activeCard.classList.add("sector-active");
+      const badge = activeCard.querySelector(".sector-active-badge");
+      if (badge) badge.hidden = false;
+    }
+  }
+
   const buttons = document.querySelectorAll("[data-sector]");
   buttons.forEach((button) => {
     button.addEventListener("click", () => {

@@ -5,31 +5,65 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Select Sector | Twellium Warehouse Portal</title>
-  <link rel="stylesheet" href="assets/css/style.css?v=20260316r" />
+  <link rel="stylesheet" href="assets/css/style.css?v=20260316x" />
 </head>
 
 <body>
   <header class="site-header">
     <div class="header-inner">
       <div class="brand">Twellium Warehouse Portal</div>
-      <button class="button" onclick="logoutUser()">Reset Sector</button>
+      <button class="button" onclick="logoutUser()">Reset Session</button>
     </div>
   </header>
 
-  <main class="layout">
-    <section class="card">
-      <h2>Choose a Sector</h2>
-      <div class="sector-grid">
-        <button class="sector-btn" data-sector="water">Water</button>
-        <button class="sector-btn" data-sector="hh">H&H</button>
-        <button class="sector-btn" data-sector="mcberry">Mcberry</button>
-      </div>
-    </section>
+  <main class="sector-select-main">
+    <div class="sector-select-hero">
+      <p class="eyebrow">Twellium Industrial Company Limited</p>
+      <h1>Select Your Sector</h1>
+      <p>Choose the sector you are managing to begin your session.</p>
+    </div>
+
+    <div class="sector-card-grid" id="sectorGrid">
+
+      <button class="sector-card sector-water" data-sector="water">
+        <span class="sector-card-stripe" aria-hidden="true"></span>
+        <span class="sector-card-icon" aria-hidden="true">W</span>
+        <div class="sector-card-body">
+          <strong>Water &amp; Beverages</strong>
+          <p>Water and beverage product inventory</p>
+          <span class="sector-active-badge" hidden>Current Session</span>
+        </div>
+        <span class="sector-card-chevron" aria-hidden="true">&#8250;</span>
+      </button>
+
+      <button class="sector-card sector-hh" data-sector="hh">
+        <span class="sector-card-stripe" aria-hidden="true"></span>
+        <span class="sector-card-icon" aria-hidden="true">H</span>
+        <div class="sector-card-body">
+          <strong>H&amp;H</strong>
+          <p>Household and hardware products</p>
+          <span class="sector-active-badge" hidden>Current Session</span>
+        </div>
+        <span class="sector-card-chevron" aria-hidden="true">&#8250;</span>
+      </button>
+
+      <button class="sector-card sector-mcberry" data-sector="mcberry">
+        <span class="sector-card-stripe" aria-hidden="true"></span>
+        <span class="sector-card-icon" aria-hidden="true">M</span>
+        <div class="sector-card-body">
+          <strong>McBerry</strong>
+          <p>McBerry product line management</p>
+          <span class="sector-active-badge" hidden>Current Session</span>
+        </div>
+        <span class="sector-card-chevron" aria-hidden="true">&#8250;</span>
+      </button>
+
+    </div>
   </main>
 
   <script src="assets/js/auth.js?v=20260316w"></script>
   <script src="assets/js/data-store.js?v=20260316w"></script>
-  <script src="assets/js/app.js?v=20260316w"></script>
+  <script src="assets/js/app.js?v=20260316x"></script>
   <script>initSectorPage();</script>
 </body>
 
