@@ -61,6 +61,7 @@ function currentUserCanMakeEntries() {
 }
 
 const CLERK_ENTRY_AUTO_LOCK_DAYS = 2;
+const ENTRY_OPEN_FROM_DATE = "2026-03-15";
 
 function isAdminRole(role) {
   if (typeof hasRoleAccess === "function") {
@@ -88,10 +89,11 @@ function isClerkEntryDateAutoLocked(dateString = getSelectedDate(), role = curre
 
 function ensureEntryPermission(actionLabel = "perform this action") {
   const selectedDate = typeof getSelectedDate === "function" ? getSelectedDate() : "";
-  const today = typeof todayISO === "function" ? todayISO() : "";
+  const openFromDate = ENTRY_OPEN_FROM_DATE;
 
-  if (selectedDate && today && selectedDate < today) {
-    setStatus("Past dates are locked. You can only enter data from today onward.", "error");
+  if (selectedDate && openFromDate && selectedDate < openFromDate) {
+    const readable = new Date(`${openFromDate}T00:00:00`).toLocaleDateString();
+    setStatus(`Dates before ${readable} are locked.`, "error");
     return false;
   }
 
@@ -271,17 +273,17 @@ function initSharedHeader() {
   if (!dateInput) return;
 
   const today = todayISO();
-  dateInput.min = today;
+  dateInput.min = ENTRY_OPEN_FROM_DATE;
   dateInput.value = getSelectedDate();
-  if (dateInput.value < today) {
-    dateInput.value = today;
-    setSelectedDate(today);
+  if (dateInput.value < ENTRY_OPEN_FROM_DATE) {
+    dateInput.value = ENTRY_OPEN_FROM_DATE;
+    setSelectedDate(ENTRY_OPEN_FROM_DATE);
   }
   initDateQuickNavigation();
   dateInput.addEventListener("change", () => {
     if (!dateInput.value) return;
-    if (dateInput.value < today) {
-      dateInput.value = today;
+    if (dateInput.value < ENTRY_OPEN_FROM_DATE) {
+      dateInput.value = ENTRY_OPEN_FROM_DATE;
     }
     setSelectedDate(dateInput.value);
     location.reload();
