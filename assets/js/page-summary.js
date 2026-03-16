@@ -30,4 +30,9 @@ function renderSummarySheet() {
 function initSummaryPage() {
   initProtectedPage();
   renderSummarySheet();
+
+  const printBtn = document.getElementById("printSummaryBtn");
+  printBtn?.addEventListener("click", () => {
+    printSection("summaryTableHost", "Summary Sheet");
+  });
 }
