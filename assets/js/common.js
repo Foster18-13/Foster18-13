@@ -1468,11 +1468,20 @@ function initRealtimeInPlaceRefresh() {
 }
 
 function initCommon() {
-  initSharedHeader();
-  initAuthAccessGuard();
-  initSidebarToggle();
-  initContextDrivenRefresh();
-  initRealtimeInPlaceRefresh();
+  const safeInit = (fn, label) => {
+    try {
+      fn();
+    } catch (error) {
+      console.error(`Failed to initialize ${label}:`, error);
+    }
+  };
+
+  // Keep navigation toggle responsive even if another initializer fails.
+  safeInit(initSidebarToggle, "sidebar toggle");
+  safeInit(initSharedHeader, "shared header");
+  safeInit(initAuthAccessGuard, "auth access guard");
+  safeInit(initContextDrivenRefresh, "context-driven refresh");
+  safeInit(initRealtimeInPlaceRefresh, "realtime refresh");
 }
 
 document.addEventListener("DOMContentLoaded", initCommon);
