@@ -2,10 +2,12 @@
   --bg: #f5f7fb;
   --surface: #ffffff;
   --text: #17212b;
+  --heading: #0f2f52;
   --muted: #5a6472;
   --border: #d8deea;
   --primary: #0f4c8a;
   --primary-soft: #d9e8f7;
+  --link: #0b63b8;
 }
 
 * { box-sizing: border-box; }
@@ -14,6 +16,25 @@ body {
   font-family: Segoe UI, Arial, sans-serif;
   background: var(--bg);
   color: var(--text);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--heading);
+}
+
+p,
+li,
+label,
+small {
+  color: var(--muted);
+}
+
+a {
+  color: var(--link);
+}
+
+a:hover {
+  color: var(--primary);
 }
 
 .site-header {
@@ -107,7 +128,8 @@ table td:first-child {
 #balanceTableHost,
 #recordingTableHost,
 #summaryTableHost,
-#purchaseTableHost {
+#purchaseTableHost,
+#returnsTableHost {
   overflow-x: auto;
 }
 
@@ -117,10 +139,12 @@ td {
   padding: 8px;
   text-align: left;
   vertical-align: top;
+  color: var(--text);
 }
 
 th {
   background: var(--primary-soft);
+  color: var(--heading);
 }
 
 .auth-wrap {
