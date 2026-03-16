@@ -61,7 +61,7 @@ function currentUserCanMakeEntries() {
 }
 
 const CLERK_ENTRY_AUTO_LOCK_DAYS = 2;
-const ENTRY_OPEN_FROM_DATE = "2026-03-15";
+const ENTRY_OPEN_FROM_DATE = "2026-03-01";
 
 function isAdminRole(role) {
   if (typeof hasRoleAccess === "function") {
