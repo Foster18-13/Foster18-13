@@ -27,6 +27,12 @@ function getBrandLogoConfig() {
       alt: "Water and Beverages Logo"
     };
   }
+  if (sector === "mcberry") {
+    return {
+      src: "assets/img/mcberry-logo.png",
+      alt: "Mcberry Logo"
+    };
+  }
   if (sector === "hh") {
     return {
       src: "assets/img/hh-logo.png",
