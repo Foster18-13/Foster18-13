@@ -244,6 +244,30 @@ table td:first-child {
   padding: 6px 6px;
 }
 
+/* Summary sheet uses only two columns, so keep them close while filling the page. */
+#summaryTableHost table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+#summaryTableHost table th:first-child,
+#summaryTableHost table td:first-child {
+  width: 78%;
+  white-space: normal;
+}
+
+#summaryTableHost table th:last-child,
+#summaryTableHost table td:last-child {
+  width: 22%;
+  text-align: center;
+  white-space: nowrap;
+}
+
+#summaryTableHost table th,
+#summaryTableHost table td {
+  padding: 8px 10px;
+}
+
 th,
 td {
   border: 1px solid var(--border);
