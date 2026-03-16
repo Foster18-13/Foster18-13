@@ -57,7 +57,7 @@ function renderReturnsSheet() {
   if (!rows) return;
 
   if (entries.length === 0) {
-    rows.innerHTML = `<tr><td colspan="6">No returns entries saved for this date yet.</td></tr>`;
+    rows.innerHTML = `<tr><td colspan="6">No goods returned entries saved for this date yet.</td></tr>`;
   } else {
     rows.innerHTML = entries
       .map((entry) => {
@@ -122,14 +122,14 @@ function renderReturnsSheet() {
     if (!ok) {
       if (msg) {
         msg.className = "auth-message error";
-        msg.textContent = "Could not save return entry. Please check all fields.";
+        msg.textContent = "Could not save goods returned entry. Please check all fields.";
       }
       return;
     }
 
     if (msg) {
       msg.className = "auth-message ok";
-      msg.textContent = editingId ? "Return entry updated." : "Return entry saved.";
+      msg.textContent = editingId ? "Goods returned entry updated." : "Goods returned entry saved.";
     }
     resetForm();
     renderReturnsSheet();
@@ -169,7 +169,7 @@ function renderReturnsSheet() {
       if (cancelBtn) cancelBtn.style.display = "inline-block";
       if (msg) {
         msg.className = "auth-message";
-        msg.textContent = "Editing selected return entry.";
+        msg.textContent = "Editing selected goods returned entry.";
       }
     });
   });
@@ -181,6 +181,6 @@ function initReturnsPage() {
 
   const printBtn = document.getElementById("printReturnsBtn");
   printBtn?.addEventListener("click", () => {
-    printSection("returnsTableHost", "Returns Sheet");
+    printSection("returnsTableHost", "Goods Returned Sheet");
   });
 }

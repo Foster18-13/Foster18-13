@@ -66,10 +66,10 @@ function buildDashboardStatuses(stats) {
       label: stats.customerEntryCount > 0 ? "Active" : "Pending"
     },
     {
-      title: "Returns Logging",
+      title: "Goods Returned Logging",
       detail: stats.returnsEntryCount > 0
         ? `${formatDashboardNumber(stats.totalReturns)} units returned across ${formatDashboardNumber(stats.returnsEntryCount)} entries.`
-        : "No returns have been logged yet.",
+        : "No goods returned entries have been logged yet.",
       state: stats.returnsEntryCount > 0 ? "ok" : "pending",
       label: stats.returnsEntryCount > 0 ? "Updated" : "Pending"
     },
@@ -84,7 +84,7 @@ function buildDashboardStatuses(stats) {
     {
       title: "Movement Coverage",
       detail: stats.movedProducts > 0
-        ? `${formatDashboardNumber(stats.movedProducts)} products show loading, returns, or goods received.`
+        ? `${formatDashboardNumber(stats.movedProducts)} products show goods delivered, goods returned, or goods received.`
         : "No product movement recorded yet.",
       state: stats.movedProducts > 0 ? "ok" : "pending",
       label: stats.movedProducts > 0 ? "Tracked" : "Pending"
@@ -186,7 +186,7 @@ function renderDashboardMovement(products, date) {
         <div class="movement-item">
           <div>
             <strong>${escapeDashboardHtml(item.name)}</strong>
-            <p>Loading ${formatDashboardNumber(item.loading)} | Returns ${formatDashboardNumber(item.returnsQty)} | Received ${formatDashboardNumber(item.received)}</p>
+            <p>Goods Delivered ${formatDashboardNumber(item.loading)} | Goods Returned ${formatDashboardNumber(item.returnsQty)} | Goods Received ${formatDashboardNumber(item.received)}</p>
           </div>
           <div class="movement-meta">
             <strong>${formatDashboardNumber(item.combined)}</strong>

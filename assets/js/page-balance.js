@@ -11,12 +11,12 @@ function renderBalanceSheet() {
       <tr>
         <th>Product Name</th>
         <th>Opening Stock</th>
-        <th>Returns</th>
+        <th>Goods Returned</th>
         <th>Goods Received</th>
-        <th>Damages</th>
-        <th>Loading</th>
+        <th>Goods Damaged</th>
+        <th>Goods Delivered</th>
         <th>Balance</th>
-        <th>Closing Stock (Manual)</th>
+        <th>Closing Stock</th>
         <th>Remark</th>
       </tr>
     </thead>

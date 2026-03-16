@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Returns | Twellium Warehouse Portal</title>
+  <title>Goods Returned | Twellium Warehouse Portal</title>
   <link rel="stylesheet" href="assets/css/style.css?v=20260317a" />
 </head>
 
@@ -16,7 +16,7 @@
   </div>
   <header class="site-header">
     <div class="header-inner">
-      <div class="brand">Returns Entry</div>
+      <div class="brand">Goods Returned Entry</div>
       <div class="topbar-controls">
         <label for="workingDate">Working Date</label>
         <input id="workingDate" class="input" type="date" />
@@ -34,7 +34,7 @@
       <a data-page="balance.html" href="balance.html">Balance Sheet</a>
       <a data-page="recording.html" href="recording.html">Customer Entry Sheet</a>
       <a data-page="summary.html" href="summary.html">Summary Sheet</a>
-      <a data-page="returns.html" href="returns.html">Returns Sheet</a>
+      <a data-page="returns.html" href="returns.html">Goods Returned Sheet</a>
       <a data-page="purchase.html" href="purchase.html">Purchase Sheet</a>
       <a data-page="dispatch.html" href="dispatch.html">Product Dispatch</a>
       <a data-page="products.html" href="products.html">Products</a>
@@ -44,10 +44,10 @@
 
   <main class="layout">
     <section class="card">
-      <h2>Daily Returns Sheet</h2>
-      <p>Capture customer name, product, quantity, and waybill number, then click Save.</p>
+      <h2>Daily Goods Returned Sheet</h2>
+      <p>Capture customer name, product, quantity, and waybill number for goods returned, then click Save.</p>
       <div class="toolbar">
-        <div>Total Returns: <strong id="returnsGrandTotal">0</strong></div>
+        <div>Total Goods Returned: <strong id="returnsGrandTotal">0</strong></div>
         <button id="printReturnsBtn" class="button" type="button">Print / Save PDF</button>
       </div>
       <div id="returnsTableHost"></div>
@@ -58,7 +58,7 @@
   <script src="assets/js/data-store.js?v=20260316w"></script>
   <script src="assets/js/sidebar.js?v=20260316p"></script>
   <script src="assets/js/app.js?v=20260317d"></script>
-  <script src="assets/js/page-returns.js?v=20260316u"></script>
+  <script src="assets/js/page-returns.js?v=20260317a"></script>
   <script>
     initReturnsPage();
     initDateControl(renderReturnsSheet);

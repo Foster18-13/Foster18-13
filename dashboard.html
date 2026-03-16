@@ -34,7 +34,7 @@
       <a data-page="balance.html" href="balance.html">Balance Sheet</a>
       <a data-page="recording.html" href="recording.html">Customer Entry Sheet</a>
       <a data-page="summary.html" href="summary.html">Summary Sheet</a>
-      <a data-page="returns.html" href="returns.html">Returns Sheet</a>
+      <a data-page="returns.html" href="returns.html">Goods Returned Sheet</a>
       <a data-page="purchase.html" href="purchase.html">Purchase Sheet</a>
       <a data-page="dispatch.html" href="dispatch.html">Product Dispatch</a>
       <a data-page="products.html" href="products.html">Products</a>
@@ -47,12 +47,12 @@
       <div>
         <p class="eyebrow">Operations Overview</p>
         <h2>Warehouse Control Dashboard</h2>
-        <p id="dashboardSummaryText">Track loading, returns, purchases, and product activity for the selected working
+        <p id="dashboardSummaryText">Track goods delivered, goods returned, purchases, and product activity for the selected working
           date.</p>
       </div>
       <div class="dashboard-hero-actions">
         <a class="button primary" href="recording.html">Open Customer Entry</a>
-        <a class="button" href="returns.html">Open Returns</a>
+        <a class="button" href="returns.html">Open Goods Returned</a>
         <a class="button" href="balance.html">Open Balance Sheet</a>
       </div>
     </section>
@@ -69,12 +69,12 @@
         <span id="metricCustomerEntriesNote" class="metric-note">Saved today</span>
       </article>
       <article class="card metric-card accent-green">
-        <small>Total Loading</small>
+        <small>Total Goods Delivered</small>
         <strong id="metricTotalLoading">0</strong>
-        <span id="metricTotalLoadingNote" class="metric-note">Units issued</span>
+        <span id="metricTotalLoadingNote" class="metric-note">Units delivered</span>
       </article>
       <article class="card metric-card accent-amber">
-        <small>Returns Logged</small>
+        <small>Goods Returned Logged</small>
         <strong id="metricReturnsTotal">0</strong>
         <span id="metricReturnsNote" class="metric-note">Units returned</span>
       </article>
@@ -136,8 +136,8 @@
             <span>Capture deliveries by customer and product.</span>
           </a>
           <a class="quick-link-card" href="returns.html">
-            <strong>Returns Sheet</strong>
-            <span>Log customer returns and keep balance totals aligned.</span>
+            <strong>Goods Returned Sheet</strong>
+            <span>Log goods returned and keep balance totals aligned.</span>
           </a>
           <a class="quick-link-card" href="purchase.html">
             <strong>Purchase Sheet</strong>
@@ -156,7 +156,7 @@
   <script src="assets/js/data-store.js?v=20260316w"></script>
   <script src="assets/js/sidebar.js?v=20260316q"></script>
   <script src="assets/js/app.js?v=20260317d"></script>
-  <script src="assets/js/page-dashboard.js?v=20260316w"></script>
+  <script src="assets/js/page-dashboard.js?v=20260317a"></script>
   <script>
     initDashboardPage();
     initDateControl(renderDashboard);
