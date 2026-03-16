@@ -1308,7 +1308,6 @@ function initSidebarToggle() {
   };
 
   sidebarToggle.addEventListener("click", toggleSidebar);
-  sidebarToggle.addEventListener("pointerup", toggleSidebar);
   sidebarToggle.addEventListener("keydown", (event) => {
     if (event.key === "Enter" || event.key === " ") {
       toggleSidebar(event);
