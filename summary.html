@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Summary Sheet | Twellium Warehouse Portal</title>
-  <link rel="stylesheet" href="assets/css/style.css?v=20260316p" />
+  <link rel="stylesheet" href="assets/css/style.css?v=20260316r" />
 </head>
 
 <body>
@@ -40,15 +40,18 @@
   <main class="layout">
     <section class="card">
       <h2>Stock Available Summary</h2>
+      <div class="toolbar">
+        <button id="printSummaryBtn" class="button" type="button">Print / Save PDF</button>
+      </div>
       <div id="summaryTableHost"></div>
     </section>
   </main>
 
-  <script src="assets/js/auth.js?v=20260316p"></script>
-  <script src="assets/js/data-store.js?v=20260316p"></script>
-  <script src="assets/js/sidebar.js?v=20260316p"></script>
-  <script src="assets/js/app.js?v=20260316p"></script>
-  <script src="assets/js/page-summary.js?v=20260316p"></script>
+  <script src="assets/js/auth.js?v=20260316q"></script>
+  <script src="assets/js/data-store.js?v=20260316q"></script>
+  <script src="assets/js/sidebar.js?v=20260316q"></script>
+  <script src="assets/js/app.js?v=20260316q"></script>
+  <script src="assets/js/page-summary.js?v=20260316q"></script>
   <script>
     initSummaryPage();
     initDateControl(renderSummarySheet);

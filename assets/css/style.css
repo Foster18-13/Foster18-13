@@ -98,6 +98,19 @@ table {
   background: #fff;
 }
 
+/* Keep product names on one line across stock sheets. */
+table th:first-child,
+table td:first-child {
+  white-space: nowrap;
+}
+
+#balanceTableHost,
+#recordingTableHost,
+#summaryTableHost,
+#purchaseTableHost {
+  overflow-x: auto;
+}
+
 th,
 td {
   border: 1px solid var(--border);
