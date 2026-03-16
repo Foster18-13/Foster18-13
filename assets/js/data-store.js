@@ -52,6 +52,111 @@ const HH_PRODUCT_NAMES = [
   "H&H CANNED MACKEREL IN TOMATO SAUCE 100G X50 EASY OPEN"
 ];
 
+const MCBERRY_PRODUCT_NAMES = [
+  "Happy Face Chocolate (12x6)",
+  "Alpha Cracker Big (12x4)",
+  "Alpha Cracker (12x6)",
+  "Choco Blast (4x12)",
+  "Bourbon Small Biscuit (6x12)",
+  "Bourbon Small Milk (6x12)",
+  "Bourbon Big Biscuit (4x12)",
+  "Breakfast Milk Cereal Biscuit Big (6X12)",
+  "Chocolate Cereal Biscuit Big (6X12)",
+  "Breakfast Cracker (12x6)",
+  "Ring Cookies Choco (6x12)",
+  "Ring Cookies Vanilla (6x12)",
+  "Choco Bites Biscuit (12x6)",
+  "Chocomalt biscuit (12x6)",
+  "Corn cracker (4x12)",
+  "Crack-x Cracker (10x4)",
+  "Creamy Twins Butter Medium (6x12)",
+  "Creamy Twins Butter Big (4x12)",
+  "Dexter Cracker Butter (3+2) (6x12)",
+  "Dexter cracker Tray (48 Tray)",
+  "Dexter Jumbo Chocolate (3+2)(12x4)",
+  "Dexter Cracker Strawberry (3+2) (6x12)",
+  "Fill UP Milk Wafer (6x12)",
+  "Butter Finger biscuits (6x12)",
+  "Gari biscuits (6x12)",
+  "H&H Potato Chips Original Flavor Non Fried (6x8)",
+  "Milky Blast (4x12)",
+  "H&H Malt N Milk Medium (6x12)",
+  "Mora Cream Crackers (12x4)",
+  "London Oat Digestive tray (6x6)",
+  "London Oat Digestive Chocochips (6x6)",
+  "London Oat Digestive (6x6)",
+  "Pika Mini Choco (12x4)",
+  "Pika mini Straw (12x4)",
+  "Puredelight cookies milk (12x12)",
+  "Puredelight cookies Choco (12x12)",
+  "Rich Tea Cream Vanilla (2+2+2) (12x6)",
+  "Rich Tea Cream Chocolate (2+2+2) (12x6)",
+  "Rich Tea Cream Strawberry (2+2+2) (12x6)",
+  "Rich tea choco 170E (12x4)",
+  "Snacker cracker (4x12)",
+  "Sugar Free Soda Cracker (18x12)",
+  "Meidam Soda Cracker 12x18",
+  "Tigernut Biscuit (6x12)",
+  "Tokyo Milk Crackers (12x6)",
+  "H&H Soda Cracker Tray (48 Tray)",
+  "Twist STRAW 70Ex3x48",
+  "Twist choco 70Ex3x48",
+  "Big Daddy choco (12x12)",
+  "Big Daddy Milk (12x12)",
+  "Dubai wafer original (12x12)",
+  "Dubai coconut wafer (12x12)",
+  "Dubai strawberry wafer (12x12)",
+  "Grande twin choco wafer (12x12)",
+  "Grande Twin Milk wafer (12x12)",
+  "Pika mini (12x4)",
+  "Pure Delight Milk Cream Wafer (6x12)",
+  "Sky High Choco Wafer (12x12)",
+  "Sky High Milk Wafer (12x12)",
+  "Yupp Banana Wafer (12x6)",
+  "Yupp Choco Wafer (12x6)",
+  "Yupp Strawberry Wafer (12x6)",
+  "Yup Vanilla Wafer (12x6)",
+  "Bella Cake Choco (6x24)",
+  "SIMA Cookies (6x12)",
+  "SIMA Cookies Chocolate (6x12)",
+  "Tutti Frutti Wheels Cookies (6x24)",
+  "Banana strawberry Wheels Cookies (12x12)",
+  "Banana Wheels Cookies (6x24)",
+  "Kreambis 1+1+1 (12x12)",
+  "French Donuts Marble Cake (6x24)",
+  "Fun Cupcakes Vanilla single (4x12)",
+  "Kreambis 2+2 cookies x144",
+  "Layerz Chocolate Coated Cake (6x24)",
+  "Lovan Cake Vanilla (72PCS)",
+  "Maxi Choco Cookie Bar (12x6)",
+  "Pan Cake (4x10)",
+  "Pound Cake (6x24)",
+  "Pure delight sliced cake vanilla (6x24)",
+  "Pure Delight Sliced Cake Marble (6x24)",
+  "Red velvet ships cake (6x12)",
+  "Retro Marble Cookies (6x24)",
+  "Sandwich Vanilla Cake (6x24)",
+  "Sandwich choco Cake (6x24)",
+  "Sandwich strawberry Cake (6x24)",
+  "Teddy bear (6x12)",
+  "Twist single cupcake vanilla (6x12)",
+  "Cheese balls cereal x72",
+  "Chootos (12X6)",
+  "CHOCO CLOUD X72",
+  "Corn flakes original 100 pcs",
+  "Choco flakes 100 pcs",
+  "Choco balls 100 pcs",
+  "Cereal Letters Mix 100PCS",
+  "Wheat Honey 100PCS",
+  "Duo Ball 100PCS",
+  "Corn flakes x10",
+  "H&H Gari Choco Malt 40pcs Small",
+  "H&H Gari Cup 24pcs Mix",
+  "H&H INFANT WHEAT CEREALS 12x10",
+  "H&H INSTANT OATS (10x4)",
+  "Mcfries (6x12)"
+];
+
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
 }
@@ -87,6 +192,9 @@ function sectorDefaultProducts() {
   if (currentSector() === "hh") {
     return namesToProducts(HH_PRODUCT_NAMES);
   }
+  if (currentSector() === "mcberry") {
+    return namesToProducts(MCBERRY_PRODUCT_NAMES);
+  }
   return namesToProducts(LEGACY_GENERIC_PRODUCT_NAMES);
 }
 
@@ -120,7 +228,7 @@ function loadDB() {
     const parsedProducts = Array.isArray(parsed.products) ? parsed.products : defaultProducts();
     const parsedNames = parsedProducts.map((item) => String(item?.name || "")).filter(Boolean);
     const looksLegacyGeneric =
-      currentSector() === "hh" &&
+      (currentSector() === "hh" || currentSector() === "mcberry") &&
       parsedNames.length > 0 &&
       parsedNames.every((name) => LEGACY_GENERIC_PRODUCT_NAMES.includes(name));
 
