@@ -66,6 +66,15 @@ function setActiveNav() {
 
 function getBrandLogoConfig() {
   const sector = (getSector() || "").toLowerCase();
+  const page = (globalThis.location.pathname.split("/").pop() || "").toLowerCase();
+
+  if (page === "sector-select.html") {
+    return {
+      src: "assets/img/site-logo.png",
+      alt: "Twellium Warehouse Portal Logo"
+    };
+  }
+
   if (sector === "water") {
     return {
       src: "assets/img/water-logo.png",
@@ -85,9 +94,17 @@ function getBrandLogoConfig() {
     };
   }
   return {
-    src: "assets/img/hh-logo.png",
+    src: "assets/img/site-logo.png",
     alt: "Warehouse Portal Logo"
   };
+}
+
+function getSectorDisplayName() {
+  const sector = (getSector() || "").toLowerCase();
+  if (sector === "water") return "Water";
+  if (sector === "hh") return "H&H";
+  if (sector === "mcberry") return "McBerry";
+  return getSector();
 }
 
 function attachBrandLogo() {
@@ -106,7 +123,7 @@ function attachBrandLogo() {
   logo.src = logoConfig.src;
   logo.alt = logoConfig.alt;
   logo.addEventListener("error", () => {
-    logo.src = "assets/img/hh-logo.png";
+    logo.src = "assets/img/site-logo.png";
     logo.alt = "Warehouse Portal Logo";
   });
   logoWrap.appendChild(logo);
@@ -137,35 +154,158 @@ function printSection(sectionId, title) {
   const source = document.getElementById(sectionId);
   if (!source) return;
 
-  const styleHref = "assets/css/style.css?v=20260316q";
+  const styleHref = document.querySelector('link[href*="assets/css/style.css"]')?.href || "assets/css/style.css?v=20260317a";
   const printWin = globalThis.open("", "_blank", "width=1200,height=900");
   if (!printWin) return;
 
-  const shiftSegment = usesShiftStorage() ? ` | Shift: ${selectedShiftLabel()}` : "";
-  printWin.document.write(`
-    <!DOCTYPE html>
-    <html lang="en">
-      <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>${title}</title>
-        <link rel="stylesheet" href="${styleHref}" />
-        <style>
-          body { background: #fff; }
-          .print-header { margin: 12px 0 10px; font-weight: 700; }
-        </style>
-      </head>
-      <body>
-        <div class="layout">
-          <div class="print-header">${title} | Date: ${selectedDate()} | Sector: ${getSector()}${shiftSegment}</div>
-          <div class="card">${source.innerHTML}</div>
-        </div>
-      </body>
-    </html>
-  `);
-  printWin.document.close();
-  printWin.focus();
-  printWin.print();
+  const logoConfig = getBrandLogoConfig();
+  const logoHref = new URL(logoConfig.src, globalThis.location.href).href;
+  const shiftLabel = usesShiftStorage() ? selectedShiftLabel() : "Standard Shift";
+
+  const doc = printWin.document;
+  doc.documentElement.lang = "en";
+  doc.title = title;
+  doc.head.innerHTML = "";
+  doc.body.innerHTML = "";
+
+  const charsetMeta = doc.createElement("meta");
+  charsetMeta.setAttribute("charset", "UTF-8");
+  doc.head.appendChild(charsetMeta);
+
+  const viewportMeta = doc.createElement("meta");
+  viewportMeta.name = "viewport";
+  viewportMeta.content = "width=device-width, initial-scale=1.0";
+  doc.head.appendChild(viewportMeta);
+
+  const titleEl = doc.createElement("title");
+  titleEl.textContent = title;
+  doc.head.appendChild(titleEl);
+
+  const linkEl = doc.createElement("link");
+  linkEl.rel = "stylesheet";
+  linkEl.href = styleHref;
+  doc.head.appendChild(linkEl);
+
+  const styleEl = doc.createElement("style");
+  styleEl.textContent = `
+    body { background: #fff; }
+    .print-export-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin: 12px 0 16px;
+      padding: 0 0 14px;
+      border-bottom: 2px solid #dbeafe;
+    }
+    .print-export-brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+    .print-export-logo {
+      width: 64px;
+      height: 64px;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+    .print-export-title {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .print-export-subtitle {
+      margin: 4px 0 0;
+      color: #475569;
+      font-size: 13px;
+    }
+    .print-export-meta {
+      display: grid;
+      gap: 4px;
+      text-align: right;
+      color: #0f172a;
+      font-size: 13px;
+    }
+    .print-export-meta strong {
+      color: #0f172a;
+    }
+    @media print {
+      .print-export-header {
+        break-inside: avoid;
+      }
+    }
+  `;
+  doc.head.appendChild(styleEl);
+
+  const layout = doc.createElement("div");
+  layout.className = "layout";
+
+  const header = doc.createElement("div");
+  header.className = "print-export-header";
+
+  const brand = doc.createElement("div");
+  brand.className = "print-export-brand";
+
+  const logo = doc.createElement("img");
+  logo.className = "print-export-logo";
+  logo.src = logoHref;
+  logo.alt = logoConfig.alt;
+  brand.appendChild(logo);
+
+  const titleWrap = doc.createElement("div");
+
+  const titleNode = doc.createElement("h1");
+  titleNode.className = "print-export-title";
+  titleNode.textContent = title;
+  titleWrap.appendChild(titleNode);
+
+  const subtitleNode = doc.createElement("p");
+  subtitleNode.className = "print-export-subtitle";
+  subtitleNode.textContent = `${getSectorDisplayName()} Sector`;
+  titleWrap.appendChild(subtitleNode);
+  brand.appendChild(titleWrap);
+
+  const meta = doc.createElement("div");
+  meta.className = "print-export-meta";
+
+  const dateRow = doc.createElement("div");
+  dateRow.innerHTML = `<strong>Date:</strong> ${selectedDate()}`;
+  meta.appendChild(dateRow);
+
+  const shiftRow = doc.createElement("div");
+  shiftRow.innerHTML = `<strong>Shift:</strong> ${shiftLabel}`;
+  meta.appendChild(shiftRow);
+
+  const sectorRow = doc.createElement("div");
+  sectorRow.innerHTML = `<strong>Sector:</strong> ${getSectorDisplayName()}`;
+  meta.appendChild(sectorRow);
+
+  header.appendChild(brand);
+  header.appendChild(meta);
+
+  const card = doc.createElement("div");
+  card.className = "card";
+  card.innerHTML = source.innerHTML;
+
+  layout.appendChild(header);
+  layout.appendChild(card);
+  doc.body.appendChild(layout);
+
+  const runPrint = () => {
+    globalThis.setTimeout(() => {
+      printWin.focus();
+      printWin.print();
+    }, 250);
+  };
+
+  if (logo.complete) {
+    runPrint();
+  } else {
+    logo.addEventListener("load", runPrint, { once: true });
+    logo.addEventListener("error", runPrint, { once: true });
+  }
 }
 
 async function initProtectedPage() {
