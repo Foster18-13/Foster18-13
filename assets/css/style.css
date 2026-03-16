@@ -221,7 +221,7 @@ table td:first-child {
 
 /* Compact layout for Balance Sheet numeric columns. */
 #balanceTableHost table {
-  table-layout: fixed;
+  table-layout: auto;
 }
 
 #balanceTableHost table th:first-child,
@@ -232,13 +232,15 @@ table td:first-child {
 
 #balanceTableHost table th:not(:first-child),
 #balanceTableHost table td:not(:first-child) {
-  width: 8%;
+  min-width: 92px;
   padding: 6px 6px;
+  white-space: nowrap;
 }
 
 #balanceTableHost table td .input {
   min-width: 0;
   width: 100%;
+  font-size: 12px;
   padding: 6px 6px;
 }
 
