@@ -1,3 +1,8 @@
+/* Dispatch search bar styling */
+.dispatch-search-bar {
+  margin-bottom: 10px;
+  max-width: 300px;
+}
 /* ================================================================
    Twellium Warehouse Portal — Design System v2
    ================================================================ */
@@ -69,7 +74,6 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: var(--radius);
   box-shadow: var(--shadow-md);
 }
-}
 
 p, li, label, small { color: var(--muted); }
 
@@ -113,12 +117,6 @@ a:hover { color: var(--primary-hover); }
 .shift-control-wrap label { color: var(--muted); font-size: 13px; }
 
 .button, .sidebar-toggle, .sector-btn {
-  }
-  .button.delete, .button[data-action="delete"] {
-    background: #dc2626 !important;
-    color: #fff !important;
-    border-color: #dc2626 !important;
-  }
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -134,6 +132,12 @@ a:hover { color: var(--primary-hover); }
   transition: background var(--ease) .15s, border-color var(--ease) .15s,
               box-shadow var(--ease) .15s, transform var(--ease) .1s;
   box-shadow: var(--shadow-xs);
+}
+
+.button.delete, .button[data-action="delete"] {
+  background: #dc2626 !important;
+  color: #fff !important;
+  border-color: #dc2626 !important;
 }
 
 .button:hover, .sidebar-toggle:hover {
@@ -437,7 +441,6 @@ tbody tr:hover { background: #eff6ff; transition: background .12s; }
 .sidebar-group-toggle[aria-expanded="true"] + .sidebar-group-menu {
   display: flex;
 }
-}
 
 .sidebar a {
   text-decoration: none;
@@ -493,8 +496,10 @@ tbody tr:hover { background: #eff6ff; transition: background .12s; }
 }
 
 .brand-logo-wrap {
-  width: 36px;
-  height: 36px;
+  width: 60px;
+  height: 60px;
+  max-width: 100px;
+  max-height: 100px;
   border-radius: 9px;
   overflow: hidden;
   border: 1px solid var(--border);
@@ -803,72 +808,10 @@ tbody tr:hover { background: #eff6ff; transition: background .12s; }
   .sidebar nav {
     gap: 10px;
   }
+
   .sidebar-group-menu {
     margin-left: 0;
   }
-}
-  transform: translateY(-3px);
-}
-
-.sector-card:active {
-  transform: translateY(0);
-  box-shadow: none;
-}
-
-.sector-card-stripe {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 5px;
-  height: 100%;
-  border-radius: 14px 0 0 14px;
-}
-
-.sector-card-icon {
-  flex-shrink: 0;
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  font-weight: 800;
-  color: #fff;
-  letter-spacing: -.02em;
-  box-shadow: 0 4px 10px rgba(0,0,0,.18);
-}
-
-.sector-card-body {
-  flex: 1;
-}
-
-.sector-card-body strong {
-  display: block;
-  font-size: 16px;
-  color: var(--heading);
-  margin-bottom: 4px;
-}
-
-.sector-card-body p {
-  margin: 0;
-  font-size: 13px;
-  color: var(--muted);
-}
-
-.sector-card-chevron {
-  flex-shrink: 0;
-  font-size: 26px;
-  color: var(--muted);
-  line-height: 1;
-  transition: color .18s, transform .18s;
-}
-
-.sector-card:hover .sector-card-chevron {
-  transform: translateX(3px);
-}
-
-/* Water sector */
 .sector-card.sector-water .sector-card-stripe { background: var(--primary); }
 .sector-card.sector-water .sector-card-icon  { background: linear-gradient(135deg, #2563eb, var(--primary)); }
 .sector-card.sector-water:hover { border-color: var(--primary); box-shadow: 0 8px 28px rgba(29,78,216,.18); }
@@ -1035,6 +978,7 @@ tbody tr:hover { background: #eff6ff; transition: background .12s; }
   .sector-card-grid { grid-template-columns: 1fr; }
   .sector-card { padding: 16px 14px 16px 18px; }
   .list-row { grid-template-columns: 1fr; }
+}
 }
 
 @media (min-width: 701px) and (max-width: 1100px) {

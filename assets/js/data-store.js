@@ -20,6 +20,7 @@ const WATER_PRODUCT_NAMES = [
   "Run Energy 500ml x 12",
   "Rush Energy 350ml x 12",
   "Ch. Vim Energy 500ml x 12",
+  "Dr. malt 350ml x 20",
   "Rosa Still Water 1L x 12",
   "Bigoo Cola 350ml x 20",
   "Bigoo Lemonlime 350ml x 20",
