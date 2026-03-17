@@ -113,6 +113,12 @@ a:hover { color: var(--primary-hover); }
 .shift-control-wrap label { color: var(--muted); font-size: 13px; }
 
 .button, .sidebar-toggle, .sector-btn {
+  }
+  .button.delete, .button[data-action="delete"] {
+    background: #dc2626 !important;
+    color: #fff !important;
+    border-color: #dc2626 !important;
+  }
   display: inline-flex;
   align-items: center;
   gap: 6px;

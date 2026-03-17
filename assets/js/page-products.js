@@ -5,7 +5,12 @@ function renderProductsPage() {
   const products = readProducts();
   list.innerHTML = "";
 
-  products.forEach((product) => {
+  // Search filter
+  const searchInput = document.getElementById("productSearch");
+  const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : "";
+  const filtered = searchTerm ? products.filter(p => p.name.toLowerCase().includes(searchTerm)) : products;
+
+  filtered.forEach((product) => {
     const row = document.createElement("div");
     row.className = "list-row";
 
@@ -22,7 +27,7 @@ function renderProductsPage() {
     });
 
     const removeBtn = document.createElement("button");
-    removeBtn.className = "button";
+    removeBtn.className = "button delete";
     removeBtn.textContent = "Delete";
     removeBtn.addEventListener("click", () => {
       if (confirm("Delete this product from all records?")) {
@@ -41,6 +46,12 @@ function renderProductsPage() {
 function initProductsPage() {
   initProtectedPage();
   renderProductsPage();
+
+  // Search event
+  const searchInput = document.getElementById("productSearch");
+  if (searchInput) {
+    searchInput.addEventListener("input", renderProductsPage);
+  }
 
   const addBtn = document.getElementById("addProductBtn");
   const newName = document.getElementById("newProductName");
