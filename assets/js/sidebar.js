@@ -43,4 +43,24 @@ function initSidebar() {
   sidebar.querySelectorAll("a").forEach((link) => {
     link.addEventListener("click", close);
   });
+
+  // Dropdown/collapsible group logic
+  sidebar.querySelectorAll('.sidebar-group-toggle').forEach((toggle) => {
+    const menu = toggle.nextElementSibling;
+    toggle.addEventListener('click', () => {
+      const expanded = toggle.getAttribute('aria-expanded') === 'true';
+      toggle.setAttribute('aria-expanded', !expanded);
+      if (menu) {
+        menu.style.display = !expanded ? 'flex' : 'none';
+      }
+    });
+    // Start collapsed on load
+    toggle.setAttribute('aria-expanded', 'false');
+    if (menu) menu.style.display = 'none';
+  });
+
+  // Responsive: close sidebar on resize if too wide
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 700) close();
+  });
 }

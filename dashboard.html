@@ -1,12 +1,15 @@
 ﻿<!DOCTYPE html>
 <html>
+
 <head>
   <meta http-equiv="refresh" content="0; url=/" />
   <title>Redirecting...</title>
 </head>
+
 <body>
   <p>Redirecting to the home page...</p>
 </body>
+
 </html>
 <!DOCTYPE html>
 <html lang="en">
@@ -40,15 +43,26 @@
   <div id="sidebarOverlay" class="sidebar-overlay"></div>
   <aside class="sidebar">
     <nav>
-      <a data-page="dashboard.html" href="dashboard.html">Dashboard</a>
-      <a data-page="balance.html" href="balance.html">Balance Sheet</a>
-      <a data-page="recording.html" href="recording.html">Customer Entry Sheet</a>
-      <a data-page="summary.html" href="summary.html">Summary Sheet</a>
-      <a data-page="returns.html" href="returns.html">Goods Returned Sheet</a>
-      <a data-page="purchase.html" href="purchase.html">Purchase Sheet</a>
-      <a data-page="dispatch.html" href="dispatch.html">Product Dispatch</a>
-      <a data-page="products.html" href="products.html">Products</a>
-      <a data-page="sector-select.html" href="sector-select.html">Switch Sector</a>
+      <a data-page="dashboard.html" href="dashboard.html">
+        <span class="sidebar-icon">🏠</span>
+        Dashboard
+      </a>
+      <div class="sidebar-group">
+        <button class="sidebar-group-toggle" aria-expanded="false">
+          <span class="sidebar-icon">📊</span> Sheets
+          <span class="sidebar-group-caret">▼</span>
+        </button>
+        <div class="sidebar-group-menu">
+          <a data-page="balance.html" href="balance.html"><span class="sidebar-icon">🧾</span> Balance Sheet</a>
+          <a data-page="recording.html" href="recording.html"><span class="sidebar-icon">📝</span> Customer Entry</a>
+          <a data-page="summary.html" href="summary.html"><span class="sidebar-icon">📋</span> Summary Sheet</a>
+          <a data-page="returns.html" href="returns.html"><span class="sidebar-icon">↩️</span> Goods Returned</a>
+          <a data-page="purchase.html" href="purchase.html"><span class="sidebar-icon">💳</span> Purchase Sheet</a>
+          <a data-page="dispatch.html" href="dispatch.html"><span class="sidebar-icon">🚚</span> Product Dispatch</a>
+        </div>
+      </div>
+      <a data-page="products.html" href="products.html"><span class="sidebar-icon">📦</span> Products</a>
+      <a data-page="sector-select.html" href="sector-select.html"><span class="sidebar-icon">🔄</span> Switch Sector</a>
     </nav>
   </aside>
 

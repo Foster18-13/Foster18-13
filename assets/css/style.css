@@ -358,6 +358,58 @@ tbody tr:hover { background: #eff6ff; transition: background .12s; }
   gap: 6px;
 }
 
+.sidebar-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.3em;
+  height: 1.3em;
+  margin-right: 8px;
+  font-size: 1.1em;
+  vertical-align: middle;
+}
+
+.sidebar-group {
+  margin-bottom: 4px;
+}
+.sidebar-group-toggle {
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 9px 12px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background var(--ease) .14s, color var(--ease) .14s;
+}
+.sidebar-group-toggle:hover, .sidebar-group-toggle[aria-expanded="true"] {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+.sidebar-group-caret {
+  margin-left: auto;
+  font-size: 1em;
+  transition: transform .18s var(--ease);
+}
+.sidebar-group-toggle[aria-expanded="true"] .sidebar-group-caret {
+  transform: rotate(180deg);
+}
+.sidebar-group-menu {
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  margin-left: 8px;
+}
+.sidebar-group-toggle[aria-expanded="true"] + .sidebar-group-menu {
+  display: flex;
+}
+}
+
 .sidebar a {
   text-decoration: none;
   color: var(--text);
@@ -705,6 +757,27 @@ tbody tr:hover { background: #eff6ff; transition: background .12s; }
 
 .sector-card:hover {
   box-shadow: var(--shadow-lg);
+  max-width: 95vw;
+}
+
+@media (max-width: 700px) {
+  .sidebar {
+    width: 90vw;
+    min-width: 0;
+    left: 5vw;
+    right: 5vw;
+    top: 0;
+    height: 100vh;
+    border-radius: var(--radius-xl);
+    padding: 18px 8px;
+  }
+  .sidebar nav {
+    gap: 10px;
+  }
+  .sidebar-group-menu {
+    margin-left: 0;
+  }
+}
   transform: translateY(-3px);
 }
 
