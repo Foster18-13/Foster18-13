@@ -48,6 +48,29 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.3;
 }
 
+.heading-white {
+  color: #fff !important;
+  background: #1d4ed8;
+  padding: 4px 12px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+}
+.heading-red {
+  color: #fff !important;
+  background: #dc2626;
+  padding: 4px 12px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+}
+.heading-blue {
+  color: #fff !important;
+  background: #2563eb;
+  padding: 4px 12px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+}
+}
+
 p, li, label, small { color: var(--muted); }
 
 a { color: var(--link); text-underline-offset: 3px; }
