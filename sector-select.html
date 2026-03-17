@@ -40,10 +40,32 @@
         </div>
         <span class="sector-card-chevron" aria-hidden="true">&#8250;</span>
       </button>
+      <button class="sector-card sector-water" data-sector="water" tabindex="0"
+        aria-label="Select Water & Beverages sector" title="Water and beverage product inventory">
+        <span class="sector-card-stripe" aria-hidden="true"></span>
+        <span class="sector-card-icon sector-icon-lg" aria-hidden="true">💧</span>
+        <div class="sector-card-body">
+          <strong>Water &amp; Beverages</strong>
+          <p>Water and beverage product inventory</p>
+          <span class="sector-active-badge" hidden>Current Session</span>
+        </div>
+        <span class="sector-card-chevron" aria-hidden="true">&#8250;</span>
+      </button>
 
       <button class="sector-card sector-hh" data-sector="hh">
         <span class="sector-card-stripe" aria-hidden="true"></span>
         <span class="sector-card-icon" aria-hidden="true">H</span>
+        <div class="sector-card-body">
+          <strong>H&amp;H</strong>
+          <p>Household and hardware products</p>
+          <span class="sector-active-badge" hidden>Current Session</span>
+        </div>
+        <span class="sector-card-chevron" aria-hidden="true">&#8250;</span>
+      </button>
+      <button class="sector-card sector-hh" data-sector="hh" tabindex="0" aria-label="Select H&H sector"
+        title="Household and hardware products">
+        <span class="sector-card-stripe" aria-hidden="true"></span>
+        <span class="sector-card-icon sector-icon-lg" aria-hidden="true">🏠</span>
         <div class="sector-card-body">
           <strong>H&amp;H</strong>
           <p>Household and hardware products</p>
@@ -62,6 +84,17 @@
         </div>
         <span class="sector-card-chevron" aria-hidden="true">&#8250;</span>
       </button>
+      <button class="sector-card sector-mcberry" data-sector="mcberry" tabindex="0" aria-label="Select McBerry sector"
+        title="McBerry product line management">
+        <span class="sector-card-stripe" aria-hidden="true"></span>
+        <span class="sector-card-icon sector-icon-lg" aria-hidden="true">🍪</span>
+        <div class="sector-card-body">
+          <strong>McBerry</strong>
+          <p>McBerry product line management</p>
+          <span class="sector-active-badge" hidden>Current Session</span>
+        </div>
+        <span class="sector-card-chevron" aria-hidden="true">&#8250;</span>
+      </button>
 
     </div>
   </main>
@@ -69,5 +102,32 @@
   <script src="assets/js/auth.js?v=20260316w"></script>
   <script src="assets/js/data-store.js?v=20260316w"></script>
   <script src="assets/js/app.js?v=20260317d"></script>
-  <script>initSectorPage();</script>
+  <script>
+    initSectorPage();
+    // Keyboard navigation and animated selection
+    document.querySelectorAll('.sector-card').forEach(card => {
+      card.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          card.click();
+        }
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+          e.preventDefault();
+          let next = card.nextElementSibling;
+          if (next && next.classList.contains('sector-card')) next.focus();
+        }
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          let prev = card.previousElementSibling;
+          if (prev && prev.classList.contains('sector-card')) prev.focus();
+        }
+      });
+      card.addEventListener('focus', () => {
+        card.classList.add('sector-focus');
+      });
+      card.addEventListener('blur', () => {
+        card.classList.remove('sector-focus');
+      });
+    });
+  </script>
 </body>

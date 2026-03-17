@@ -2,7 +2,7 @@
 .dispatch-search-bar {
   margin-bottom: 10px;
   max-width: 300px;
-}
+/* End of media query */
 /* ================================================================
    Twellium Warehouse Portal — Design System v2
    ================================================================ */
@@ -783,10 +783,40 @@ tbody tr:hover { background: #eff6ff; transition: background .12s; }
   border: 1.5px solid var(--border);
   border-radius: var(--radius-lg);
   cursor: pointer;
+.sector-card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.3em;
+  height: 1.3em;
+  margin-right: 8px;
+  font-size: 1.1em;
+  vertical-align: middle;
+}
+.sector-icon-lg {
+  font-size: 2.2em;
+  width: 2.2em;
+  height: 2.2em;
+  margin-right: 16px;
+}
   text-align: left;
   transition: border-color .18s var(--ease), box-shadow .18s var(--ease), transform .15s var(--ease);
   overflow: hidden;
   box-shadow: var(--shadow-sm);
+.sector-card.sector-active {
+  border-color: var(--primary);
+  background: #f0f6ff;
+  animation: sectorSelectPulse 0.7s cubic-bezier(.4,0,.2,1);
+}
+@keyframes sectorSelectPulse {
+  0% { box-shadow: 0 0 0 0 rgba(37,99,235,0.18); }
+  50% { box-shadow: 0 0 0 12px rgba(37,99,235,0.12); }
+  100% { box-shadow: 0 0 0 0 rgba(37,99,235,0.18); }
+}
+.sector-card.sector-focus {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+  z-index: 2;
 }
 
 .sector-card:hover {
