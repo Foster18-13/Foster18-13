@@ -43,6 +43,12 @@ function renderBalanceSheet() {
     const returnsValue = getBalanceField(date, "returns", product.id);
     const damages = getBalanceField(date, "damages", product.id);
     const closing = getBalanceField(date, "closing", product.id);
+    let stockAlert = "";
+    if (closing === 0) {
+      stockAlert = "<span class='stock-alert stock-zero'>Stock is 0!</span>";
+    } else if (closing > 0 && closing <= 100) {
+      stockAlert = `<span class='stock-alert stock-low'>Low stock: ${closing}</span>`;
+    }
     const loading = loadingByProduct(date, product.id);
     const goods = goodsReceivedByProduct(date, product.id);
     const balance = balanceComputed(date, product.id);
@@ -90,6 +96,9 @@ function renderBalanceSheet() {
       setBalanceField(date, "closing", product.id, v);
       renderBalanceSheet();
     }));
+    if (stockAlert) {
+      closingCell.innerHTML += `<br>${stockAlert}`;
+    }
     row.appendChild(closingCell);
 
     const remarkCell = document.createElement("td");
