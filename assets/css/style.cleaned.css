@@ -1,3 +1,23 @@
+/* 4D Animated Wallpaper Effect */
+.wallpaper-4d {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.wallpaper-4d-canvas {
+  width: 100vw;
+  height: 100vh;
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  opacity: 0.7;
+  filter: blur(2px) brightness(1.1) saturate(1.2);
+  pointer-events: none;
+}
 /* Sector Select Modern Styles */
 .sector-select-main {
   display: flex;
