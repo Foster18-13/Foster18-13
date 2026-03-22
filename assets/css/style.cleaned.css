@@ -1,3 +1,40 @@
+/* Toast Notification Styles */
+.toast-container {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none;
+}
+.toast {
+  min-width: 220px;
+  max-width: 340px;
+  background: var(--surface);
+  color: var(--text);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1.5px solid var(--border);
+  padding: 16px 22px;
+  font-size: 1rem;
+  font-weight: 500;
+  opacity: 0.98;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: toast-in 0.3s cubic-bezier(.4,0,.2,1);
+}
+.toast-success { border-left: 5px solid var(--success); }
+.toast-error { border-left: 5px solid var(--danger); }
+.toast-info { border-left: 5px solid var(--primary); }
+.toast-warning { border-left: 5px solid var(--warning); }
+@keyframes toast-in {
+  from { transform: translateY(-30px) scale(0.98); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 0.98; }
+}
 /* 4D Animated Wallpaper Effect */
 .wallpaper-4d {
   position: fixed;
