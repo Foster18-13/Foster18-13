@@ -1,3 +1,69 @@
+@media (max-width: 700px) {
+  .layout-grid {
+    grid-template-columns: 1fr;
+  }
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 90vw;
+    min-width: 0;
+    height: 100vh;
+    border-radius: var(--radius-xl);
+    padding: 18px 8px;
+    z-index: 2000;
+    background: rgba(255,255,255,0.98);
+    box-shadow: var(--shadow-lg);
+    transform: translateX(-100%);
+    transition: transform .22s var(--ease);
+    opacity: 1;
+    visibility: visible;
+  }
+  .sidebar.is-open {
+    transform: translateX(0);
+  }
+  .sidebar-overlay {
+    display: block;
+    opacity: 0.7;
+    pointer-events: auto;
+  }
+  .main.layout, main.layout {
+    margin-left: 0;
+    padding: 12px 0 0 0;
+  }
+  .card, .section-heading, .toolbar {
+    padding: 12px 8px;
+    font-size: 1rem;
+  }
+  .dashboard-metrics, .sector-card-grid, .quick-links-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .sector-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 16px 10px;
+  }
+  .brand, .header-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .topbar-controls {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  table, .list-row {
+    font-size: 0.98rem;
+    width: 100%;
+    overflow-x: auto;
+    display: block;
+  }
+  th, td {
+    padding: 6px 4px;
+  }
+}
 /* Toast Notification Styles */
 .toast-container {
   position: fixed;
