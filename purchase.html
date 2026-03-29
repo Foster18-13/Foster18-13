@@ -56,18 +56,18 @@
         tbody.innerHTML = '<tr><td colspan="5" class="text-muted">No purchases yet.</td></tr>';
         return;
       }
-      tbody.innerHTML = purchases.map((r,i) => `<tr><td style='padding:8px;'>${r.supplier}</td><td style='padding:8px;'>${r.product}</td><td style='padding:8px;text-align:right;'>${r.qty}</td><td style='padding:8px;'>${r.waybill}</td><td><button class='button' style='background:#ef4444;' onclick='removePurchase(${i})'>Remove</button></td></tr>`).join('');
+      tbody.innerHTML = purchases.map((r, i) => `<tr><td style='padding:8px;'>${r.supplier}</td><td style='padding:8px;'>${r.product}</td><td style='padding:8px;text-align:right;'>${r.qty}</td><td style='padding:8px;'>${r.waybill}</td><td><button class='button' style='background:#ef4444;' onclick='removePurchase(${i})'>Remove</button></td></tr>`).join('');
     }
-    window.removePurchase = function(idx) {
-      purchases.splice(idx,1); renderPurchases(); showToast('Purchase removed','error');
+    window.removePurchase = function (idx) {
+      purchases.splice(idx, 1); renderPurchases(); showToast('Purchase removed', 'error');
     };
-    document.getElementById('addPurchaseForm').onsubmit = function(e) {
+    document.getElementById('addPurchaseForm').onsubmit = function (e) {
       e.preventDefault();
       const s = document.getElementById('supplierName').value.trim();
       const p = document.getElementById('productName').value.trim();
-      const q = parseInt(document.getElementById('qty').value,10);
+      const q = parseInt(document.getElementById('qty').value, 10);
       const w = document.getElementById('waybill').value.trim();
-      if(s && p && q && w) { purchases.push({supplier:s,product:p,qty:q,waybill:w}); renderPurchases(); showToast('Purchase added!','success'); }
+      if (s && p && q && w) { purchases.push({ supplier: s, product: p, qty: q, waybill: w }); renderPurchases(); showToast('Purchase added!', 'success'); }
       this.reset();
     };
     renderPurchases();
