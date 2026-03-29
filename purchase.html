@@ -4,140 +4,73 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Purchase Sheet | Twellium Warehouse Portal</title>
-  <link rel="stylesheet" href="assets/css/style.cleaned.css?v=20260317a" />
+  <title>Purchase | Foster18-13 Portal</title>
+  <link rel="stylesheet" href="assets/css/main.css" />
 </head>
 
 <body>
-  
-  <header class="site-header">
-    <div class="header-inner">
-      <div class="brand">Purchase Sheet</div>
-      <div class="topbar-controls">
-        <label for="workingDate">Working Date</label>
-        <input id="workingDate" class="input" type="date" />
-        <span>Sector: <strong id="sectorLabel">-</strong></span>
-        <span>User: <strong id="userLabel">-</strong></span>
-        <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-expanded="false">Menu</button>
-      </div>
-    </div>
-  </header>
-
-  <div id="sidebarOverlay" class="sidebar-overlay"></div>
-  <aside class="sidebar">
-    <nav>
-      <a data-page="dashboard.html" href="dashboard.html">Dashboard</a>
-      <a data-page="balance.html" href="balance.html">Balance Sheet</a>
-      <a data-page="recording.html" href="recording.html">Customer Entry Sheet</a>
-      <a data-page="summary.html" href="summary.html">Summary Sheet</a>
-      <a data-page="returns.html" href="returns.html">Goods Returned Sheet</a>
-      <a data-page="purchase.html" href="purchase.html">Purchase Sheet</a>
-      <a data-page="dispatch.html" href="dispatch.html">Product Dispatch</a>
-      <a data-page="products.html" href="products.html">Products</a>
-      <a data-page="sector-select.html" href="sector-select.html">Switch Sector</a>
-    </nav>
-  </aside>
-
-  <main class="layout">
-    <section class="card">
-      <h2>Goods Received From Factory</h2>
-      <form id="purchaseForm" class="toolbar">
-        <label for="purchaseProduct">Product</label>
-        <select id="purchaseProduct" class="input" title="Product"></select>
-        <label for="waybillNo">Waybill Number</label>
-        <input id="waybillNo" class="input" placeholder="Waybill Number" required />
-        <label for="batchCode">Batch Code</label>
-        <input id="batchCode" class="input" placeholder="Batch Code" required />
-        <label for="pallets">No. of Pallets</label>
-        <input id="pallets" class="input" type="number" min="0" step="1" placeholder="No. of Pallets" required />
-        <label for="dateReceived">Date Received</label>
-        <input id="dateReceived" class="input" type="date" title="Date Received" required />
-        <button class="button primary" type="submit">Add Entry</button>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="products.html">Products</a>
+    <a href="summary.html">Summary</a>
+    <a href="returns.html">Returns</a>
+    <a href="purchase.html" class="active">Purchase</a>
+    <a href="#" onclick="toggleDark()" style="margin-left:auto;">🌓</a>
+  </nav>
+  <div class="main-content">
+    <div class="card glass">
+      <div class="heading">Goods Purchased</div>
+      <form id="addPurchaseForm" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;">
+        <input id="supplierName" type="text" placeholder="Supplier name" required />
+        <input id="productName" type="text" placeholder="Product" required />
+        <input id="qty" type="number" min="1" placeholder="Qty" required />
+        <input id="waybill" type="text" placeholder="Waybill No." required />
+        <button class="button" type="submit">Add Purchase</button>
       </form>
-      <button class="button" id="exportCsvBtn" type="button" style="display:none; margin-bottom:12px;">Export
-        CSV</button>
-      <button class="button" id="importCsvBtn" type="button">Import CSV</button>
-      <input type="file" id="importCsvInput" accept=".csv" style="display:none;" />
-      <div id="purchaseTableHost"></div>
-    </section>
-  </main>
-
-  <button id="darkModeToggle" class="button" type="button"
-    style="position:fixed;top:18px;right:18px;z-index:3000;">🌙</button>
-
-  <script src="assets/js/auth.js?v=20260316w"></script>
-  <script src="assets/js/data-store.js?v=20260316w"></script>
-  <script src="assets/js/sidebar.js?v=20260316q"></script>
-  <script src="assets/js/app.js?v=20260317d"></script>
-  <script src="assets/js/page-purchase.js?v=20260316q"></script>
+      <table style="width:100%;border-collapse:collapse;">
+        <thead>
+          <tr style="background:var(--surface);">
+            <th style="text-align:left;padding:10px 8px;">Supplier</th>
+            <th style="text-align:left;padding:10px 8px;">Product</th>
+            <th style="text-align:right;padding:10px 8px;">Qty</th>
+            <th style="text-align:left;padding:10px 8px;">Waybill</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="purchaseTableBody">
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <script src="assets/js/main.js"></script>
   <script>
-    initPurchasePage();
-    initDateControl(renderPurchaseTable);
-  </script>
-  <script src="assets/js/table-search.js"></script>
-  <script src="assets/js/table-export.js"></script>
-  <script src="assets/js/table-import.js"></script>
-  <script src="assets/js/toast.js"></script>
-  
-  <script>
-    // Export CSV logic
-    const exportBtn = document.getElementById('exportCsvBtn');
-    const tableHost = document.getElementById('purchaseTableHost');
-    function updateExportBtnVisibility() {
-      exportBtn.style.display = tableHost.querySelector('table') ? '' : 'none';
-    }
-    // Show/hide export button on load and after rendering
-    window.addEventListener('DOMContentLoaded', updateExportBtnVisibility);
-    if (window.renderPurchaseTable) {
-      const origRender = window.renderPurchaseTable;
-      window.renderPurchaseTable = function () {
-        origRender.apply(this, arguments);
-        updateExportBtnVisibility();
-      };
-    }
-    exportBtn.addEventListener('click', function () {
-      const table = tableHost.querySelector('table');
-      if (table) {
-        exportTableToCSV(table);
-        showToast('Table exported as CSV!', 'success');
-      } else {
-        showToast('No table to export.', 'error');
+    // Demo: In-memory purchases data
+    let purchases = [
+      { supplier: "Factory A", product: "Water", qty: 20, waybill: "WB200" },
+      { supplier: "Factory B", product: "Juice", qty: 12, waybill: "WB201" }
+    ];
+    function renderPurchases() {
+      const tbody = document.getElementById('purchaseTableBody');
+      if (!purchases.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-muted">No purchases yet.</td></tr>';
+        return;
       }
-    });
-
-    // Import CSV logic
-    const importBtn = document.getElementById('importCsvBtn');
-    const importInput = document.getElementById('importCsvInput');
-    importBtn.addEventListener('click', function () {
-      importInput.click();
-    });
-    importInput.addEventListener('change', function () {
-      const file = importInput.files[0];
-      if (file) {
-        importCSVToTable(file, tableHost, function () {
-          exportBtn.style.display = '';
-          showToast('CSV imported successfully!', 'success');
-        }, function (err) {
-          showToast('Import failed: ' + (err && err.message ? err.message : err), 'error');
-        });
-      }
-    });
-
-    // Dark mode toggle
-    const darkToggle = document.getElementById('darkModeToggle');
-    function setDarkMode(on) {
-      document.documentElement.classList.toggle('dark-mode', on);
-      localStorage.setItem('darkMode', on ? '1' : '0');
-      darkToggle.textContent = on ? '☀️' : '🌙';
+      tbody.innerHTML = purchases.map((r,i) => `<tr><td style='padding:8px;'>${r.supplier}</td><td style='padding:8px;'>${r.product}</td><td style='padding:8px;text-align:right;'>${r.qty}</td><td style='padding:8px;'>${r.waybill}</td><td><button class='button' style='background:#ef4444;' onclick='removePurchase(${i})'>Remove</button></td></tr>`).join('');
     }
-    darkToggle.addEventListener('click', function () {
-      setDarkMode(!document.documentElement.classList.contains('dark-mode'));
-    });
-    // Init from system or saved
-    const darkPref = localStorage.getItem('darkMode');
-    if (darkPref === '1' || (darkPref === null && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      setDarkMode(true);
-    }
+    window.removePurchase = function(idx) {
+      purchases.splice(idx,1); renderPurchases(); showToast('Purchase removed','error');
+    };
+    document.getElementById('addPurchaseForm').onsubmit = function(e) {
+      e.preventDefault();
+      const s = document.getElementById('supplierName').value.trim();
+      const p = document.getElementById('productName').value.trim();
+      const q = parseInt(document.getElementById('qty').value,10);
+      const w = document.getElementById('waybill').value.trim();
+      if(s && p && q && w) { purchases.push({supplier:s,product:p,qty:q,waybill:w}); renderPurchases(); showToast('Purchase added!','success'); }
+      this.reset();
+    };
+    renderPurchases();
   </script>
 </body>
 
