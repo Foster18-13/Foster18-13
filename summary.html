@@ -4,63 +4,50 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Summary Sheet | Twellium Warehouse Portal</title>
-  <link rel="stylesheet" href="assets/css/style.cleaned.css?v=20260317b" />
+  <title>Summary | Foster18-13 Portal</title>
+  <link rel="stylesheet" href="assets/css/main.css" />
 </head>
 
 <body>
-  <div class="wallpaper-4d" aria-hidden="true"></div>
-  <header class="site-header">
-    <div class="header-inner">
-      <div class="brand">Summary Sheet</div>
-      <div class="topbar-controls">
-        <label for="workingDate">Working Date</label>
-        <input id="workingDate" class="input" type="date" />
-        <span>Sector: <strong id="sectorLabel">-</strong></span>
-        <span>User: <strong id="userLabel">-</strong></span>
-        <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-expanded="false">Menu</button>
-      </div>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="products.html">Products</a>
+    <a href="summary.html" class="active">Summary</a>
+    <a href="returns.html">Returns</a>
+    <a href="purchase.html">Purchase</a>
+    <a href="#" onclick="toggleDark()" style="margin-left:auto;">🌓</a>
+  </nav>
+  <div class="main-content">
+    <div class="card glass">
+      <div class="heading">Stock Summary</div>
+      <table style="width:100%;border-collapse:collapse;">
+        <thead>
+          <tr style="background:var(--surface);">
+            <th style="text-align:left;padding:10px 8px;">Product</th>
+            <th style="text-align:right;padding:10px 8px;">Available</th>
+            <th style="text-align:right;padding:10px 8px;">Unit</th>
+          </tr>
+        </thead>
+        <tbody id="summaryTableBody">
+        </tbody>
+      </table>
     </div>
-  </header>
-
-  <div id="sidebarOverlay" class="sidebar-overlay"></div>
-  <aside class="sidebar">
-    <nav>
-      <a data-page="dashboard.html" href="dashboard.html">Dashboard</a>
-      <a data-page="balance.html" href="balance.html">Balance Sheet</a>
-      <a data-page="recording.html" href="recording.html">Customer Entry Sheet</a>
-      <a data-page="summary.html" href="summary.html">Summary Sheet</a>
-      <a data-page="returns.html" href="returns.html">Goods Returned Sheet</a>
-      <a data-page="purchase.html" href="purchase.html">Purchase Sheet</a>
-      <a data-page="dispatch.html" href="dispatch.html">Product Dispatch</a>
-      <a data-page="products.html" href="products.html">Products</a>
-      <a data-page="sector-select.html" href="sector-select.html">Switch Sector</a>
-    </nav>
-  </aside>
-
-  <main class="layout">
-    <section class="card">
-      <h2>Stock Available Summary</h2>
-      <h2 class="heading-white">Stock Available Summary</h2>
-      <div class="toolbar">
-        <button id="printSummaryBtn" class="button" type="button">Export PDF</button>
-      </div>
-      <div id="summaryTableHost"></div>
-    </section>
-  </main>
-
-  <script src="assets/js/auth.js?v=20260316w"></script>
-  <script src="assets/js/data-store.js?v=20260316w"></script>
-  <script src="assets/js/sidebar.js?v=20260316q"></script>
-  <script src="assets/js/app.js?v=20260317d"></script>
-  <script src="assets/js/page-summary.js?v=20260316q"></script>
+  </div>
+  <script src="assets/js/main.js"></script>
   <script>
-    initSummaryPage();
-    initDateControl(renderSummarySheet);
+    // Demo: In-memory summary data
+    const summaryData = [
+      { product: "Water 1.5L", available: 120, unit: "bottles" },
+      { product: "Juice 500ml", available: 80, unit: "packs" },
+      { product: "Soda 330ml", available: 60, unit: "cans" }
+    ];
+    function renderSummary() {
+      const tbody = document.getElementById('summaryTableBody');
+      tbody.innerHTML = summaryData.map(row => `<tr><td style='padding:8px;'>${row.product}</td><td style='padding:8px;text-align:right;'>${row.available}</td><td style='padding:8px;text-align:right;'>${row.unit}</td></tr>`).join('');
+    }
+    renderSummary();
   </script>
-    <script src="assets/js/table-search.js"></script>
-  <script src="assets/js/toast.js"></script>
-  <script src="assets/js/wallpaper-4d.js"></script>
 </body>
 
 </html>

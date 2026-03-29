@@ -9,7 +9,7 @@
 </head>
 
 <body>
-  <div class="wallpaper-4d" aria-hidden="true"></div>
+  
   <header class="site-header">
     <div class="header-inner">
       <div class="brand">Purchase Sheet</div>
@@ -54,9 +54,16 @@
         <input id="dateReceived" class="input" type="date" title="Date Received" required />
         <button class="button primary" type="submit">Add Entry</button>
       </form>
+      <button class="button" id="exportCsvBtn" type="button" style="display:none; margin-bottom:12px;">Export
+        CSV</button>
+      <button class="button" id="importCsvBtn" type="button">Import CSV</button>
+      <input type="file" id="importCsvInput" accept=".csv" style="display:none;" />
       <div id="purchaseTableHost"></div>
     </section>
   </main>
+
+  <button id="darkModeToggle" class="button" type="button"
+    style="position:fixed;top:18px;right:18px;z-index:3000;">🌙</button>
 
   <script src="assets/js/auth.js?v=20260316w"></script>
   <script src="assets/js/data-store.js?v=20260316w"></script>
@@ -67,9 +74,71 @@
     initPurchasePage();
     initDateControl(renderPurchaseTable);
   </script>
-    <script src="assets/js/table-search.js"></script>
+  <script src="assets/js/table-search.js"></script>
+  <script src="assets/js/table-export.js"></script>
+  <script src="assets/js/table-import.js"></script>
   <script src="assets/js/toast.js"></script>
-  <script src="assets/js/wallpaper-4d.js"></script>
+  
+  <script>
+    // Export CSV logic
+    const exportBtn = document.getElementById('exportCsvBtn');
+    const tableHost = document.getElementById('purchaseTableHost');
+    function updateExportBtnVisibility() {
+      exportBtn.style.display = tableHost.querySelector('table') ? '' : 'none';
+    }
+    // Show/hide export button on load and after rendering
+    window.addEventListener('DOMContentLoaded', updateExportBtnVisibility);
+    if (window.renderPurchaseTable) {
+      const origRender = window.renderPurchaseTable;
+      window.renderPurchaseTable = function () {
+        origRender.apply(this, arguments);
+        updateExportBtnVisibility();
+      };
+    }
+    exportBtn.addEventListener('click', function () {
+      const table = tableHost.querySelector('table');
+      if (table) {
+        exportTableToCSV(table);
+        showToast('Table exported as CSV!', 'success');
+      } else {
+        showToast('No table to export.', 'error');
+      }
+    });
+
+    // Import CSV logic
+    const importBtn = document.getElementById('importCsvBtn');
+    const importInput = document.getElementById('importCsvInput');
+    importBtn.addEventListener('click', function () {
+      importInput.click();
+    });
+    importInput.addEventListener('change', function () {
+      const file = importInput.files[0];
+      if (file) {
+        importCSVToTable(file, tableHost, function () {
+          exportBtn.style.display = '';
+          showToast('CSV imported successfully!', 'success');
+        }, function (err) {
+          showToast('Import failed: ' + (err && err.message ? err.message : err), 'error');
+        });
+      }
+    });
+
+    // Dark mode toggle
+    const darkToggle = document.getElementById('darkModeToggle');
+    function setDarkMode(on) {
+      document.documentElement.classList.toggle('dark-mode', on);
+      localStorage.setItem('darkMode', on ? '1' : '0');
+      darkToggle.textContent = on ? '☀️' : '🌙';
+    }
+    darkToggle.addEventListener('click', function () {
+      setDarkMode(!document.documentElement.classList.contains('dark-mode'));
+    });
+    // Init from system or saved
+    const darkPref = localStorage.getItem('darkMode');
+    if (darkPref === '1' || (darkPref === null && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      setDarkMode(true);
+    }
+  </script>
 </body>
 
 </html>

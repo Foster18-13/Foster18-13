@@ -4,71 +4,74 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Goods Returned | Twellium Warehouse Portal</title>
-  <link rel="stylesheet" href="assets/css/style.cleaned.css?v=20260317a" />
+  <title>Returns | Foster18-13 Portal</title>
+  <link rel="stylesheet" href="assets/css/main.css" />
 </head>
 
 <body>
-  <div class="wallpaper-4d" aria-hidden="true"></div>
-  <div class="layout-grid">
-    <aside class="sidebar">
-      <div class="sidebar-header">
-        <span class="sidebar-logo" aria-hidden="true">📦</span>
-        <span class="sidebar-title">Warehouse Portal</span>
-      </div>
-      <nav class="sidebar-nav">
-        <ul>
-          <li><a href="dashboard.html">Dashboard</a></li>
-          <li><a href="balance.html">Balance Sheet</a></li>
-          <li><a href="recording.html">Customer Entry Sheet</a></li>
-          <li><a href="summary.html">Summary Sheet</a></li>
-          <li><a class="active" href="returns.html">Goods Returned Sheet</a></li>
-          <li><a href="purchase.html">Purchase Sheet</a></li>
-          <li><a href="dispatch.html">Product Dispatch</a></li>
-          <li><a href="products.html">Products</a></li>
-          <li><a href="sector-select.html">Switch Sector</a></li>
-        </ul>
-      </nav>
-      <div class="sidebar-session">
-        <span class="session-label">Session:</span>
-        <span class="session-info"><span id="sectorLabel">-</span></span>
-        <span class="session-user">User: <span id="userLabel">-</span></span>
-      </div>
-    </aside>
-    <main class="layout">
-      <header class="site-header">
-        <div class="header-inner">
-          <div class="brand">Goods Returned Entry</div>
-          <div class="topbar-controls">
-            <label for="workingDate">Working Date</label>
-            <input id="workingDate" class="input" type="date" />
-            <button id="printReturnsBtn" class="button" type="button">Export PDF</button>
-          </div>
-        </div>
-      </header>
-      <section class="card">
-        <h2 class="heading-blue">Daily Goods Returned Sheet</h2>
-        <p>Capture customer name, product, quantity, and waybill number for goods returned, then click Save.</p>
-        <div class="toolbar">
-          <div>Total Goods Returned: <strong id="returnsGrandTotal">0</strong></div>
-        </div>
-        <div id="returnsTableHost"></div>
-      </section>
-    </main>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="products.html">Products</a>
+    <a href="summary.html">Summary</a>
+    <a href="returns.html" class="active">Returns</a>
+    <a href="purchase.html">Purchase</a>
+    <a href="#" onclick="toggleDark()" style="margin-left:auto;">🌓</a>
+  </nav>
+  <div class="main-content">
+    <div class="card glass">
+      <div class="heading">Goods Returned</div>
+      <form id="addReturnForm" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;">
+        <input id="customerName" type="text" placeholder="Customer name" required />
+        <input id="productName" type="text" placeholder="Product" required />
+        <input id="qty" type="number" min="1" placeholder="Qty" required />
+        <input id="waybill" type="text" placeholder="Waybill No." required />
+        <button class="button" type="submit">Add Return</button>
+      </form>
+      <table style="width:100%;border-collapse:collapse;">
+        <thead>
+          <tr style="background:var(--surface);">
+            <th style="text-align:left;padding:10px 8px;">Customer</th>
+            <th style="text-align:left;padding:10px 8px;">Product</th>
+            <th style="text-align:right;padding:10px 8px;">Qty</th>
+            <th style="text-align:left;padding:10px 8px;">Waybill</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="returnsTableBody">
+        </tbody>
+      </table>
+    </div>
   </div>
-
-  <script src="assets/js/auth.js?v=20260316w"></script>
-  <script src="assets/js/data-store.js?v=20260316w"></script>
-  <script src="assets/js/sidebar.js?v=20260316p"></script>
-  <script src="assets/js/app.js?v=20260317d"></script>
-  <script src="assets/js/page-returns.js?v=20260317a"></script>
+  <script src="assets/js/main.js"></script>
   <script>
-    initReturnsPage();
-    initDateControl(renderReturnsSheet);
+    // Demo: In-memory returns data
+    let returns = [
+      { customer: "Alpha", product: "Water", qty: 10, waybill: "WB123" },
+      { customer: "Bravo", product: "Juice", qty: 5, waybill: "WB124" }
+    ];
+    function renderReturns() {
+      const tbody = document.getElementById('returnsTableBody');
+      if (!returns.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-muted">No returns yet.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = returns.map((r,i) => `<tr><td style='padding:8px;'>${r.customer}</td><td style='padding:8px;'>${r.product}</td><td style='padding:8px;text-align:right;'>${r.qty}</td><td style='padding:8px;'>${r.waybill}</td><td><button class='button' style='background:#ef4444;' onclick='removeReturn(${i})'>Remove</button></td></tr>`).join('');
+    }
+    window.removeReturn = function(idx) {
+      returns.splice(idx,1); renderReturns(); showToast('Return removed','error');
+    };
+    document.getElementById('addReturnForm').onsubmit = function(e) {
+      e.preventDefault();
+      const c = document.getElementById('customerName').value.trim();
+      const p = document.getElementById('productName').value.trim();
+      const q = parseInt(document.getElementById('qty').value,10);
+      const w = document.getElementById('waybill').value.trim();
+      if(c && p && q && w) { returns.push({customer:c,product:p,qty:q,waybill:w}); renderReturns(); showToast('Return added!','success'); }
+      this.reset();
+    };
+    renderReturns();
   </script>
-    <script src="assets/js/table-search.js"></script>
-  <script src="assets/js/toast.js"></script>
-  <script src="assets/js/wallpaper-4d.js"></script>
 </body>
 
 </html>

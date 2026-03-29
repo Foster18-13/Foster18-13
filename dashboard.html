@@ -4,160 +4,54 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard | Twellium Warehouse Daily Recording Portal</title>
-  <link rel="stylesheet" href="assets/css/style.cleaned.css?v=20260317a" />
+  <title>Dashboard | Foster18-13 Portal</title>
+  <link rel="stylesheet" href="assets/css/main.css" />
 </head>
 
 <body>
-  <div class="wallpaper-4d" aria-hidden="true"></div>
-  <div class="layout-grid">
-    <aside class="sidebar">
-      <nav>
-        <a data-page="dashboard.html" href="dashboard.html">
-          <span class="sidebar-icon">🏠</span>
-          Dashboard
-        </a>
-        <div class="sidebar-group">
-          <button class="sidebar-group-toggle" aria-expanded="false">
-            <span class="sidebar-icon">📊</span> Sheets
-            <span class="sidebar-group-caret">▼</span>
-          </button>
-          <div class="sidebar-group-menu">
-            <a data-page="balance.html" href="balance.html"><span class="sidebar-icon">🧾</span> Balance Sheet</a>
-            <a data-page="recording.html" href="recording.html"><span class="sidebar-icon">📝</span> Customer Entry</a>
-            <a data-page="summary.html" href="summary.html"><span class="sidebar-icon">📋</span> Summary Sheet</a>
-            <a data-page="returns.html" href="returns.html"><span class="sidebar-icon">↩️</span> Goods Returned</a>
-            <a data-page="purchase.html" href="purchase.html"><span class="sidebar-icon">💳</span> Purchase Sheet</a>
-            <a data-page="dispatch.html" href="dispatch.html"><span class="sidebar-icon">🚚</span> Product Dispatch</a>
-          </div>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="dashboard.html" class="active">Dashboard</a>
+    <a href="products.html">Products</a>
+    <a href="summary.html">Summary</a>
+    <a href="returns.html">Returns</a>
+    <a href="purchase.html">Purchase</a>
+    <a href="#" onclick="toggleDark()" style="margin-left:auto;">🌓</a>
+  </nav>
+  <div class="main-content">
+    <div class="card glass">
+      <div class="heading">Warehouse Dashboard</div>
+      <div style="display: flex; flex-wrap: wrap; gap: 24px; margin-bottom: 24px;">
+        <div class="card glass" style="flex:1; min-width:180px;">
+          <div class="text-muted">Products Tracked</div>
+          <div style="font-size:2.2rem;font-weight:800;">128</div>
         </div>
-        <a data-page="products.html" href="products.html"><span class="sidebar-icon">📦</span> Products</a>
-        <a data-page="sector-select.html" href="sector-select.html"><span class="sidebar-icon">🔄</span> Switch
-          Sector</a>
-      </nav>
-    </aside>
-    <main class="layout dashboard-layout">
-      <section class="card dashboard-hero">
-        <div>
-          <p class="eyebrow">Operations Overview</p>
-          <h2 class="heading-blue">Warehouse Control Dashboard</h2>
-          <p id="dashboardSummaryText">Track goods delivered, goods returned, purchases, and product activity for the
-            selected working
-            date.</p>
+        <div class="card glass" style="flex:1; min-width:180px;">
+          <div class="text-muted">Customer Entries</div>
+          <div style="font-size:2.2rem;font-weight:800;">54</div>
         </div>
-        <div class="dashboard-hero-actions">
-          <a class="button primary" href="recording.html">Open Customer Entry</a>
-          <a class="button" href="returns.html">Open Goods Returned</a>
-          <a class="button" href="balance.html">Open Balance Sheet</a>
+        <div class="card glass" style="flex:1; min-width:180px;">
+          <div class="text-muted">Goods Returned</div>
+          <div style="font-size:2.2rem;font-weight:800;">17</div>
         </div>
-      </section>
-
-      <section class="dashboard-metrics" aria-label="Dashboard metrics">
-        <article class="card metric-card">
-          <small class="heading-white">Products Tracked</small>
-          <strong id="metricProductsCount">0</strong>
-          <span id="metricProductsNote" class="metric-note">Across selected sector</span>
-        </article>
-        <article class="card metric-card accent-blue">
-          <small>Customer Entries</small>
-          <strong id="metricCustomerEntries">0</strong>
-          <span id="metricCustomerEntriesNote" class="metric-note">Saved today</span>
-        </article>
-        <article class="card metric-card accent-green">
-          <small>Total Goods Delivered</small>
-          <strong id="metricTotalLoading">0</strong>
-          <span id="metricTotalLoadingNote" class="metric-note">Units delivered</span>
-        </article>
-        <article class="card metric-card accent-amber">
-          <small>Goods Returned Logged</small>
-          <strong id="metricReturnsTotal">0</strong>
-          <span id="metricReturnsNote" class="metric-note">Units returned</span>
-        </article>
-        <article class="card metric-card accent-violet">
-          <small>Purchases Logged</small>
-          <strong id="metricPurchasesCount">0</strong>
-          <span id="metricPurchasesNote" class="metric-note">Waybills received</span>
-        </article>
-        <article class="card metric-card accent-slate">
-          <small>Goods Received</small>
-          <strong id="metricGoodsReceived">0</strong>
-          <span id="metricGoodsReceivedNote" class="metric-note">Total pallets</span>
-        </article>
-      </section>
-
-      <section class="dashboard-panels">
-        <article class="card">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">Daily Status</p>
-              <h3>Operational Readiness</h3>
-            </div>
-          </div>
-          <div id="dashboardStatusList" class="status-list"></div>
-        </article>
-
-        <article class="card">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">Recent Activity</p>
-              <h3>Latest Entries</h3>
-            </div>
-          </div>
-          <div id="dashboardActivityList" class="activity-list"></div>
-        </article>
-      </section>
-
-      <section class="dashboard-panels">
-        <article class="card">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">Movement Focus</p>
-              <h3>Top Product Movement</h3>
-            </div>
-          </div>
-          <div id="dashboardMovementList" class="movement-list"></div>
-        </article>
-
-        <article class="card">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">Quick Access</p>
-              <h3>Open a Work Area</h3>
-            </div>
-          </div>
-          <div class="quick-links-grid">
-            <a class="quick-link-card" href="recording.html">
-              <strong>Customer Entry</strong>
-              <span>Capture deliveries by customer and product.</span>
-            </a>
-            <a class="quick-link-card" href="returns.html">
-              <strong>Goods Returned Sheet</strong>
-              <span>Log goods returned and keep balance totals aligned.</span>
-            </a>
-            <a class="quick-link-card" href="purchase.html">
-              <strong>Purchase Sheet</strong>
-              <span>Register goods received from suppliers or factories.</span>
-            </a>
-            <a class="quick-link-card" href="summary.html">
-              <strong>Summary Sheet</strong>
-              <span>Review stock position and product availability.</span>
-            </a>
-          </div>
-        </article>
-      </section>
-    </main>
-
-    <script src="assets/js/auth.js?v=20260316w"></script>
-    <script src="assets/js/data-store.js?v=20260316w"></script>
-    <script src="assets/js/sidebar.js?v=20260316q"></script>
-    <script src="assets/js/app.js?v=20260317d"></script>
-    <script src="assets/js/page-dashboard.js?v=20260317a"></script>
-    <script>
-      initDashboardPage();
-      initDateControl(renderDashboard);
-    </script>
-      <script src="assets/js/toast.js"></script>
-    <script src="assets/js/wallpaper-4d.js"></script>
+        <div class="card glass" style="flex:1; min-width:180px;">
+          <div class="text-muted">Purchases Logged</div>
+          <div style="font-size:2.2rem;font-weight:800;">23</div>
+        </div>
+      </div>
+      <button class="button" onclick="showToast('Demo: Dashboard loaded!')">Show Toast</button>
+    </div>
+    <div class="card glass">
+      <div class="heading">Quick Actions</div>
+      <div style="display:flex;gap:18px;flex-wrap:wrap;">
+        <a class="button" href="products.html">Manage Products</a>
+        <a class="button" href="returns.html">Log Returns</a>
+        <a class="button" href="purchase.html">Add Purchase</a>
+        <a class="button" href="summary.html">View Summary</a>
+      </div>
+    </div>
+  </div>
+  <script src="assets/js/main.js"></script>
 </body>
 
 </html>

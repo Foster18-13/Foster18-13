@@ -49,10 +49,9 @@ function initSidebar() {
     const menu = toggle.nextElementSibling;
     toggle.addEventListener('click', () => {
       const expanded = toggle.getAttribute('aria-expanded') === 'true';
-      toggle.setAttribute('aria-expanded', !expanded);
-      if (menu) {
-        menu.style.display = !expanded ? 'flex' : 'none';
-      }
+      const newExpanded = !expanded;
+      toggle.setAttribute('aria-expanded', newExpanded);
+      if (menu) menu.style.display = newExpanded ? 'flex' : 'none';
     });
     // Start collapsed on load
     toggle.setAttribute('aria-expanded', 'false');

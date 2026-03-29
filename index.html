@@ -4,14 +4,39 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Warehouse Portal</title>
+  <title>Foster18-13 Portal (Rebuilt)</title>
+  <link rel="stylesheet" href="assets/css/main.css" />
 </head>
 
 <body>
-  <p>Redirecting to sector selection...</p>
-  <script>
-    globalThis.location.replace("sector-select.html");
-  </script>
+  <nav>
+    <a href="index.html" class="active">Home</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="products.html">Products</a>
+    <a href="summary.html">Summary</a>
+    <a href="returns.html">Returns</a>
+    <a href="purchase.html">Purchase</a>
+    <a href="#" onclick="toggleDark()" style="margin-left:auto;">🌓</a>
+  </nav>
+  <div class="main-content">
+    <div class="card glass">
+      <div class="heading">Welcome to the New Foster18-13 Portal</div>
+      <p>This is a modern, minimal, and fast warehouse portal. Use the navigation above to explore features.</p>
+      <button class="button" onclick="showToast('This is a toast notification!')">Show Toast</button>
+    </div>
+    <div class="card glass">
+      <div class="heading">Features</div>
+      <ul>
+        <li>Modern SaaS-inspired UI with glassmorphism</li>
+        <li>Dark mode toggle (🌓)</li>
+        <li>Animated 3D background</li>
+        <li>Instant toast notifications</li>
+        <li>Responsive, mobile-first layout</li>
+        <li>Accessible and keyboard-friendly</li>
+      </ul>
+    </div>
+  </div>
+  <script src="assets/js/main.js"></script>
 </body>
 
 </html>

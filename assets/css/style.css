@@ -30,7 +30,6 @@
   transition: background var(--ease) .15s, border-color var(--ease) .15s,
               box-shadow var(--ease) .15s, transform var(--ease) .1s;
   box-shadow: var(--shadow-xs);
-}
 
 .button.delete, .button[data-action="delete"] {
   background: #dc2626 !important;
