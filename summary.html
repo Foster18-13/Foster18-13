@@ -5,14 +5,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Summary Sheet | Twellium Warehouse Portal</title>
-  <link rel="stylesheet" href="assets/css/style.cleaned.css?v=20260401a" />
+  <link rel="stylesheet" href="assets/css/style.cleaned.css?v=20260401b" />
 </head>
 
 <body data-page="summary">
 
   <header class="site-header">
     <div class="header-inner">
-      <div class="brand">Summary Sheet</div>
+      <div class="brand">
+        <div>Summary Sheet</div>
+      </div>
+
       <div class="topbar-controls">
         <label for="workingDate">Working Date</label>
         <input id="workingDate" class="input" type="date" />
@@ -42,166 +45,30 @@
 
   <main class="layout">
     <section class="card">
-      <h2 class="heading-blue">Stock Summary</h2>
-      <p>Available stock by product for the selected date.</p>
+      <div class="section-heading">
+        <h2 class="heading-blue">Stock Summary</h2>
+        <p>Available stock by product for the selected date.</p>
+      </div>
+
+      <div class="toolbar">
+        <input id="summarySearchInput" class="input" type="search" placeholder="Search product" autocomplete="off" />
+      </div>
+
+      <div id="summaryMeta" class="eyebrow"></div>
       <div id="summaryTableHost"></div>
     </section>
   </main>
 
-  <button
-    id="darkModeToggle"
-    class="button"
-    type="button"
-    style="position:fixed;top:18px;right:18px;z-index:3000;"
-  >🌙</button>
+  <button id="darkModeToggle" class="button" type="button"
+    style="position:fixed;top:18px;right:18px;z-index:3000;">🌙</button>
 
   <script src="assets/js/auth.js?v=20260316w"></script>
   <script src="assets/js/data-store.js?v=20260316z"></script>
   <script src="assets/js/sidebar.js?v=20260316q"></script>
   <script src="assets/js/app.js?v=20260317d"></script>
+  <script src="assets/js/page-summary.js?v=20260401b"></script>
   <script>
-    (function () {
-      "use strict";
-
-      function todayIso() {
-        return new Date().toISOString().slice(0, 10);
-      }
-
-      function getSectorSafe() {
-        if (typeof globalThis.getSector === "function") {
-          return globalThis.getSector();
-        }
-        return globalThis.sessionStorage.getItem("warehouseSector")
-          || globalThis.localStorage.getItem("warehouseSector")
-          || "water";
-      }
-
-      function getUserLabelSafe() {
-        const authFn = globalThis.requireAuth;
-        if (typeof authFn !== "function") {
-          return Promise.resolve("Guest Access");
-        }
-        return Promise.resolve(authFn())
-          .then(function (user) {
-            return user?.email || user?.name || "Guest Access";
-          })
-          .catch(function () {
-            return "Guest Access";
-          });
-      }
-
-      function getProductsSafe() {
-        const candidates = ["getProductsForSector", "getProducts", "listProducts"];
-        const sector = getSectorSafe();
-
-        for (const name of candidates) {
-          const fn = globalThis[name];
-          if (typeof fn !== "function") continue;
-          try {
-            const result = fn.length >= 1 ? fn(sector) : fn();
-            if (Array.isArray(result) && result.length) {
-              return result.map(function (item) {
-                if (typeof item === "string") return item;
-                return item?.name || item?.productName || item?.title || "";
-              }).filter(Boolean);
-            }
-          } catch (_) {}
-        }
-
-        return [
-          "Verna Shrink 500ml x 24",
-          "Verna Shrink 500ml x 16",
-          "Verna Shrink 750ml x 16",
-          "Verna Shrink 1.5L x 6",
-          "Verna Active Sport Water 500ml x 12",
-          "Verna Jar 19L"
-        ];
-      }
-
-      function numberValue(value) {
-        const parsed = Number(value);
-        return Number.isFinite(parsed) ? parsed : 0;
-      }
-
-      function loadStockState(date, sector) {
-        const keys = [
-          "twellium:stock-sheet:" + sector + ":" + date,
-          "twelliumWarehousePortalV1"
-        ];
-
-        for (const key of keys) {
-          try {
-            const parsed = JSON.parse(globalThis.localStorage.getItem(key) || "null");
-            if (!parsed) continue;
-
-            if (key === "twelliumWarehousePortalV1" && parsed.days?.[date]?.balance) {
-              return parsed.days[date].balance;
-            }
-
-            if (typeof parsed === "object") {
-              return parsed;
-            }
-          } catch (_) {}
-        }
-
-        return {};
-      }
-
-      function renderSummaryPage() {
-        const host = document.getElementById("summaryTableHost");
-        const date = document.getElementById("workingDate").value || todayIso();
-        const sector = getSectorSafe();
-        const products = getProductsSafe();
-        const stockState = loadStockState(date, sector);
-
-        const rows = products.map(function (productName) {
-          const entry = stockState[productName] || stockState[productName?.id] || {};
-          const available =
-            entry.closing !== undefined && entry.closing !== ""
-              ? numberValue(entry.closing)
-              : numberValue(entry.balance);
-
-          return `
-            <tr>
-              <td>${String(productName)}</td>
-              <td>${available}</td>
-            </tr>
-          `;
-        }).join("");
-
-        host.innerHTML = `
-          <table>
-            <thead>
-              <tr>
-                <th>Product Name</th>
-                <th>Stock Available</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${rows}
-            </tbody>
-          </table>
-        `;
-      }
-
-      document.addEventListener("DOMContentLoaded", function () {
-        const dateInput = document.getElementById("workingDate");
-        const sectorLabel = document.getElementById("sectorLabel");
-        const userLabel = document.getElementById("userLabel");
-
-        dateInput.value = todayIso();
-        sectorLabel.textContent = getSectorSafe();
-
-        getUserLabelSafe().then(function (label) {
-          userLabel.textContent = label;
-        });
-
-        dateInput.addEventListener("change", renderSummaryPage);
-        renderSummaryPage();
-      });
-
-      globalThis.renderSummaryPage = renderSummaryPage;
-    })();
+    globalThis.initSummaryPage();
   </script>
 </body>
 
