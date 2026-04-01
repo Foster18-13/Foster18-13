@@ -1,0 +1,12 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Build Foster18-13 Website",
+			"type": "shell",
+			"command": "npm run build || echo No build script found, static site assumed.",
+			"isBackground": false,
+			"group": "build"
+		}
+	]
+}

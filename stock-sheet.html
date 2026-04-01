@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stock Sheet | Twellium Warehouse Portal</title>
+  <link rel="stylesheet" href="assets/css/style.cleaned.css?v=20260401a" />
+  <style>
+    /* Stock-sheet-specific overrides */
+    .stock-sheet-table th,
+    .stock-sheet-table td {
+      white-space: nowrap;
+      padding: 8px 10px;
+      font-size: 0.92rem;
+    }
+    .stock-sheet-table input[type="number"] {
+      width: 80px;
+      min-width: 60px;
+      padding: 5px 8px;
+      font-size: 0.88rem;
+    }
+    .stock-sheet-table thead tr th {
+      background: var(--primary-soft, #eff6ff);
+      color: var(--primary, #2563eb);
+      font-weight: 700;
+      text-align: left;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    .stock-sheet-table .totals-row td {
+      background: var(--surface-subtle, #f8fafc);
+      font-weight: 700;
+      border-top: 2px solid var(--border, #e5e7eb);
+    }
+    .stock-sheet-table .text-success { color: var(--success, #16a34a); }
+    .stock-sheet-table .text-warning { color: var(--warning, #d97706); }
+    .stock-sheet-table .text-danger  { color: var(--danger, #dc2626); }
+    .stock-sheet-table .text-primary { color: var(--primary, #2563eb); }
+    .stock-sheet-table .text-muted   { color: var(--muted, #6b7280); }
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+    .badge-success { background: #dcfce7; color: #15803d; }
+    .badge-warning { background: #fef9c3; color: #b45309; }
+    .badge-danger  { background: #fee2e2; color: #b91c1c; }
+    .metric-card {
+      background: var(--surface, #fff);
+      border-radius: 12px;
+      border: 1.5px solid var(--border, #e5e7eb);
+      padding: 18px 22px;
+      box-shadow: var(--shadow-xs, 0 2px 4px rgba(0,0,0,.06));
+    }
+    .metric-label { font-size: 0.85rem; color: var(--muted, #6b7280); font-weight: 500; margin-bottom: 6px; }
+    .metric-value { font-size: 2rem; font-weight: 800; }
+    .attention-list { margin-top: 8px; padding-left: 18px; line-height: 1.8; }
+    .table-scroll-wrap { overflow-x: auto; }
+    @media print {
+      .site-header, .sidebar, #darkModeToggle, .toolbar, #stockSummarySection { display: none !important; }
+      .layout { padding: 0 !important; margin: 0 !important; }
+      .stock-sheet-table input[type="number"] { border: none; background: transparent; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">Stock Sheet</div>
+      <div class="topbar-controls">
+        <label for="workingDate">Working Date</label>
+        <input id="workingDate" class="input" type="date" />
+        <span>Sector: <strong id="sectorLabel">-</strong></span>
+        <span>User: <strong id="userLabel">-</strong></span>
+        <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-expanded="false">Menu</button>
+      </div>
+    </div>
+  </header>
+
+  <div id="sidebarOverlay" class="sidebar-overlay"></div>
+  <aside class="sidebar">
+    <nav>
+      <a data-page="dashboard.html" href="dashboard.html">Dashboard</a>
+      <a data-page="balance.html" href="balance.html">Balance Sheet</a>
+      <a data-page="stock-sheet.html" href="stock-sheet.html" class="active">Stock Sheet</a>
+      <a data-page="recording.html" href="recording.html">Customer Entry Sheet</a>
+      <a data-page="summary.html" href="summary.html">Summary Sheet</a>
+      <a data-page="returns.html" href="returns.html">Goods Returned Sheet</a>
+      <a data-page="purchase.html" href="purchase.html">Purchase Sheet</a>
+      <a data-page="dispatch.html" href="dispatch.html">Product Dispatch</a>
+      <a data-page="products.html" href="products.html">Products</a>
+      <a data-page="sector-select.html" href="sector-select.html">Switch Sector</a>
+    </nav>
+  </aside>
+
+  <main class="layout">
+    <section class="card">
+      <h2 class="heading-blue">Daily Stock Sheet</h2>
+      <p>
+        Formula: <strong>Computed Balance = Opening Stock + Purchases In + Returns In &minus; Dispatch Out &minus; Damages</strong>.
+        Enter Closing Stock to record the physical end-of-day count. Variance = Closing &minus; Computed Balance.
+      </p>
+      <div class="toolbar" style="gap:10px;flex-wrap:wrap;align-items:center;">
+        <input id="stockSearch" class="input" type="search" placeholder="Search product…" style="max-width:220px;" autocomplete="off" />
+        <button id="printStockBtn" class="button" type="button">&#128438; Export PDF</button>
+        <button id="exportStockCsvBtn" class="button" type="button">&#128462; Export CSV</button>
+        <span id="stockSheetMeta" style="margin-left:auto;font-size:0.88rem;color:var(--muted,#6b7280);"></span>
+      </div>
+      <div class="table-scroll-wrap" id="stockSheetHost"></div>
+    </section>
+
+    <section class="card" id="stockSummarySection">
+      <h2 class="heading-blue">Stock Status Summary</h2>
+      <div id="stockSummaryHost"></div>
+    </section>
+  </main>
+
+  <button id="darkModeToggle" class="button" type="button"
+    style="position:fixed;top:18px;right:18px;z-index:3000;">🌙</button>
+
+  <script src="assets/js/auth.js?v=20260316w"></script>
+  <script src="assets/js/data-store.js?v=20260316z"></script>
+  <script src="assets/js/sidebar.js?v=20260316q"></script>
+  <script src="assets/js/app.js?v=20260317d"></script>
+  <script src="assets/js/page-stock-sheet.js?v=20260401a"></script>
+  <script>
+    initStockSheetPage();
+    initDateControl(renderStockSheet);
+  </script>
+  <script src="assets/js/table-export.js"></script>
+  <script src="assets/js/toast.js"></script>
+
+</body>
+
+</html>
